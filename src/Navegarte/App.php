@@ -64,6 +64,14 @@ final class App extends \Slim\App
   }
   
   /**
+   * Get version application
+   */
+  public function version()
+  {
+    return config('app.version');
+  }
+  
+  /**
    * Resolve callable for container
    *
    * @param string $id
