@@ -10,9 +10,12 @@ if (!function_exists('dd')) {
    */
   function dd()
   {
-    array_map(function ($var) {
-      (new Debug)->dump($var);
-    }, func_get_args());
+    array_map(
+      function ($var) {
+        (new Debug)->dump($var);
+      },
+      func_get_args()
+    );
     
     die(1);
   }
@@ -55,6 +58,32 @@ if (!function_exists('env')) {
     }
     
     return $value;
+  }
+}
+if (!function_exists('asset')) {
+  /**
+   * @param string $path
+   *
+   * @return mixed
+   * @throws \Exception
+   */
+  function asset($path)
+  {
+    static $manifest;
+    
+    if (!$manifest) {
+      if (!file_exists($manifestPath = ROOT . '/public/mix-manifest.json')) {
+        throw new Exception('The mix manifest does not exists.');
+      }
+      
+      $manifest = json_decode(file_get_contents($manifestPath), true);
+    }
+    
+    if (!array_key_exists('/' . $path, $manifest)) {
+      throw new \Exception("Unable to locate Mix file: {$path}. Please check your webpack.mix.js output paths and try again.");
+    }
+    
+    return substr($manifest['/' . $path], 1);
   }
 }
 
@@ -127,16 +156,16 @@ if (!function_exists('view')) {
   {
     if (is_object(app()->resolve('view'))) {
       $response = response();
-    
+  
       if (!is_null($code)) {
         $response = $response->withStatus($code);
       }
-    
+  
       $extension = '';
       if (config('view.engine') === 'twig') {
         $extension = '.twig';
       }
-    
+  
       return app()->resolve('view')->render($response, $view . $extension, $data);
     }
   

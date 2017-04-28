@@ -55,7 +55,18 @@ final class TwigExtension extends \Twig_Extension
   public function getFunctions()
   {
     return [
-      new \Twig_SimpleFunction('config', [$this, 'getConfig',]),
+      new \Twig_SimpleFunction(
+        'config', [
+          $this,
+          'getConfig',
+        ]
+      ),
+      new \Twig_SimpleFunction(
+        'asset', [
+          $this,
+          'getAsset',
+        ]
+      ),
     ];
   }
   
@@ -70,5 +81,15 @@ final class TwigExtension extends \Twig_Extension
   public function getConfig($name, $default = null)
   {
     return config($name, $default);
+  }
+  
+  /**
+   * @param string $path
+   *
+   * @return mixed
+   */
+  public function getAsset($path)
+  {
+    return asset($path);
   }
 }
