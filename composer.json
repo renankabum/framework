@@ -27,10 +27,10 @@
   },
   "autoload": {
     "psr-4": {
-      "Navegarte\\": "src/Navegarte"
+      "Navegarte\\": "src"
     },
     "files": [
-      "src/Navegarte/helpers.php"
+      "src/helpers.php"
     ]
   },
   "config": {

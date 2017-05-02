@@ -10,12 +10,9 @@ if (!function_exists('dd')) {
    */
   function dd()
   {
-    array_map(
-      function ($var) {
-        (new Debug)->dump($var);
-      },
-      func_get_args()
-    );
+    array_map(function ($var) {
+      (new Debug)->dump($var);
+    }, func_get_args());
     
     die(1);
   }
@@ -82,8 +79,9 @@ if (!function_exists('asset')) {
     if (!array_key_exists('/' . $path, $manifest)) {
       throw new \Exception("Unable to locate Mix file: {$path}. Please check your webpack.mix.js output paths and try again.");
     }
-    
-    return substr($manifest['/' . $path], 1);
+  
+    #return substr($manifest['/' . $path], 1);
+    return $manifest['/' . $path];
   }
 }
 

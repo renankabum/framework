@@ -123,10 +123,7 @@ final class App extends \Slim\App
         throw new \Exception('Method <b>' . get_class($object) . '::' . strtolower($request->getMethod()) . ucfirst($method) . '</b> does not exists!');
       }
   
-      return call_user_func_array([
-        $object,
-        strtolower($request->getMethod()) . ucfirst($method),
-      ], $params);
+      return call_user_func_array([$object, strtolower($request->getMethod()) . ucfirst($method),], $params);
     });
   }
   

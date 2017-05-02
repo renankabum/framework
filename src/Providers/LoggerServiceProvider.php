@@ -12,10 +12,10 @@
 
 namespace Navegarte\Providers;
 
-use Navegarte\Contracts\BaseServiceProvider;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
+use Navegarte\Contracts\BaseServiceProvider;
 use Slim\Container;
 
 /**

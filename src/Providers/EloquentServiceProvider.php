@@ -12,9 +12,9 @@
 
 namespace Navegarte\Providers;
 
-use Navegarte\Contracts\BaseServiceProvider;
 use Illuminate\Database\Capsule\Manager as Eloquent;
 use Illuminate\Pagination\Paginator;
+use Navegarte\Contracts\BaseServiceProvider;
 use Slim\Container;
 
 /**

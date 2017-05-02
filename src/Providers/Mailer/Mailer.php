@@ -17,6 +17,6 @@ namespace Navegarte\Providers\Mailer;
  * @package Navegarte\Providers\Mailer
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-class Mailer
+final class Mailer
 {
 }

@@ -55,26 +55,16 @@ final class TwigExtension extends \Twig_Extension
   public function getFunctions()
   {
     return [
-      new \Twig_SimpleFunction(
-        'config', [
-          $this,
-          'getConfig',
-        ]
-      ),
-      new \Twig_SimpleFunction(
-        'asset', [
-          $this,
-          'getAsset',
-        ]
-      ),
+      new \Twig_SimpleFunction('config', [$this, 'getConfig',]),
+      new \Twig_SimpleFunction('asset', [$this, 'getAsset',]),
     ];
   }
   
   /**
    * Get config
    *
-   * @param string $name
-   * @param null   $default
+   * @param string          $name
+   * @param null|string|int $default
    *
    * @return array|int|string
    */

@@ -1,0 +1,98 @@
+<?php
+
+/**
+ * NAVEGARTE Networks
+ *
+ * @package   framework
+ * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
+ * @license   MIT
+ *
+ * @copyright 2017-${YEAH} Vagner Cardoso - NAVEGARTE
+ */
+
+namespace Navegarte\Providers\Hash;
+
+/**
+ * Class BcryptHasher
+ *
+ * @package Navegarte\Providers\Hash
+ * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
+ */
+final class BcryptHasher
+{
+  /**
+   * @var int
+   */
+  protected $rounds = 10;
+  
+  /**
+   * @param string $password
+   * @param array  $options
+   *
+   * @return bool|string
+   * @internal param string $value
+   */
+  public function make($password, array $options = [])
+  {
+    $hash = password_hash($password, PASSWORD_BCRYPT, [
+      'cost' => $this->cost($options),
+    ]);
+    
+    if ($hash === false) {
+      throw new \RuntimeException('Bcrypt hashing não é suportado.');
+    }
+    
+    return $hash;
+    
+  }
+  
+  /**
+   * @param string $password
+   * @param string $hash
+   *
+   * @return bool
+   */
+  public function check($password, $hash)
+  {
+    if (strlen($hash) === 0) {
+      return false;
+    }
+    
+    return password_verify($password, $hash);
+  }
+  
+  /**
+   * @param string $hash
+   * @param array  $options
+   *
+   * @return bool
+   */
+  public function needsRehash($hash, array $options = [])
+  {
+    return password_needs_rehash($hash, PASSWORD_BCRYPT, [
+      'cost' => $this->cost($options),
+    ]);
+  }
+  
+  /**
+   * @param int $rounds
+   *
+   * @return $this
+   */
+  public function setRounds($rounds)
+  {
+    $this->rounds = (int)$rounds;
+    
+    return $this;
+  }
+  
+  /**
+   * @param array $options
+   *
+   * @return int|mixed
+   */
+  protected function cost(array $options)
+  {
+    return isset($options['rounds']) ? $options['rounds'] : $this->rounds;
+  }
+}

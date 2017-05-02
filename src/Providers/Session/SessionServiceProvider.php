@@ -3,26 +3,27 @@
 /**
  * NAVEGARTE Networks
  *
- * @package   FrontEnd
+ * @package   framework
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-${YEAH} Vagner Cardoso - NAVEGARTE
  */
 
-namespace Navegarte\Providers;
+namespace Navegarte\Providers\Session;
 
 use Navegarte\Contracts\BaseServiceProvider;
 use Slim\Container;
 
 /**
- * Class ErrorServiceProvider
+ * Class SessionServiceProvider
  *
- * @package Navegarte\Providers
+ * @package Navegarte\Providers\Session
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class ErrorServiceProvider extends BaseServiceProvider
+final class SessionServiceProvider extends BaseServiceProvider
 {
+  
   /**
    * Registers services on the given container.
    *
@@ -32,8 +33,8 @@ final class ErrorServiceProvider extends BaseServiceProvider
    */
   public function register(Container $container)
   {
-    /*$container['phpErrorHandler'] = $container['errorHandler'] = function () use ($container) {
-      return new ErrorHandler($container->get('settings')['displayErrorDetails']);
-    };*/
+    $container['session'] = function () {
+      return new Session;
+    };
   }
 }

@@ -10,49 +10,20 @@
  * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
  */
 
-namespace Navegarte\Middleware\Contracts;
+namespace Navegarte\Middleware;
 
+use Navegarte\Contracts\BaseMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Container;
 
 /**
- * Class BaseMiddleware
+ * Class TrailingSlashMiddleware
  *
  * @package Navegarte\Middleware
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-abstract class BaseMiddleware
+final class TrailingSlashMiddleware extends BaseMiddleware
 {
-  /**
-   * @var \Slim\Container
-   */
-  protected $container;
-  
-  /**
-   * BaseMiddleware constructor.
-   *
-   * @param \Slim\Container $container
-   */
-  public function __construct(Container $container)
-  {
-    $this->container = $container;
-  }
-  
-  /**
-   * Get property in container
-   *
-   * @param $name
-   *
-   * @return mixed
-   */
-  public function __get($name)
-  {
-    if ($this->container->{$name}) {
-      return $this->container->{$name};
-    }
-  }
-  
   /**
    * Register middleware
    *
@@ -62,5 +33,25 @@ abstract class BaseMiddleware
    *
    * @return \Psr\Http\Message\ResponseInterface
    */
-  abstract public function __invoke(Request $request, Response $response, callable $next);
+  public function __invoke(Request $request, Response $response, callable $next)
+  {
+    $uri = $request->getUri();
+    $path = $uri->getPath();
+    
+    if ($path != '/' && substr($path, -1) == '/') {
+      $uri = $uri->withPath(substr($path, 0, -1));
+      
+      if ($request->getMethod() == 'GET') {
+        return $response->withRedirect((string)$uri, 301);
+      } else {
+        $response = $next($request->withUri($uri), $response);
+        
+        return $response;
+      }
+    }
+    
+    $response = $next($request, $response);
+    
+    return $response;
+  }
 }

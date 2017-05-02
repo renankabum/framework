@@ -1,27 +1,29 @@
 <?php
+
 /**
  * NAVEGARTE Networks
  *
- * @package   FrontEnd
+ * @package   framework
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-${YEAH} Vagner Cardoso - NAVEGARTE
  */
 
-namespace Navegarte\Providers\Mailer;
+namespace Navegarte\Providers\Hash;
 
 use Navegarte\Contracts\BaseServiceProvider;
 use Slim\Container;
 
 /**
- * Class MailerServiceProvider
+ * Class BcryptServiceProvider
  *
- * @package Navegarte\Providers\Mailer
+ * @package Navegarte\Providers\Hash
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-class MailerServiceProvider extends BaseServiceProvider
+final class BcryptServiceProvider extends BaseServiceProvider
 {
+  
   /**
    * Registers services on the given container.
    *
@@ -31,9 +33,8 @@ class MailerServiceProvider extends BaseServiceProvider
    */
   public function register(Container $container)
   {
-    $container['mailer'] = function () use ($container) {
-      
-      return 'mailer';
+    $container['hash'] = function () {
+      return new BcryptHasher;
     };
   }
 }

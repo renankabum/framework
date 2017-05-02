@@ -36,11 +36,6 @@ final class ConfigurationMiddleware extends BaseMiddleware
   public function __invoke(Request $request, Response $response, callable $next)
   {
     /**
-     * after middleware
-     */
-    $response = $next($request, $response);
-    
-    /**
      * Error app
      */
     set_error_handler(function ($code, $message, $file, $line) {
@@ -106,6 +101,11 @@ final class ConfigurationMiddleware extends BaseMiddleware
         die(1);
         break;
     }
+  
+    /**
+     * Before middleware
+     */
+    $response = $next($request, $response);
     
     return $response;
   }
