@@ -80,7 +80,6 @@ if (!function_exists('asset')) {
       throw new \Exception("Unable to locate Mix file: {$path}. Please check your webpack.mix.js output paths and try again.");
     }
   
-    #return substr($manifest['/' . $path], 1);
     return $manifest['/' . $path];
   }
 }
@@ -164,6 +163,9 @@ if (!function_exists('view')) {
         $extension = '.twig';
       }
   
+      // replace '.' em '/'
+      $view = str_replace('.', '/', $view);
+      
       return app()->resolve('view')->render($response, $view . $extension, $data);
     }
   
