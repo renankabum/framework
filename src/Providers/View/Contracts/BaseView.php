@@ -37,7 +37,7 @@ abstract class BaseView
     $this->container = $container;
   }
   
-  abstract public function __invoke();
+  abstract public function register();
   
   /**
    * Get provider

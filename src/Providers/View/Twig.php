@@ -30,7 +30,7 @@ final class Twig extends BaseView
    *
    * @return \Slim\Views\Twig
    */
-  public function __invoke()
+  public function register()
   {
     $twig = new TwigSlim(config('view.path.folder'), [
       'debug' => config('view.debug', false),

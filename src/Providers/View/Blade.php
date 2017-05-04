@@ -26,7 +26,7 @@ final class Blade extends BaseView
   /**
    * Get engine template <b>BLADE</b>
    */
-  public function __invoke()
+  public function register()
   {
     return $this;
   }

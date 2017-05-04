@@ -39,11 +39,11 @@ final class ViewServiceProvider extends BaseServiceProvider
       }
       
       if (config('view.engine') === 'blade') {
-        return new Blade($container);
+        return (new Blade($container))->register();
       }
       
       if (config('view.engine') === 'twig') {
-        return new Twig($container);
+        return (new Twig($container))->register();
       }
       
       throw new \Exception('A Camada [view] está configurada incorretamente. Favor verificar suas configurações!', E_USER_NOTICE);
