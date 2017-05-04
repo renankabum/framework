@@ -12,7 +12,7 @@
 
 namespace Navegarte\Middleware;
 
-use Navegarte\Middleware\Contracts\BaseMiddleware;
+use Navegarte\Contracts\BaseMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
