@@ -57,6 +57,7 @@ final class TwigExtension extends \Twig_Extension
     return [
       new \Twig_SimpleFunction('config', [$this, 'getConfig',]),
       new \Twig_SimpleFunction('asset', [$this, 'getAsset',]),
+      new \Twig_SimpleFunction('check_url', [$this, 'checkUrl',]),
     ];
   }
   
@@ -81,5 +82,24 @@ final class TwigExtension extends \Twig_Extension
   public function getAsset($path)
   {
     return asset($path);
+  }
+  
+  /**
+   * @param string $name
+   *
+   * @return bool
+   */
+  public function checkUrl($name)
+  {
+    /** @var \Slim\Http\Request $request */
+    $request = $this->container['request'];
+    
+    /** @var \Slim\Router $router */
+    $router = $this->container['router'];
+    
+    $basePath = $request->getUri()->getBasePath() . '/';
+    $uri = $request->getUri()->getPath();
+    
+    return $basePath . $uri === $router->pathFor($name);
   }
 }
