@@ -20,7 +20,7 @@ use Slim\Container;
  * @package Navegarte\Providers\View
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class TwigExtension extends \Twig_Extension
+final class TwigExtension extends \Twig_Extension implements \Twig_Extension_GlobalsInterface
 {
   /**
    * @var \Slim\Container
@@ -61,6 +61,13 @@ final class TwigExtension extends \Twig_Extension
     ];
   }
   
+  public function getGlobals()
+  {
+    return [
+      'session' => $this->container['session']
+    ];
+  }
+  
   /**
    * Get config
    *
@@ -84,11 +91,6 @@ final class TwigExtension extends \Twig_Extension
     return asset($path);
   }
   
-  /**
-   * @param string $name
-   *
-   * @return bool
-   */
   public function checkUrl($name)
   {
     /** @var \Slim\Http\Request $request */
