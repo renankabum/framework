@@ -38,11 +38,11 @@ final class Twig extends BaseView
       'cache' => (config('view.cache', false) ? config('view.path.compiled') . '/twig' : false),
       'auto_reload' => true,
     ]);
-    
-    $uri = rtrim(str_ireplace('index.php', '', request()->getUri()->getBasePath()), '/');
+  
+    $uri = rtrim(str_ireplace('index.php', '', $this->request->getUri()->getBasePath()), '/');
     
     $twig->addExtension(new \Twig_Extension_Debug());
-    $twig->addExtension(new ExtensionSlim(router(), $uri));
+    $twig->addExtension(new ExtensionSlim($this->router, $uri));
     $twig->addExtension(new ExtensionCore($this->container));
     
     return $twig;
