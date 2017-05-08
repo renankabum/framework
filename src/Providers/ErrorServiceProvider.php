@@ -25,7 +25,6 @@ use Slim\Http\Response;
  */
 final class ErrorServiceProvider extends BaseServiceProvider
 {
-  
   /**
    * Registers services on the given container.
    *
@@ -52,7 +51,8 @@ final class ErrorServiceProvider extends BaseServiceProvider
           return $response->withJson([
             'error' => [
               'status' => 500,
-              'message' => htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8', false)
+              'message' => htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8', false),
+              'file' => $exception->getFile()
             ]
           ], 500);
         }
