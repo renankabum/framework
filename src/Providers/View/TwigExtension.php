@@ -91,6 +91,11 @@ final class TwigExtension extends \Twig_Extension implements \Twig_Extension_Glo
     return asset($path);
   }
   
+  /**
+   * @param $name
+   *
+   * @return bool
+   */
   public function checkUrl($name)
   {
     /** @var \Slim\Http\Request $request */
