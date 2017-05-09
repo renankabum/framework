@@ -103,9 +103,12 @@ final class TwigExtension extends \Twig_Extension implements \Twig_Extension_Glo
     
     /** @var \Slim\Router $router */
     $router = $this->container['router'];
-    
-    $basePath = $request->getUri()->getBasePath() . '/';
+  
+    $basePath = $request->getUri()->getBasePath();
     $uri = $request->getUri()->getPath();
+    $uri = strpos($uri, '/', 0) === false ? '/' . $uri : $uri;
+  
+    //dd($basePath, $uri, $router->pathFor($name));
     
     return $basePath . $uri === $router->pathFor($name);
   }
