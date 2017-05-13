@@ -21,6 +21,9 @@ use Slim\Container;
  *
  * @package Navegarte\Contracts
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
+ *
+ * @property \Navegarte\Providers\Session\Session   session
+ * @property \Navegarte\Providers\Hash\BcryptHasher hash
  */
 abstract class BaseMiddleware
 {
