@@ -24,6 +24,7 @@ use Slim\Container;
  *
  * @property \Navegarte\Providers\Session\Session   session
  * @property \Navegarte\Providers\Hash\BcryptHasher hash
+ * @property \Slim\Views\Twig                       view
  */
 abstract class BaseMiddleware
 {
