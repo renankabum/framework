@@ -24,7 +24,6 @@ final class Check
    * @var mixed
    */
   private static $data;
-  
   /**
    * @var mixed
    */
@@ -47,5 +46,66 @@ final class Check
     }
     
     return false;
+  }
+  
+  /**
+   * @param $tituloEleitor
+   *
+   * @return bool
+   */
+  public static function tituloEleitor($tituloEleitor)
+  {
+    $te = str_pad(preg_replace('[^0-9]', '', $tituloEleitor), 12, '0', STR_PAD_LEFT);
+    $uf = intval(substr($tituloEleitor, 8, 2));
+    
+    if (strlen($tituloEleitor) != 12 || $uf < 1 || $uf > 28) {
+      return false;
+    } else {
+      $d = 0;
+      
+      for ($i = 0; $i < 8; $i++) {
+        $d += $tituloEleitor{$i} * (9 - $i);
+      }
+      
+      $d %= 11;
+      
+      if ($d < 2) {
+        if ($uf < 3) {
+          $d = 1 - $d;
+        } else {
+          $d = 0;
+        }
+      } else {
+        $d = 11 - $d;
+      }
+      
+      if ($tituloEleitor{10} != $d) {
+        return false;
+      }
+      
+      $d *= 2;
+      
+      for ($i = 8; $i < 10; $i++) {
+        $d += $tituloEleitor{$i} * (12 - $i);
+      }
+      
+      $d %= 11;
+      
+      if ($d < 2) {
+        if ($uf < 3) {
+          $d = 1 - $d;
+        } else {
+          $d = 0;
+        }
+      } else {
+        $d = 11 - $d;
+      }
+      
+      if ($tituloEleitor{11} != $d) {
+        return false;
+      }
+      
+      return true;
+    }
   }
 }
