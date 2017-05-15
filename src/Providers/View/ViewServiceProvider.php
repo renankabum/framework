@@ -48,5 +48,19 @@ final class ViewServiceProvider extends BaseServiceProvider
       
       throw new \Exception('A Camada [view] está configurada incorretamente. Favor verificar suas configurações!', E_USER_NOTICE);
     };
+  
+    /**
+     * View apenas para os emaisl
+     */
+    $container['viewMail'] = function () use ($container) {
+      $twig = new \Twig_Environment(new \Twig_Loader_Filesystem(config('view.path.folder')));
+    
+      $uri = rtrim(str_ireplace('index.php', '', $container->request->getUri()->getBasePath()), '/');
+    
+      $twig->addExtension(new \Slim\Views\TwigExtension($container->router, $uri));
+      $twig->addExtension(new TwigExtension($container));
+    
+      return $twig;
+    };
   }
 }

@@ -32,8 +32,8 @@ final class MailerServiceProvider extends BaseServiceProvider
   public function register(Container $container)
   {
     $container['mailer'] = function () use ($container) {
-      
-      return 'mailer';
+  
+      return new Mailer($container);
     };
   }
 }
