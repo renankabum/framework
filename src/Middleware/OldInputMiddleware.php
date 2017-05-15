@@ -10,7 +10,7 @@
  * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
  */
 
-namespace App\Middleware;
+namespace Navegarte\Middleware;
 
 use Navegarte\Contracts\BaseMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -19,7 +19,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 /**
  * Class OldInputMiddleware
  *
- * @package App\Middleware
+ * @package Navegarte\Middleware
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class OldInputMiddleware extends BaseMiddleware
