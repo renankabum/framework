@@ -50,16 +50,16 @@ final class ViewServiceProvider extends BaseServiceProvider
     };
   
     /**
-     * View apenas para os emaisl
+     * View apenas para os email
      */
     $container['viewMail'] = function () use ($container) {
       $twig = new \Twig_Environment(new \Twig_Loader_Filesystem(config('view.path.folder')));
-    
+  
       $uri = rtrim(str_ireplace('index.php', '', $container->request->getUri()->getBasePath()), '/');
-    
+  
       $twig->addExtension(new \Slim\Views\TwigExtension($container->router, $uri));
       $twig->addExtension(new TwigExtension($container));
-    
+  
       return $twig;
     };
   }
