@@ -52,6 +52,7 @@ final class App extends \Slim\App
   /**
    * Get instance class
    *
+   *
    * @return \Navegarte\App
    */
   public static function getInstance()
