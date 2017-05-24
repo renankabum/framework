@@ -19,7 +19,7 @@ use Slim\Container;
 class InterventionImageServiceProvider extends BaseServiceProvider
 {
   /**
-   * Registers services on the given container.
+   * Registers service on the given container.
    *
    * @param \Slim\Container $container
    *
