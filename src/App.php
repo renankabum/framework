@@ -33,7 +33,9 @@ final class App extends \Slim\App
    */
   public function __construct()
   {
-    // Slim setup
+    /**
+     * Slim setup
+     */
     $settings = [
       'settings' => [
         'determineRouteBeforeAppMiddleware' => true,
@@ -41,9 +43,18 @@ final class App extends \Slim\App
         'addContentLengthHeader' => false,
       ],
     ];
-    
-    // Merge all settings
+  
+    /**
+     * Merge all settings
+     */
     $settings = array_merge($settings, config());
+  
+    /**
+     * Generate encryption key
+     */
+    if (empty($settings['app']['key'])) {
+      $this->generateKey();
+    }
     
     // Slim parent construct
     parent::__construct($settings);
@@ -212,5 +223,23 @@ final class App extends \Slim\App
     }
     
     return $array;
+  }
+  
+  /**
+   *
+   */
+  private function generateKey()
+  {
+    file_put_contents(ROOT . '/.env', preg_replace($this->keyReplacementPattern(), 'APP_KEY=base64:' . base64_encode(random_bytes(32)), file_get_contents(ROOT . '/.env')));
+  }
+  
+  /**
+   * @return string
+   */
+  private function keyReplacementPattern()
+  {
+    $escaped = preg_quote('=' . config('app.key'), '/');
+    
+    return "/^APP_KEY{$escaped}/m";
   }
 }
