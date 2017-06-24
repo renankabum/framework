@@ -3,20 +3,21 @@
 /**
  * NAVEGARTE Networks
  *
- * @package   FrontEnd
+ * @package   framework
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
  */
 
-namespace Navegarte\Contracts;
+namespace Navegarte\Helpers;
 
 /**
- * Class BaseModel
+ * Class Curl
  *
- * @package Navegarte\Contracts
+ * @package Navegarte\Helpers
+ * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-abstract class BaseModel
+final class Curl
 {
 }

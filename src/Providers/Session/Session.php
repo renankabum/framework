@@ -1,13 +1,13 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   framework
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-${YEAH} Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-${YEAH} Vagner Cardoso - VCWeb
  */
 
 namespace Navegarte\Providers\Session;
@@ -78,9 +78,11 @@ final class Session
    */
   public function exists($key)
   {
-    return !collect(is_array($key) ? $key : func_get_args())->contains(function ($key) {
-      return !Arr::exists($this->session, $key);
-    });
+      return !collect(is_array($key) ? $key : func_get_args())->contains(
+          function ($key) {
+              return !Arr::exists($this->session, $key);
+          }
+      );
   }
   
   /**
@@ -90,9 +92,11 @@ final class Session
    */
   public function has($key)
   {
-    return !collect(is_array($key) ? $key : func_get_args())->contains(function ($key) {
-      return is_null($this->get($key));
-    });
+      return !collect(is_array($key) ? $key : func_get_args())->contains(
+          function ($key) {
+              return is_null($this->get($key));
+          }
+      );
   }
   
   /**

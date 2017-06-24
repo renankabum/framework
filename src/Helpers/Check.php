@@ -1,13 +1,13 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Helpers;
@@ -31,9 +31,9 @@ final class Check
   private static $format;
   
   /**
-   * Verifica se o e-Mail está em um formato válido!
+   * Checks if e-Mail is in a valid format!
    *
-   * @param $email
+   * @param string $email
    *
    * @return bool
    */
@@ -50,22 +50,24 @@ final class Check
   }
   
   /**
-   * @param $tituloEleitor
+   * Checks if the title is in a valid format!
+   *
+   * @param string $te
    *
    * @return bool
    */
-  public static function tituloEleitor($tituloEleitor)
-  {
-    $te = str_pad(preg_replace('[^0-9]', '', $tituloEleitor), 12, '0', STR_PAD_LEFT);
-    $uf = intval(substr($tituloEleitor, 8, 2));
-    
-    if (strlen($tituloEleitor) != 12 || $uf < 1 || $uf > 28) {
+    public static function te($te)
+    {
+        $te = str_pad(preg_replace('[^0-9]', '', $te), 12, '0', STR_PAD_LEFT);
+        $uf = intval(substr($te, 8, 2));
+        
+        if (strlen($te) != 12 || $uf < 1 || $uf > 28) {
       return false;
     } else {
       $d = 0;
       
       for ($i = 0; $i < 8; $i++) {
-        $d += $tituloEleitor{$i} * (9 - $i);
+          $d += $te{$i} * (9 - $i);
       }
       
       $d %= 11;
@@ -79,15 +81,15 @@ final class Check
       } else {
         $d = 11 - $d;
       }
-      
-      if ($tituloEleitor{10} != $d) {
+            
+            if ($te{10} != $d) {
         return false;
       }
       
       $d *= 2;
       
       for ($i = 8; $i < 10; $i++) {
-        $d += $tituloEleitor{$i} * (12 - $i);
+          $d += $te{$i} * (12 - $i);
       }
       
       $d %= 11;
@@ -101,8 +103,8 @@ final class Check
       } else {
         $d = 11 - $d;
       }
-      
-      if ($tituloEleitor{11} != $d) {
+            
+            if ($te{11} != $d) {
         return false;
       }
       

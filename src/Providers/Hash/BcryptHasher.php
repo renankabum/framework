@@ -1,13 +1,13 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   framework
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-${YEAH} Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso - VCWeb
  */
 
 namespace Navegarte\Providers\Hash;
@@ -30,20 +30,16 @@ final class BcryptHasher
    * @param array  $options
    *
    * @return bool|string
-   * @internal param string $value
    */
   public function make($password, array $options = [])
   {
-    $hash = password_hash($password, PASSWORD_BCRYPT, [
-      'cost' => $this->cost($options),
-    ]);
+      $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => $this->cost($options)]);
     
     if ($hash === false) {
       throw new \RuntimeException('Bcrypt hashing não é suportado.');
     }
     
     return $hash;
-    
   }
   
   /**
@@ -69,9 +65,7 @@ final class BcryptHasher
    */
   public function needsRehash($hash, array $options = [])
   {
-    return password_needs_rehash($hash, PASSWORD_BCRYPT, [
-      'cost' => $this->cost($options),
-    ]);
+      return password_needs_rehash($hash, PASSWORD_BCRYPT, ['cost' => $this->cost($options),]);
   }
   
   /**

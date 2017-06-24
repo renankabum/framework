@@ -1,27 +1,27 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Providers\View;
 
-use Navegarte\Providers\View\Contracts\BaseView;
+use Navegarte\Contracts\ViewAbstract;
 use Slim\Http\Response;
 
 /**
- * Class Blade
+ * Class BladeProvider
  *
- * @package Navegarte\Providers\Blade
+ * @package Navegarte\Providers\BladeProvider
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class Blade extends BaseView
+final class BladeProvider extends ViewAbstract
 {
   /**
    * Get engine template <b>BLADE</b>

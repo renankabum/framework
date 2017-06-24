@@ -1,20 +1,20 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Providers;
 
 use Illuminate\Database\Capsule\Manager as Eloquent;
 use Illuminate\Pagination\Paginator;
-use Navegarte\Contracts\BaseServiceProvider;
+use Navegarte\Contracts\ServiceProviderAbstract;
 use Slim\Container;
 
 /**
@@ -23,7 +23,7 @@ use Slim\Container;
  * @package Navegarte\Providers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class EloquentServiceProvider extends BaseServiceProvider
+final class EloquentServiceProvider extends ServiceProviderAbstract
 {
   /**
    * Registers services on the given container.
@@ -37,7 +37,7 @@ final class EloquentServiceProvider extends BaseServiceProvider
     /*
      * Instanceof ORM eloquent
      */
-    $eloquent = new Eloquent;
+      $eloquent = new Eloquent();
     
     /*
      * Make the connection
@@ -70,12 +70,14 @@ final class EloquentServiceProvider extends BaseServiceProvider
     $request = request();
     $currentPage = $request->getParam('page');
     
-    Paginator::currentPageResolver(function () use ($currentPage) {
-      if (filter_var($currentPage, FILTER_VALIDATE_INT) !== false && (int)$currentPage >= 1) {
-        return $currentPage;
-      }
-  
-      return 1;
-    });
+      Paginator::currentPageResolver(
+          function () use ($currentPage) {
+              if (filter_var($currentPage, FILTER_VALIDATE_INT) !== false && (int)$currentPage >= 1) {
+                  return $currentPage;
+              }
+            
+              return 1;
+          }
+      );
   }
 }

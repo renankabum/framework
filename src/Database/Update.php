@@ -1,13 +1,13 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Database;
@@ -17,7 +17,7 @@ namespace Navegarte\Database;
  *
  * @package App\Database
  */
-class Update
+final class Update
 {
   /**
    * @var string
@@ -85,42 +85,36 @@ class Update
   }
   
   /**
-   *
-   *
-   * @param string $places
+   * Obtém a conexão a syntax e executa a query
    */
-  public function setPlaces($places)
-  {
-    parse_str($places, $this->places);
-    $this->execute();
+    private function execute()
+    {
+        try {
+            $this->syntax();
+            $this->connect();
+            $this->statement->execute();
+            $this->result = true;
+        } catch (\PDOException $e) {
+            $this->result = null;
+            
+            throw new \Exception("Update:: {$e->getMessage()}");
+        }
   }
   
   /**
-   *
-   *
-   * @return array
+   * Cria a syntax da query para prepared statement
    */
-  public function getResult()
-  {
-    return $this->result;
-  }
-  
-  /**
-   *
-   *
-   * @return int
-   */
-  public function getRowCount()
-  {
-    if ($this->statement->rowCount() == -1) {
-      return count($this->statement->fetchAll());
+    private function syntax()
+    {
+        $data = [];
+        
+        foreach ($this->data as $index => $value) {
+            $data[] = "{$index} = :{$index}";
+        }
+        
+        $data = implode(', ', $data);
+        $this->statement = "UPDATE {$this->table} SET {$data} {$this->terms}";
     }
-    
-    return $this->statement->rowCount();
-  }
-  
-  
-  // Methods privates
   
   /**
    * Obtém o PDO e Prepara a Query
@@ -140,44 +134,51 @@ class Update
      * Percore os dados e places para montar os binds
      */
     $merging = $this->data;
-  
-    if ($this->places) {
+    
+      if ($this->places) {
       $merging = array_merge($this->data, $this->places);
     }
-  
-    foreach ($merging as $index => $place) {
+    
+      foreach ($merging as $index => $place) {
       $this->statement->bindValue(":{$index}", $place, (is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR));
     }
   }
+    
+    
+    // Methods privates
   
   /**
-   * Cria a syntax da query para prepared statement
+   *
+   *
+   * @param string $places
    */
-  private function syntax()
-  {
-    $data = [];
-  
-    foreach ($this->data as $index => $value) {
-      $data[] = "{$index} = :{$index}";
+    public function setPlaces($places)
+    {
+        parse_str($places, $this->places);
+        $this->execute();
     }
-  
-    $data = implode(', ', $data);
-    $this->statement = "UPDATE {$this->table} SET {$data} {$this->terms}";
+    
+    /**
+     *
+     *
+     * @return array
+     */
+    public function getResult()
+    {
+        return $this->result;
   }
   
   /**
-   * Obtém a conexão a syntax e executa a query
+   *
+   *
+   * @return int
    */
-  private function execute()
-  {
-    try {
-      $this->syntax();
-      $this->connect();
-      $this->statement->execute();
-      $this->result = true;
-    } catch (\PDOException $e) {
-      $this->result = null;
-      die($e->getMessage());
+    public function getRowCount()
+    {
+        if ($this->statement->rowCount() == -1) {
+            return count($this->statement->fetchAll());
     }
+        
+        return $this->statement->rowCount();
   }
 }

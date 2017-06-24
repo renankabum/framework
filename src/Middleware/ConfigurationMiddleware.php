@@ -1,18 +1,18 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Middleware;
 
-use Navegarte\Contracts\BaseMiddleware;
+use Navegarte\Contracts\MiddlewareAbstract;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -22,7 +22,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  * @package Navegarte\Middleware
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class ConfigurationMiddleware extends BaseMiddleware
+final class ConfigurationMiddleware extends MiddlewareAbstract
 {
   /**
    * Register middleware
@@ -35,15 +35,21 @@ final class ConfigurationMiddleware extends BaseMiddleware
    */
   public function __invoke(Request $request, Response $response, callable $next)
   {
+      /**
+       * Before middleware
+       */
+    
     /**
      * Error app
      */
-    set_error_handler(function ($code, $message, $file, $line) {
-      if (!($code & error_reporting())) {
-        return;
-      }
-      throw new \ErrorException($message, $code, 0, $file, $line);
-    });
+      set_error_handler(
+          function ($code, $message, $file, $line) {
+              if (!($code & error_reporting())) {
+                  return;
+              }
+              throw new \ErrorException($message, $code, 0, $file, $line);
+          }
+      );
     
     /**
      * Locale language
@@ -57,7 +63,7 @@ final class ConfigurationMiddleware extends BaseMiddleware
       $current = session_get_cookie_params();
       
       session_set_cookie_params($current['lifetime'], $current['path'], $current['domain'], $current['secure'], true);
-      session_name(md5(md5('navegarte' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['PHP_SELF'])));
+        session_name(md5(md5('VCWeb' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['PHP_SELF'])));
       session_cache_limiter('nocache');
       if (!session_id()) {
         session_start();
@@ -101,9 +107,9 @@ final class ConfigurationMiddleware extends BaseMiddleware
         die(1);
         break;
     }
-  
-    /**
-     * Before middleware
+    
+      /**
+       * After middleware
      */
     $response = $next($request, $response);
     

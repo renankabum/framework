@@ -1,13 +1,13 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Contracts;
@@ -17,16 +17,16 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Container;
 
 /**
- * Class BaseMiddleware
+ * Class MiddlewareAbstract
  *
  * @package Navegarte\Contracts
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  *
  * @property \Navegarte\Providers\Session\Session   session
  * @property \Navegarte\Providers\Hash\BcryptHasher hash
- * @property \Slim\Views\Twig                       view
+ * @property \Navegarte\Providers\View\Twig\Twig    view
  */
-abstract class BaseMiddleware
+abstract class MiddlewareAbstract
 {
   /**
    * @var \Slim\Container
@@ -44,20 +44,6 @@ abstract class BaseMiddleware
   }
   
   /**
-   * Get property in container
-   *
-   * @param $name
-   *
-   * @return mixed
-   */
-  public function __get($name)
-  {
-    if ($this->container->{$name}) {
-      return $this->container->{$name};
-    }
-  }
-  
-  /**
    * Register middleware
    *
    * @param \Psr\Http\Message\ServerRequestInterface|\Slim\Http\Request $request  PSR7 request
@@ -67,4 +53,18 @@ abstract class BaseMiddleware
    * @return \Psr\Http\Message\ResponseInterface
    */
   abstract public function __invoke(Request $request, Response $response, callable $next);
+    
+    /**
+     * Get property in container
+     *
+     * @param $name
+     *
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        if ($this->container->{$name}) {
+            return $this->container->{$name};
+        }
+    }
 }

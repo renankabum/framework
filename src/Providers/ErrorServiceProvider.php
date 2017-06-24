@@ -1,18 +1,18 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   framework
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-${YEAH} Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-${YEAH} Vagner Cardoso - VCWeb
  */
 
 namespace Navegarte\Providers;
 
-use Navegarte\Contracts\BaseServiceProvider;
+use Navegarte\Contracts\ServiceProviderAbstract;
 use Slim\Container;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -23,7 +23,7 @@ use Slim\Http\Response;
  * @package Navegarte\Providers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class ErrorServiceProvider extends BaseServiceProvider
+final class ErrorServiceProvider extends ServiceProviderAbstract
 {
   /**
    * Registers services on the given container.
@@ -41,26 +41,30 @@ final class ErrorServiceProvider extends BaseServiceProvider
       /**
        * @param \Slim\Http\Request  $request
        * @param \Slim\Http\Response $response
-       * @param \Exception          $exception
+       * @param \Throwable          $exception
        *
        * @return mixed
        */
-      return function (Request $request, Response $response, \Exception $exception) use ($container) {
+        return function (Request $request, Response $response, \Throwable $exception) use ($container) {
+            $array = [];
         
         if ($request->isXhr()) {
-          return $response->withJson([
+            $array = [
             'error' => [
               'status' => 500,
               'message' => htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8', false),
-              'file' => $exception->getFile()
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine()
             ]
-          ], 500);
+            ];
+    
+            return $response->withJson($array, 500);
         }
         
-        $data['debug'] = null;
+            $array['debug'] = null;
         
         if ($container['settings']['displayErrorDetails']) {
-          $data = [
+            $array = [
             'debug' => true,
             'error' => [
               'message' => $exception->getMessage(),
@@ -71,7 +75,7 @@ final class ErrorServiceProvider extends BaseServiceProvider
           ];
         }
         
-        return view('error/500', $data, 500);
+            return view('error/500', $array, 500);
       };
     };
     
@@ -86,9 +90,11 @@ final class ErrorServiceProvider extends BaseServiceProvider
        * @return mixed
        */
       return function (Request $request, Response $response) use ($container) {
-        return view('error/404', [
+          $array = [
           'url' => urldecode($request->getUri())
-        ], 404);
+          ];
+    
+          return view('error/404', $array, 404);
       };
     };
     
@@ -103,11 +109,13 @@ final class ErrorServiceProvider extends BaseServiceProvider
        * @return mixed
        */
       return function (Request $request, Response $response, $methods) use ($container) {
-        return view('error/405', [
+          $array = [
           'url' => urldecode($request->getUri()),
           'method' => $request->getMethod(),
-          'methods' => implode(', ', $methods),
-        ], 405);
+              'methods' => implode(', ', $methods)
+          ];
+    
+          return view('error/405', $array, 405);
       };
     };
   }

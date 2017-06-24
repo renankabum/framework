@@ -1,13 +1,13 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Database;
@@ -18,7 +18,7 @@ namespace Navegarte\Database;
  * @package Navegarte\Database
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-class Read
+final class Read
 {
   /**
    * @var string
@@ -71,6 +71,48 @@ class Read
     $this->select = "SELECT * FROM {$table} {$terms}";
     $this->execute();
   }
+    
+    /**
+     * Obtém a conexão a syntax e executa a query
+     */
+    private function execute()
+    {
+        try {
+            $this->connect();
+            $this->syntax();
+            $this->statement->execute();
+            $this->result = $this->statement->fetchAll();
+        } catch (\PDOException $e) {
+            $this->result = null;
+            
+            throw new \Exception("Read:: {$e->getMessage()}");
+        }
+    }
+    
+    /**
+     * Obtém o PDO e Prepara a Query
+     */
+    private function connect()
+    {
+        
+        $this->statement = $this->conn->prepare($this->select);
+    }
+    
+    /**
+     * Cria a syntax da query para prepared statement
+     */
+    private function syntax()
+    {
+        if ($this->places) {
+            foreach ($this->places as $index => $place) {
+                if ($index == 'limit' || $index == 'offset') {
+                    $place = (int)$place;
+                }
+                
+                $this->statement->bindValue(":{$index}", $place, (is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR));
+            }
+        }
+    }
   
   /**
    *
@@ -88,6 +130,9 @@ class Read
     
     $this->execute();
   }
+    
+    
+    // Methods privates
   
   /**
    *
@@ -122,48 +167,5 @@ class Read
     }
     
     return $this->statement->rowCount();
-  }
-  
-  
-  // Methods privates
-  
-  /**
-   * Obtém o PDO e Prepara a Query
-   */
-  private function connect()
-  {
-    $this->statement = $this->conn->prepare($this->select);
-  }
-  
-  /**
-   * Cria a syntax da query para prepared statement
-   */
-  private function syntax()
-  {
-    if ($this->places) {
-      foreach ($this->places as $index => $place) {
-        if ($index == 'limit' || $index == 'offset') {
-          $place = (int)$place;
-        }
-        
-        $this->statement->bindValue(":{$index}", $place, (is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR));
-      }
-    }
-  }
-  
-  /**
-   * Obtém a conexão a syntax e executa a query
-   */
-  private function execute()
-  {
-    try {
-      $this->connect();
-      $this->syntax();
-      $this->statement->execute();
-      $this->result = $this->statement->fetchAll();
-    } catch (\PDOException $e) {
-      $this->result = null;
-      die($e->getMessage());
-    }
   }
 }

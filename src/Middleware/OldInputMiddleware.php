@@ -1,18 +1,18 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   framework
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Middleware;
 
-use Navegarte\Contracts\BaseMiddleware;
+use Navegarte\Contracts\MiddlewareAbstract;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -22,7 +22,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  * @package Navegarte\Middleware
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class OldInputMiddleware extends BaseMiddleware
+final class OldInputMiddleware extends MiddlewareAbstract
 {
   /**
    * Register OldInput middleware
@@ -36,10 +36,12 @@ final class OldInputMiddleware extends BaseMiddleware
   public function __invoke(Request $request, Response $response, callable $next)
   {
     if (!$request->isXhr()) {
-      $this->view->getEnvironment()->addGlobal('old', $this->session->get('old'));
+        // $this->view->getEnvironment()->addGlobal('old', $this->session->get('old'));
+        $this->view->addGlobal('old', $this->session->get('old'));
       $this->session->set('old', $request->getParams());
     }
-    $response = $next($request, $response);
+    
+      $response = $next($request, $response);
     
     return $response;
   }

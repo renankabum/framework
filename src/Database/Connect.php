@@ -1,13 +1,13 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Database;
@@ -28,26 +28,25 @@ abstract class Connect
   private static $conn = null;
   
   /**
-   * Connect constructor.
+   * @var bool
+   */
+    private static $fail = false;
+  
+  /**
+   * Get conexão PDO
    *
-   * Previne instanciar a class
+   * @return \PDO
    */
-  private function __construct() { }
-  
-  /**
-   * Previne a clonagem da class
-   */
-  private function __clone() { }
-  
-  /**
-   * Previne a desserialização da class
-   */
-  private function __wakeup() { }
+    public static function boot()
+    {
+        return static::Connect();
+    }
   
   /**
    * Connecta com o banco de dados com o pattern singleton
    *
-   * @return PDO
+   * @return \PDO
+   * @throws \Exception
    */
   private static function Connect()
   {
@@ -87,20 +86,34 @@ abstract class Connect
         }
       }
     } catch (\PDOException $e) {
-      trigger_error("Problema ao connectar: <b>[{$e->getMessage()}]</b>", E_USER_ERROR);
-      die;
+        static::$fail = true;
+    
+        throw new \Exception("Connect:: {$e->getMessage()}");
     }
     
     return static::$conn;
   }
   
   /**
-   * Get conexão PDO
+   * Connect constructor.
    *
-   * @return \PDO
+   * Previne instanciar a class
    */
-  public static function boot()
-  {
-    return static::Connect();
+    private function __construct()
+    {
+    }
+    
+    /**
+     * Previne a clonagem da class
+     */
+    private function __clone()
+    {
+    }
+    
+    /**
+     * Previne a desserialização da class
+     */
+    private function __wakeup()
+    {
   }
 }

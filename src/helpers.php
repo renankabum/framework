@@ -6,13 +6,22 @@ if (!function_exists('dd')) {
   /**
    * Debug mode
    *
-   * @return mixed
+   * @param mixed $dumps
+   *
+   * @return void
    */
-  function dd()
-  {
-    array_map(function ($var) {
-      (new Debug)->dump($var);
-    }, func_get_args());
+    function dd(...$dumps)
+    {
+        /* array_map(
+           function ($var) {
+             (new Debug())->dump($var);
+           },
+           func_get_args()
+         );*/
+        
+        foreach ($dumps as $dump) {
+            (new Debug())->dump($dump);
+        }
     
     die(1);
   }
@@ -22,10 +31,10 @@ if (!function_exists('env')) {
   /**
    * Get '.env' configuration
    *
-   * @param string $name
-   * @param null   $default
+   * @param string          $name
+   * @param string|int|null $default
    *
-   * @return array|bool|false|null|string
+   * @return mixed
    */
   function env($name, $default = null)
   {
@@ -57,14 +66,17 @@ if (!function_exists('env')) {
     return $value;
   }
 }
-if (!function_exists('asset')) {
+
+if (!function_exists('mix')) {
   /**
+   * Usage laravel-mix
+   *
    * @param string $path
    *
    * @return mixed
    * @throws \Exception
    */
-  function asset($path)
+    function mix($path)
   {
     static $manifest;
     
@@ -79,19 +91,64 @@ if (!function_exists('asset')) {
     if (!array_key_exists('/' . $path, $manifest)) {
       throw new \Exception("Unable to locate Mix file: {$path}. Please check your webpack.mix.js output paths and try again.");
     }
-  
-    return $manifest['/' . $path];
+    
+      return $manifest['/' . $path];
   }
+}
+
+if (!function_exists('asset')) {
+    /**
+     * @param string $path
+     *
+     * @return bool|string
+     */
+    function asset($path)
+    {
+        $path = (substr($path, 0, 1) === '/' ? $path : "/{$path}");
+        
+        if (file_exists(ROOT . "/public{$path}")) {
+            $version = substr(md5_file(ROOT . "/public{$path}"), 0, 10);
+            
+            return "{$path}?v={$version}";
+        }
+        
+        return false;
+    }
+}
+
+if (!function_exists('asset_source')) {
+    /**
+     * @param string|array $path
+     *
+     * @return bool|string
+     */
+    function asset_source($path)
+    {
+        if (!is_array($path)) {
+            $path = [$path];
+        }
+        
+        $sources = [];
+        foreach ($path as $item) {
+            $path = (substr($item, 0, 1) === '/' ? $item : "/{$item}");
+            
+            if (file_exists(ROOT . "/public{$path}")) {
+                $sources[] = file_get_contents(ROOT . "/public{$path}");
+            }
+        }
+        
+        return implode('', $sources);
+    }
 }
 
 if (!function_exists('config')) {
   /**
    * Get config
    *
-   * @param string|null $name
-   * @param null        $default
+   * @param string|null     $name
+   * @param string|int|null $default
    *
-   * @return array|string|int
+   * @return mixed
    */
   function config($name = null, $default = null)
   {
@@ -133,8 +190,8 @@ if (!function_exists('logger')) {
     if (is_object(app()->resolve('logger'))) {
       return app()->resolve('logger', [$file]);
     }
-  
-    throw new Exception('Logger configurado incorretamente!');
+    
+      throw new \Exception('Logger configurado incorretamente!');
   }
 }
 
@@ -143,33 +200,33 @@ if (!function_exists('view')) {
    * Rendering view content
    *
    * @param string   $view
-   * @param array    $data
+   * @param array    $array
    * @param int|null $code
    *
    * @return mixed
    * @throws \Exception
    */
-  function view($view, $data = [], $code = null)
+    function view($view, array $array = [], $code = null)
   {
     if (is_object(app()->resolve('view'))) {
       $response = response();
-  
-      if (!is_null($code)) {
+    
+        if (!is_null($code)) {
         $response = $response->withStatus($code);
       }
-  
-      $extension = '';
+    
+        $extension = '';
       if (config('view.engine') === 'twig') {
         $extension = '.twig';
       }
-  
-      // replace '.' em '/'
+    
+        // replace '.' em '/'
       $view = str_replace('.', '/', $view);
-      
-      return app()->resolve('view')->render($response, $view . $extension, $data);
+    
+        return app()->resolve('view')->render($response, $view . $extension, $array);
     }
-  
-    throw new Exception('View configurado incorretamente!');
+    
+      throw new Exception('View configurado incorretamente!');
   }
 }
 

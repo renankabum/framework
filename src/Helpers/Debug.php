@@ -1,13 +1,13 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Helpers;
@@ -31,8 +31,8 @@ final class Debug
   public function dump($var)
   {
     if (class_exists(CliDumper::class)) {
-      $dump = (PHP_SAPI == 'cli' ? new CliDumper : new HtmlDumper);
-      $dump->dump((new VarCloner)->cloneVar($var));
+        $dump = in_array(PHP_SAPI, ['cli', 'phpdbg']) ? new CliDumper() : new HtmlDumper();
+        $dump->dump((new VarCloner())->cloneVar($var));
     } else {
       var_dump($var);
     }

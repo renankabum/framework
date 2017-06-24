@@ -1,13 +1,13 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Contracts;
@@ -15,11 +15,12 @@ namespace Navegarte\Contracts;
 use Slim\Container;
 
 /**
- * Class BaseServiceProvider
+ * Class ServiceProviderAbstract
  *
  * @package Navegarte\Contracts
+ * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-abstract class BaseServiceProvider
+abstract class ServiceProviderAbstract
 {
   /**
    * Registers services on the given container.
@@ -35,5 +36,7 @@ abstract class BaseServiceProvider
    *
    * @return mixed|void
    */
-  public function boot() { }
+    public function boot()
+    {
+    }
 }

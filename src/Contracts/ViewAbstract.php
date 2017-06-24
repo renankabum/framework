@@ -1,26 +1,26 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers\View\Contracts;
+namespace Navegarte\Contracts;
 
 use Slim\Container;
 
 /**
- * Class BaseView
+ * Class ViewAbstract
  *
- * @package Navegarte\Providers\View\Contracts
+ * @package Navegarte\Contracts
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-abstract class BaseView
+abstract class ViewAbstract
 {
   /**
    * @var \Slim\Container $container
@@ -28,7 +28,7 @@ abstract class BaseView
   protected $container;
   
   /**
-   * Twig constructor.
+   * TwigProvider constructor.
    *
    * @param \Slim\Container $container
    */
@@ -36,7 +36,12 @@ abstract class BaseView
   {
     $this->container = $container;
   }
-  
+    
+    /**
+     * Register new view provider
+     *
+     * @return mixed
+     */
   abstract public function register();
   
   /**

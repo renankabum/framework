@@ -1,18 +1,19 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Providers\View;
 
-use Navegarte\Contracts\BaseServiceProvider;
+use Navegarte\Contracts\ServiceProviderAbstract;
+use Navegarte\Providers\View\Twig\TwigExtension;
 use Slim\Container;
 
 /**
@@ -21,7 +22,7 @@ use Slim\Container;
  * @package Navegarte\Providers\View
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class ViewServiceProvider extends BaseServiceProvider
+final class ViewServiceProvider extends ServiceProviderAbstract
 {
   /**
    * Registers services on the given container.
@@ -33,34 +34,38 @@ final class ViewServiceProvider extends BaseServiceProvider
   public function register(Container $container)
   {
     $container['view'] = function () use ($container) {
-      
-      if (config('view.engine') === 'php') {
-        return 'PHP';
+    
+        $engineObject = null;
+    
+        switch (config('view.engine')) {
+            case 'php':
+                $engineObject = (new PhpProvider($container))->register();
+                break;
+            case 'blade':
+                $engineObject = (new BladeProvider($container))->register();
+                break;
+            case 'twig':
+                $engineObject = (new TwigProvider($container))->register();
+                break;
       }
-      
-      if (config('view.engine') === 'blade') {
-        return (new Blade($container))->register();
+    
+        if (!is_object($engineObject)) {
+            throw new \Exception('Erro processamento da view.', E_USER_ERROR);
       }
-      
-      if (config('view.engine') === 'twig') {
-        return (new Twig($container))->register();
-      }
-      
-      throw new \Exception('A Camada [view] está configurada incorretamente. Favor verificar suas configurações!', E_USER_NOTICE);
+    
+        return $engineObject;
     };
-  
-    /**
-     * View apenas para os email
+    
+      /**
+       * Register view in mail
+       *
+       * @return \Twig_Environment
      */
-    $container['viewMail'] = function () use ($container) {
+      $container['view.mail'] = function () use ($container) {
       $twig = new \Twig_Environment(new \Twig_Loader_Filesystem(config('view.path.folder')));
-  
-      $uri = rtrim(str_ireplace('index.php', '', $container->request->getUri()->getBasePath()), '/');
-  
-      $twig->addExtension(new \Slim\Views\TwigExtension($container->router, $uri));
       $twig->addExtension(new TwigExtension($container));
-  
-      return $twig;
+        
+          return $twig;
     };
   }
 }

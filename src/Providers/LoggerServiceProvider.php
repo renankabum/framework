@@ -1,13 +1,13 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Providers;
@@ -15,7 +15,7 @@ namespace Navegarte\Providers;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
-use Navegarte\Contracts\BaseServiceProvider;
+use Navegarte\Contracts\ServiceProviderAbstract;
 use Slim\Container;
 
 /**
@@ -24,7 +24,7 @@ use Slim\Container;
  * @package Navegarte\Providers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class LoggerServiceProvider extends BaseServiceProvider
+final class LoggerServiceProvider extends ServiceProviderAbstract
 {
   /**
    * Registers services on the given container.

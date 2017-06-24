@@ -1,12 +1,12 @@
 <?php
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Providers\Mailer;
@@ -25,11 +25,13 @@ final class Mailer
    * Retorna o erro ocorrido
    */
   protected $error;
-  /**
+    
+    /**
    * @var \Slim\Container
    */
   protected $container;
-  /**
+    
+    /**
    * @var \PHPMailer
    */
   protected $mail;
@@ -42,7 +44,7 @@ final class Mailer
   public function __construct(Container $container)
   {
     $this->container = $container;
-    $this->mail = new \PHPMailer;
+      $this->mail = new \PHPMailer();
     
     /**
      * Configuração dos dados de envio de emails.
@@ -68,7 +70,7 @@ final class Mailer
     
     $message = new MailerMessage($this->mail);
     
-    $message->body($this->container->viewMail->render("mail/{$view}.twig", ['data' => $data]));
+      $message->body($this->container['view.mail']->render("mail/{$view}.twig", ['data' => $data]));
     
     call_user_func($callback, $message);
     

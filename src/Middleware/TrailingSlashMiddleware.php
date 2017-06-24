@@ -1,18 +1,18 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   FrontEnd
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Middleware;
 
-use Navegarte\Contracts\BaseMiddleware;
+use Navegarte\Contracts\MiddlewareAbstract;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -22,7 +22,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  * @package Navegarte\Middleware
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class TrailingSlashMiddleware extends BaseMiddleware
+final class TrailingSlashMiddleware extends MiddlewareAbstract
 {
   /**
    * Register middleware

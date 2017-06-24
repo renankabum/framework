@@ -1,22 +1,28 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   framework
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Navegarte\Providers;
 
 use Intervention\Image\ImageManager;
-use Navegarte\Contracts\BaseServiceProvider;
+use Navegarte\Contracts\ServiceProviderAbstract;
 use Slim\Container;
 
-class InterventionImageServiceProvider extends BaseServiceProvider
+/**
+ * Class InterventionImageServiceProvider
+ *
+ * @package Navegarte\Providers
+ * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
+ */
+final class InterventionImageServiceProvider extends ServiceProviderAbstract
 {
   /**
    * Registers service on the given container.
@@ -27,6 +33,9 @@ class InterventionImageServiceProvider extends BaseServiceProvider
    */
   public function register(Container $container)
   {
+      /**
+       * @return \Intervention\Image\ImageManager
+       */
     $container['image'] = function () {
       
       return new ImageManager(['driver' => 'gd']);
