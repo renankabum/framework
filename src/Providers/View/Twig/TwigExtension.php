@@ -12,6 +12,7 @@
 
 namespace Navegarte\Providers\View\Twig;
 
+use Navegarte\Helpers\Str;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -161,7 +162,13 @@ final class TwigExtension extends \Twig_Extension implements \Twig_Extension_Glo
      */
     public function is_route($name)
     {
-        return $this->router->pathFor($name) === $this->request->getUri()->getPath();
+        $path = '';
+        
+        if (!Str::startsWith($this->request->getUri()->getPath(), '/')) {
+            $path = "{$this->base_url()}/{$this->request->getUri()->getPath()}";
+        }
+        
+        return $this->router->pathFor($name) === $path;
     }
     
     /**
@@ -173,7 +180,13 @@ final class TwigExtension extends \Twig_Extension implements \Twig_Extension_Glo
      */
     public function is_route_active($name)
     {
-        if ($this->router->pathFor($name) === $this->request->getUri()->getPath()) {
+        $path = '';
+        
+        if (!Str::startsWith($this->request->getUri()->getPath(), '/')) {
+            $path = "{$this->base_url()}/{$this->request->getUri()->getPath()}";
+        }
+        
+        if ($this->router->pathFor($name) === $path) {
             return 'active';
         }
         

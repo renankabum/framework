@@ -12,7 +12,7 @@
 
 namespace Navegarte\Providers\Session;
 
-use Illuminate\Support\Arr;
+use Navegarte\Helpers\Arr;
 
 /**
  * Class Session
@@ -22,118 +22,110 @@ use Illuminate\Support\Arr;
  */
 final class Session
 {
-  /**
-   * @var array
-   */
-  protected $session = [];
-  
-  /**
-   * Session constructor.
-   */
-  public function __construct()
-  {
-    $this->notExists();
+    /**
+     * @var array
+     */
+    protected $session = [];
     
-    $this->session = &$_SESSION;
-  }
-  
-  /**
-   * @return array
-   */
-  public function all()
-  {
-    return $this->session;
-  }
-  
-  /**
-   * @param string $key
-   * @param null   $value
-   */
-  public function set($key, $value = null)
-  {
-    if (!is_array($key)) {
-      $key = [$key => $value];
+    /**
+     * Session constructor.
+     */
+    public function __construct()
+    {
+        $this->session = &$_SESSION;
+        
+        $this->verifySessionExists();
     }
     
-    foreach ($key as $arrayKey => $arrayValue) {
-      Arr::set($this->session, $arrayKey, $arrayValue);
+    /**
+     * @return array
+     */
+    public function all()
+    {
+        return $this->session;
     }
-  }
-  
-  /**
-   * @param string $key
-   * @param null   $default
-   *
-   * @return mixed
-   */
-  public function get($key, $default = null)
-  {
-    return Arr::get($this->session, $key, $default);
-  }
-  
-  /**
-   * @param string $key
-   *
-   * @return bool
-   */
-  public function exists($key)
-  {
-      return !collect(is_array($key) ? $key : func_get_args())->contains(
-          function ($key) {
-              return !Arr::exists($this->session, $key);
-          }
-      );
-  }
-  
-  /**
-   * @param string $key
-   *
-   * @return bool
-   */
-  public function has($key)
-  {
-      return !collect(is_array($key) ? $key : func_get_args())->contains(
-          function ($key) {
-              return is_null($this->get($key));
-          }
-      );
-  }
-  
-  /**
-   * @param string $key
-   *
-   * @return mixed
-   */
-  public function remove($key)
-  {
-    return Arr::pull($this->session, $key);
-  }
-  
-  /**
-   * @param string $keys
-   */
-  public function forget($keys)
-  {
-    Arr::forget($this->session, $keys);
-  }
-  
-  /**
-   * Remove todas sessão
-   */
-  public function destroy()
-  {
-    session_destroy();
     
-    $_SESSION = [];
-  }
-  
-  /**
-   * Iniciar a session caso ela não existe
-   */
-  protected function notExists()
-  {
-    if (!session_id()) {
-      session_start();
+    /**
+     * @param string $key
+     * @param null   $value
+     */
+    public function set($key, $value = null)
+    {
+        if (!is_array($key)) {
+            $key = [$key => $value];
+        }
+        
+        foreach ($key as $arrayKey => $arrayValue) {
+            Arr::set($this->session, $arrayKey, $arrayValue);
+        }
     }
-  }
+    
+    /**
+     * @param string $key
+     * @param null   $default
+     *
+     * @return mixed
+     */
+    public function get($key, $default = null)
+    {
+        return Arr::get($this->session, $key, $default);
+    }
+    
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function exists($key)
+    {
+        return Arr::exists($this->session, $key);
+    }
+    
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function has($key)
+    {
+        return !is_null($this->get($key));
+    }
+    
+    /**
+     * @param string $key
+     *
+     * @return mixed
+     */
+    public function remove($key)
+    {
+        return Arr::pull($this->session, $key);
+    }
+    
+    /**
+     * @param string $keys
+     */
+    public function forget($keys)
+    {
+        Arr::forget($this->session, $keys);
+    }
+    
+    /**
+     * Remove todas sessão
+     */
+    public function destroy()
+    {
+        session_destroy();
+        
+        $_SESSION = [];
+    }
+    
+    /**
+     * Iniciar a session caso ela não existe
+     */
+    protected function verifySessionExists()
+    {
+        if (!session_id()) {
+            session_start();
+        }
+    }
 }

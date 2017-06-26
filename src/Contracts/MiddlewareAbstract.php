@@ -22,37 +22,39 @@ use Slim\Container;
  * @package Navegarte\Contracts
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  *
- * @property \Navegarte\Providers\Session\Session   session
- * @property \Navegarte\Providers\Hash\BcryptHasher hash
- * @property \Navegarte\Providers\View\Twig\Twig    view
+ * @property \Navegarte\Providers\Hash\BcryptHasher     hash
+ * @property \Navegarte\Providers\Session\Session       session
+ * @property \Navegarte\Providers\Mailer\Mailer         mailer
+ * @property \Navegarte\Providers\Encryption\Encryption encryption
+ * @property \Slim\Router                               router
  */
 abstract class MiddlewareAbstract
 {
-  /**
-   * @var \Slim\Container
-   */
-  protected $container;
-  
-  /**
-   * BaseMiddleware constructor.
-   *
-   * @param \Slim\Container $container
-   */
-  public function __construct(Container $container)
-  {
-    $this->container = $container;
-  }
-  
-  /**
-   * Register middleware
-   *
-   * @param \Psr\Http\Message\ServerRequestInterface|\Slim\Http\Request $request  PSR7 request
-   * @param \Psr\Http\Message\ResponseInterface|\Slim\Http\Response     $response PSR7 response
-   * @param callable                                                    $next     Next middleware
-   *
-   * @return \Psr\Http\Message\ResponseInterface
-   */
-  abstract public function __invoke(Request $request, Response $response, callable $next);
+    /**
+     * @var \Slim\Container
+     */
+    protected $container;
+    
+    /**
+     * BaseMiddleware constructor.
+     *
+     * @param \Slim\Container $container
+     */
+    public function __construct(Container $container)
+    {
+        $this->container = $container;
+    }
+    
+    /**
+     * Register middleware
+     *
+     * @param \Psr\Http\Message\ServerRequestInterface|\Slim\Http\Request $request  PSR7 request
+     * @param \Psr\Http\Message\ResponseInterface|\Slim\Http\Response     $response PSR7 response
+     * @param callable                                                    $next     Next middleware
+     *
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    abstract public function __invoke(Request $request, Response $response, callable $next);
     
     /**
      * Get property in container
