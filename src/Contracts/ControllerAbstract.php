@@ -27,6 +27,11 @@ use Slim\Exception\NotFoundException;
  * @property \Navegarte\Providers\Session\Session       session
  * @property \Navegarte\Providers\Mailer\Mailer         mailer
  * @property \Navegarte\Providers\Encryption\Encryption encryption
+ * @property \Navegarte\Database\Create                 create
+ * @property \Navegarte\Database\Read                   read
+ * @property \Navegarte\Database\Update                 update
+ * @property \Navegarte\Database\Delete                 delete
+ * @property \Navegarte\Providers\View\Twig\Twig        view
  */
 abstract class ControllerAbstract
 {
