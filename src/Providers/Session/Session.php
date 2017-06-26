@@ -32,9 +32,9 @@ final class Session
      */
     public function __construct()
     {
-        $this->session = &$_SESSION;
-        
         $this->verifySessionExists();
+    
+        $this->session = &$_SESSION;
     }
     
     /**

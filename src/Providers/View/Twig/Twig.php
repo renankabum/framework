@@ -42,7 +42,7 @@ final class Twig
     /**
      * @var array
      */
-    protected $var;
+    protected $var = [];
     
     /**
      * TwigProvider constructor.
