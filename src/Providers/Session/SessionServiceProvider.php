@@ -23,20 +23,20 @@ use Slim\Container;
  */
 final class SessionServiceProvider extends ServiceProviderAbstract
 {
-  /**
-   * Registers services on the given container.
-   *
-   * @param \Slim\Container $container
-   *
-   * @return mixed|void
-   */
-  public function register(Container $container)
-  {
-      /**
-       * @return \Navegarte\Providers\Session\Session
-       */
-    $container['session'] = function () {
-        return new Session();
-    };
-  }
+    /**
+     * Registers services on the given container.
+     *
+     * @param \Slim\Container $container
+     *
+     * @return mixed|void
+     */
+    public function register(Container $container)
+    {
+        /**
+         * @return \Navegarte\Providers\Session\Session
+         */
+        $container['session'] = function () {
+            return new Session();
+        };
+    }
 }

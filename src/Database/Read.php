@@ -20,57 +20,57 @@ namespace Navegarte\Database;
  */
 final class Read
 {
-  /**
-   * @var string
-   */
-  private $select;
-  
-  /**
-   * @var array
-   */
-  private $places;
-  
-  /**
-   * @var array
-   */
-  private $result;
-  
-  /**
-   * @var \PDOStatement
-   */
-  private $statement;
-  
-  /**
-   * @var \PDO
-   */
-  private $conn;
-  
-  /**
-   * Read constructor.
-   *
-   * Obtém a conexão do banco de dados
-   */
-  public function __construct()
-  {
-    $this->conn = Connect::boot();
-  }
-  
-  /**
-   *
-   *
-   * @param string      $table
-   * @param string|null $terms
-   * @param string|null $places
-   */
-  public function exec($table, $terms = null, $places = null)
-  {
-    if (!empty($places)) {
-      parse_str($places, $this->places);
+    /**
+     * @var string
+     */
+    private $select;
+    
+    /**
+     * @var array
+     */
+    private $places;
+    
+    /**
+     * @var array
+     */
+    private $result;
+    
+    /**
+     * @var \PDOStatement
+     */
+    private $statement;
+    
+    /**
+     * @var \PDO
+     */
+    private $conn;
+    
+    /**
+     * Read constructor.
+     *
+     * Obtém a conexão do banco de dados
+     */
+    public function __construct()
+    {
+        $this->conn = Connect::boot();
     }
     
-    $this->select = "SELECT * FROM {$table} {$terms}";
-    $this->execute();
-  }
+    /**
+     *
+     *
+     * @param string      $table
+     * @param string|null $terms
+     * @param string|null $places
+     */
+    public function exec($table, $terms = null, $places = null)
+    {
+        if (!empty($places)) {
+            parse_str($places, $this->places);
+        }
+        
+        $this->select = "SELECT * FROM {$table} {$terms}";
+        $this->execute();
+    }
     
     /**
      * Obtém a conexão a syntax e executa a query
@@ -113,59 +113,59 @@ final class Read
             }
         }
     }
-  
-  /**
-   *
-   *
-   * @param string      $query
-   * @param string|null $places
-   */
-  public function query($query, $places = null)
-  {
-    $this->select = (string)$query;
     
-    if (!empty($places)) {
-      parse_str($places, $this->places);
+    /**
+     *
+     *
+     * @param string      $query
+     * @param string|null $places
+     */
+    public function query($query, $places = null)
+    {
+        $this->select = (string)$query;
+        
+        if (!empty($places)) {
+            parse_str($places, $this->places);
+        }
+        
+        $this->execute();
     }
-    
-    $this->execute();
-  }
     
     
     // Methods privates
-  
-  /**
-   *
-   *
-   * @param string $places
-   */
-  public function setPlaces($places)
-  {
-    parse_str($places, $this->places);
-    $this->execute();
-  }
-  
-  /**
-   *
-   *
-   * @return array
-   */
-  public function getResult()
-  {
-    return $this->result;
-  }
-  
-  /**
-   *
-   *
-   * @return int
-   */
-  public function getRowCount()
-  {
-    if ($this->statement->rowCount() == -1) {
-      return count($this->statement->fetchAll());
+    
+    /**
+     *
+     *
+     * @param string $places
+     */
+    public function setPlaces($places)
+    {
+        parse_str($places, $this->places);
+        $this->execute();
     }
     
-    return $this->statement->rowCount();
-  }
+    /**
+     *
+     *
+     * @return array
+     */
+    public function getResult()
+    {
+        return $this->result;
+    }
+    
+    /**
+     *
+     *
+     * @return int
+     */
+    public function getRowCount()
+    {
+        if ($this->statement->rowCount() == -1) {
+            return count($this->statement->fetchAll());
+        }
+        
+        return $this->statement->rowCount();
+    }
 }

@@ -22,21 +22,21 @@ use Slim\Container;
  */
 final class MailerServiceProvider extends ServiceProviderAbstract
 {
-  /**
-   * Registers services on the given container.
-   *
-   * @param \Slim\Container $container
-   *
-   * @return mixed|void
-   */
-  public function register(Container $container)
-  {
-      /**
-       * @return \Navegarte\Providers\Mailer\Mailer
-       */
-    $container['mailer'] = function () use ($container) {
-    
-        return new Mailer($container);
-    };
-  }
+    /**
+     * Registers services on the given container.
+     *
+     * @param \Slim\Container $container
+     *
+     * @return mixed|void
+     */
+    public function register(Container $container)
+    {
+        /**
+         * @return \Navegarte\Providers\Mailer\Mailer
+         */
+        $container['mailer'] = function () use ($container) {
+            
+            return new Mailer($container);
+        };
+    }
 }

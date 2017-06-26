@@ -22,39 +22,39 @@ use Slim\Container;
  */
 abstract class ViewAbstract
 {
-  /**
-   * @var \Slim\Container $container
-   */
-  protected $container;
-  
-  /**
-   * TwigProvider constructor.
-   *
-   * @param \Slim\Container $container
-   */
-  public function __construct(Container $container)
-  {
-    $this->container = $container;
-  }
+    /**
+     * @var \Slim\Container $container
+     */
+    protected $container;
+    
+    /**
+     * TwigProvider constructor.
+     *
+     * @param \Slim\Container $container
+     */
+    public function __construct(Container $container)
+    {
+        $this->container = $container;
+    }
     
     /**
      * Register new view provider
      *
      * @return mixed
      */
-  abstract public function register();
-  
-  /**
-   * Get provider
-   *
-   * @param $name
-   *
-   * @return mixed
-   */
-  public function __get($name)
-  {
-    if ($this->container->{$name}) {
-      return $this->container->{$name};
+    abstract public function register();
+    
+    /**
+     * Get provider
+     *
+     * @param $name
+     *
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        if ($this->container->{$name}) {
+            return $this->container->{$name};
+        }
     }
-  }
 }

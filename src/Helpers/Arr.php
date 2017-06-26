@@ -51,6 +51,17 @@ class Arr
     }
     
     /**
+     * @param array $array
+     * @param int   $mode
+     *
+     * @return int
+     */
+    public static function count(array $array, $mode = COUNT_NORMAL)
+    {
+        return count($array, $mode);
+    }
+    
+    /**
      * Collapse an array of arrays into a single array.
      *
      * @param  array $array

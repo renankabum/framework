@@ -24,21 +24,21 @@ use Slim\Container;
  */
 final class InterventionImageServiceProvider extends ServiceProviderAbstract
 {
-  /**
-   * Registers service on the given container.
-   *
-   * @param \Slim\Container $container
-   *
-   * @return mixed|void
-   */
-  public function register(Container $container)
-  {
-      /**
-       * @return \Intervention\Image\ImageManager
-       */
-    $container['image'] = function () {
-      
-      return new ImageManager(['driver' => 'gd']);
-    };
-  }
+    /**
+     * Registers service on the given container.
+     *
+     * @param \Slim\Container $container
+     *
+     * @return mixed|void
+     */
+    public function register(Container $container)
+    {
+        /**
+         * @return \Intervention\Image\ImageManager
+         */
+        $container['image'] = function () {
+            
+            return new ImageManager(['driver' => 'gd']);
+        };
+    }
 }

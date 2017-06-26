@@ -25,59 +25,59 @@ use Slim\Container;
  */
 final class EloquentServiceProvider extends ServiceProviderAbstract
 {
-  /**
-   * Registers services on the given container.
-   *
-   * @param \Slim\Container $container
-   *
-   * @return \Illuminate\Database\Connection|\Illuminate\Database\Query\Builder
-   */
-  public function register(Container $container)
-  {
-    /*
-     * Instanceof ORM eloquent
+    /**
+     * Registers services on the given container.
+     *
+     * @param \Slim\Container $container
+     *
+     * @return \Illuminate\Database\Connection|\Illuminate\Database\Query\Builder
      */
-      $eloquent = new Eloquent();
-    
-    /*
-     * Make the connection
-     */
-    foreach (config('database.connections') as $index => $config) {
-      $eloquent->addConnection(config("database.connections.{$index}"), 'default');
+    public function register(Container $container)
+    {
+        /*
+         * Instanceof ORM eloquent
+         */
+        $eloquent = new Eloquent();
+        
+        /*
+         * Make the connection
+         */
+        foreach (config('database.connections') as $index => $config) {
+            $eloquent->addConnection(config("database.connections.{$index}"), 'default');
+        }
+        
+        /*
+        * Initializes orm eloquent
+        */
+        $eloquent->setAsGlobal();
+        $eloquent->bootEloquent();
+        
+        /**
+         * @return \Illuminate\Database\Capsule\Manager
+         */
+        $container['db'] = function () use ($eloquent) {
+            return $eloquent;
+        };
     }
     
-    /*
-    * Initializes orm eloquent
-    */
-    $eloquent->setAsGlobal();
-    $eloquent->bootEloquent();
-    
     /**
-     * @return \Illuminate\Database\Capsule\Manager
+     * Register other services, such as middleware etc.
+     *
+     * @return mixed|void
      */
-    $container['db'] = function () use ($eloquent) {
-      return $eloquent;
-    };
-  }
-  
-  /**
-   * Register other services, such as middleware etc.
-   *
-   * @return mixed|void
-   */
-  public function boot()
-  {
-    $request = request();
-    $currentPage = $request->getParam('page');
-    
-      Paginator::currentPageResolver(
-          function () use ($currentPage) {
-              if (filter_var($currentPage, FILTER_VALIDATE_INT) !== false && (int)$currentPage >= 1) {
-                  return $currentPage;
-              }
-            
-              return 1;
-          }
-      );
-  }
+    public function boot()
+    {
+        $request = request();
+        $currentPage = $request->getParam('page');
+        
+        Paginator::currentPageResolver(
+            function () use ($currentPage) {
+                if (filter_var($currentPage, FILTER_VALIDATE_INT) !== false && (int)$currentPage >= 1) {
+                    return $currentPage;
+                }
+                
+                return 1;
+            }
+        );
+    }
 }

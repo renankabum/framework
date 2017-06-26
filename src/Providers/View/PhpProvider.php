@@ -13,6 +13,7 @@
 namespace Navegarte\Providers\View;
 
 use Navegarte\Contracts\ViewAbstract;
+use Navegarte\Helpers\Arr;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -24,13 +25,18 @@ use Psr\Http\Message\ResponseInterface;
 final class PhpProvider extends ViewAbstract
 {
     /**
+     * @var array
+     */
+    protected $var;
+    
+    /**
      * Register new view provider
      *
-     * @return mixed
+     * @return \Navegarte\Providers\View\PhpProvider
      */
     public function register()
     {
-        return 'Render PHP ainda não implementado...';
+        return $this;
     }
     
     /**
@@ -43,16 +49,110 @@ final class PhpProvider extends ViewAbstract
     public function render(ResponseInterface $response, $template, array $data = [])
     {
         $output = $this->fetch($template, $data);
+    
         $response->getBody()->write($output);
         
         return $response;
     }
     
     /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function existsVar($key)
+    {
+        return Arr::exists($this->var, $key);
+    }
+    
+    /**
+     * @return array|bool
+     */
+    public function getVar($key)
+    {
+        if ($this->existsVar($key)) {
+            return $this->var[$key];
+        }
+        
+        return false;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getVars()
+    {
+        return $this->var;
+    }
+    
+    /**
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return $this
+     *
+     */
+    public function setVar($key, $value)
+    {
+        if (!$this->existsVar($key)) {
+            $this->var[$key] = $value;
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * @param string|array $key
+     *
+     * @return $this
+     */
+    public function removeVar($key)
+    {
+        if ($this->existsVar($key)) {
+            Arr::forget($this->var, $key);
+        }
+        
+        return $this;
+    }
+    
+    /**
      * @param string $template
      * @param array  $data
+     *
+     * @return string
+     * @throws \Exception
+     * @throws \Throwable
      */
-    private function fetch(string $template, array $data = [])
+    private function fetch($template, array $data = [])
     {
+        $templatePath = rtrim(config('view.path.folder'), '/\\') . "/php/{$template}";
+    
+        if (isset($data['template'])) {
+            throw new \InvalidArgumentException("Duplicate template key found");
+        }
+    
+        if (!is_file($templatePath)) {
+            throw new \RuntimeException("View cannot render `$template` because the template does not exist");
+        }
+    
+        $data = array_merge($this->var, $data);
+    
+        try {
+            ob_start();
+        
+            extract($data);
+        
+            include $templatePath;
+        
+            $output = ob_get_clean();
+        } catch (\Throwable $e) { // PHP 7+
+            ob_end_clean();
+            throw $e;
+        } catch (\Exception $e) { // PHP < 7
+            ob_end_clean();
+            throw $e;
+        }
+    
+        return $output;
     }
 }

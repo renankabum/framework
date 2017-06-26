@@ -20,73 +20,73 @@ namespace Navegarte\Providers\Hash;
  */
 final class BcryptHasher
 {
-  /**
-   * @var int
-   */
-  protected $rounds = 10;
-  
-  /**
-   * @param string $password
-   * @param array  $options
-   *
-   * @return bool|string
-   */
-  public function make($password, array $options = [])
-  {
-      $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => $this->cost($options)]);
+    /**
+     * @var int
+     */
+    protected $rounds = 10;
     
-    if ($hash === false) {
-      throw new \RuntimeException('Bcrypt hashing não é suportado.');
+    /**
+     * @param string $password
+     * @param array  $options
+     *
+     * @return bool|string
+     */
+    public function make($password, array $options = [])
+    {
+        $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => $this->cost($options)]);
+        
+        if ($hash === false) {
+            throw new \RuntimeException('Bcrypt hashing não é suportado.');
+        }
+        
+        return $hash;
     }
     
-    return $hash;
-  }
-  
-  /**
-   * @param string $password
-   * @param string $hash
-   *
-   * @return bool
-   */
-  public function check($password, $hash)
-  {
-    if (strlen($hash) === 0) {
-      return false;
+    /**
+     * @param string $password
+     * @param string $hash
+     *
+     * @return bool
+     */
+    public function check($password, $hash)
+    {
+        if (strlen($hash) === 0) {
+            return false;
+        }
+        
+        return password_verify($password, $hash);
     }
     
-    return password_verify($password, $hash);
-  }
-  
-  /**
-   * @param string $hash
-   * @param array  $options
-   *
-   * @return bool
-   */
-  public function needsRehash($hash, array $options = [])
-  {
-      return password_needs_rehash($hash, PASSWORD_BCRYPT, ['cost' => $this->cost($options),]);
-  }
-  
-  /**
-   * @param int $rounds
-   *
-   * @return $this
-   */
-  public function setRounds($rounds)
-  {
-    $this->rounds = (int)$rounds;
+    /**
+     * @param string $hash
+     * @param array  $options
+     *
+     * @return bool
+     */
+    public function needsRehash($hash, array $options = [])
+    {
+        return password_needs_rehash($hash, PASSWORD_BCRYPT, ['cost' => $this->cost($options),]);
+    }
     
-    return $this;
-  }
-  
-  /**
-   * @param array $options
-   *
-   * @return int|mixed
-   */
-  protected function cost(array $options)
-  {
-    return isset($options['rounds']) ? $options['rounds'] : $this->rounds;
-  }
+    /**
+     * @param int $rounds
+     *
+     * @return $this
+     */
+    public function setRounds($rounds)
+    {
+        $this->rounds = (int)$rounds;
+        
+        return $this;
+    }
+    
+    /**
+     * @param array $options
+     *
+     * @return int|mixed
+     */
+    protected function cost(array $options)
+    {
+        return isset($options['rounds']) ? $options['rounds'] : $this->rounds;
+    }
 }

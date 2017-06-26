@@ -20,53 +20,53 @@ namespace Navegarte\Database;
  */
 final class Create
 {
-  /**
-   * @var string
-   */
-  private $table;
-  
-  /**
-   * @var array
-   */
-  private $data;
-  
-  /**
-   * @var array
-   */
-  private $result;
-  
-  /**
-   * @var \PDOStatement
-   */
-  private $statement;
-  
-  /**
-   * @var \PDO
-   */
-  private $conn;
-  
-  /**
-   * Create constructor.
-   *
-   * Obtém a conexão do banco de dados
-   */
-  public function __construct()
-  {
-    $this->conn = Connect::boot();
-  }
-  
-  /**
-   *
-   *
-   * @param string $table
-   * @param array  $data
-   */
-  public function exec($table, array $data)
-  {
-    $this->table = (string)$table;
-    $this->data = (array)$data;
-    $this->execute();
-  }
+    /**
+     * @var string
+     */
+    private $table;
+    
+    /**
+     * @var array
+     */
+    private $data;
+    
+    /**
+     * @var array
+     */
+    private $result;
+    
+    /**
+     * @var \PDOStatement
+     */
+    private $statement;
+    
+    /**
+     * @var \PDO
+     */
+    private $conn;
+    
+    /**
+     * Create constructor.
+     *
+     * Obtém a conexão do banco de dados
+     */
+    public function __construct()
+    {
+        $this->conn = Connect::boot();
+    }
+    
+    /**
+     *
+     *
+     * @param string $table
+     * @param array  $data
+     */
+    public function exec($table, array $data)
+    {
+        $this->table = (string)$table;
+        $this->data = (array)$data;
+        $this->execute();
+    }
     
     /**
      * Obtém a conexão a syntax e executa a query
@@ -113,69 +113,69 @@ final class Create
     
     
     // Methods privates
-  
-  /**
-   *
-   *
-   * @param string $table
-   * @param array  $data
-   */
-  public function execMulti($table, array $data)
-  {
-    // INSERT INTO table (colunas) VALUES (?), (?), (?), (?)
-    $this->table = (string)$table;
-    $this->data = (array)$data;
     
-    $fields = implode(', ', array_keys($this->data[0]));
-    $places = null;
-    $inserts = null;
-    $links = count(array_keys($this->data[0]));
-    
-    foreach ($data as $valueMulti) {
-      $places .= '(';
-      $places .= str_repeat('?, ', $links);
-      $places .= '), ';
-      
-      foreach ($valueMulti as $item) {
-        $inserts[] = $item;
-      }
+    /**
+     *
+     *
+     * @param string $table
+     * @param array  $data
+     */
+    public function execMulti($table, array $data)
+    {
+        // INSERT INTO table (colunas) VALUES (?), (?), (?), (?)
+        $this->table = (string)$table;
+        $this->data = (array)$data;
+        
+        $fields = implode(', ', array_keys($this->data[0]));
+        $places = null;
+        $inserts = null;
+        $links = count(array_keys($this->data[0]));
+        
+        foreach ($data as $valueMulti) {
+            $places .= '(';
+            $places .= str_repeat('?, ', $links);
+            $places .= '), ';
+            
+            foreach ($valueMulti as $item) {
+                $inserts[] = $item;
+            }
+        }
+        
+        $places = rtrim(str_replace(', )', ')', $places), ', ');
+        $this->data = $inserts;
+        
+        try {
+            $statement = "INSERT INTO {$this->table} ({$fields}) VALUES {$places}";
+            $this->statement = $this->conn->prepare($statement);
+            $this->statement->execute($this->data);
+            $this->result = $this->conn->lastInsertId();
+        } catch (\PDOException $e) {
+            $this->result = null;
+            die($e->getMessage());
+        }
     }
     
-    $places = rtrim(str_replace(', )', ')', $places), ', ');
-    $this->data = $inserts;
-    
-    try {
-      $statement = "INSERT INTO {$this->table} ({$fields}) VALUES {$places}";
-      $this->statement = $this->conn->prepare($statement);
-      $this->statement->execute($this->data);
-      $this->result = $this->conn->lastInsertId();
-    } catch (\PDOException $e) {
-      $this->result = null;
-      die($e->getMessage());
-    }
-  }
-  
-  /**
-   *
-   *
-   * @return array
-   */
-  public function getResult()
-  {
-    return $this->result;
-  }
-  
-  /**
-   *
-   *
-   * @return int
-   */
-  public function getRowCount()
-  {
-    if ($this->statement->rowCount() == -1) {
-      return count($this->statement->fetchAll());
+    /**
+     *
+     *
+     * @return array
+     */
+    public function getResult()
+    {
+        return $this->result;
     }
     
-    return $this->statement->rowCount();
-  }
+    /**
+     *
+     *
+     * @return int
+     */
+    public function getRowCount()
+    {
+        if ($this->statement->rowCount() == -1) {
+            return count($this->statement->fetchAll());
+        }
+        
+        return $this->statement->rowCount();
+    }
 }

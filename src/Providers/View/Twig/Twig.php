@@ -12,6 +12,7 @@
 
 namespace Navegarte\Providers\View\Twig;
 
+use Navegarte\Helpers\Arr;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -37,6 +38,11 @@ final class Twig
      * @var \Psr\Container\ContainerInterface
      */
     protected $container;
+    
+    /**
+     * @var array
+     */
+    protected $var;
     
     /**
      * TwigProvider constructor.
@@ -78,10 +84,14 @@ final class Twig
      * Add new extension
      *
      * @param \Twig_ExtensionInterface $extension
+     *
+     * @return $this
      */
     public function addExtension(\Twig_ExtensionInterface $extension)
     {
         $this->environment->addExtension($extension);
+        
+        return $this;
     }
     
     /**
@@ -151,6 +161,66 @@ final class Twig
         return $this->environment;
     }
     
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function existsVar($key)
+    {
+        return Arr::exists($this->var, $key);
+    }
+    
+    /**
+     * @return array|bool
+     */
+    public function getVar($key)
+    {
+        if ($this->existsVar($key)) {
+            return $this->var[$key];
+        }
+        
+        return false;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getVars()
+    {
+        return $this->var;
+    }
+    
+    /**
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return $this
+     *
+     */
+    public function setVar($key, $value)
+    {
+        if (!$this->existsVar($key)) {
+            $this->var[$key] = $value;
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * @param string|array $key
+     *
+     * @return $this
+     */
+    public function removeVar($key)
+    {
+        if ($this->existsVar($key)) {
+            Arr::forget($this->var, $key);
+        }
+        
+        return $this;
+    }
+    
     // PRIVATES METHODS
     
     /**
@@ -181,6 +251,8 @@ final class Twig
      */
     private function fetch($template, array $data)
     {
+        $data = array_merge($this->var, $data);
+        
         return $this->environment->loadTemplate($template)->render($data);
     }
     
@@ -192,6 +264,8 @@ final class Twig
      */
     private function fetchFromString($string = "", array $data = [])
     {
+        $data = array_merge($this->var, $data);
+        
         return $this->environment->createTemplate($string)->render($data);
     }
 }

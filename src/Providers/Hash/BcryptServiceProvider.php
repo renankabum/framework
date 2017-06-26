@@ -23,20 +23,20 @@ use Slim\Container;
  */
 final class BcryptServiceProvider extends ServiceProviderAbstract
 {
-  /**
-   * Registers services on the given container.
-   *
-   * @param \Slim\Container $container
-   *
-   * @return mixed|void
-   */
-  public function register(Container $container)
-  {
-      /**
-       * @return \Navegarte\Providers\Hash\BcryptHasher
-       */
-    $container['hash'] = function () {
-        return new BcryptHasher();
-    };
-  }
+    /**
+     * Registers services on the given container.
+     *
+     * @param \Slim\Container $container
+     *
+     * @return mixed|void
+     */
+    public function register(Container $container)
+    {
+        /**
+         * @return \Navegarte\Providers\Hash\BcryptHasher
+         */
+        $container['hash'] = function () {
+            return new BcryptHasher();
+        };
+    }
 }

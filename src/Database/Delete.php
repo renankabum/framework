@@ -20,63 +20,63 @@ namespace Navegarte\Database;
  */
 final class Delete
 {
-  /**
-   * @var string
-   */
-  private $table;
-  
-  /**
-   * @var string
-   */
-  private $terms;
-  
-  /**
-   * @var array
-   */
-  private $places;
-  
-  /**
-   * @var array
-   */
-  private $result;
-  
-  /**
-   * @var \PDOStatement
-   */
-  private $statement;
-  
-  /**
-   * @var \PDO
-   */
-  private $conn;
-  
-  /**
-   * Read constructor.
-   *
-   * Obtém a conexão do banco de dados
-   */
-  public function __construct()
-  {
-    $this->conn = Connect::boot();
-  }
-  
-  /**
-   *
-   *
-   * @param string      $table
-   * @param string      $terms
-   * @param string|null $places
-   */
-  public function exec($table, $terms, $places = null)
-  {
-    $this->table = (string)$table;
-    $this->terms = (string)$terms;
+    /**
+     * @var string
+     */
+    private $table;
     
-    if (!empty($places)) {
-      parse_str($places, $this->places);
+    /**
+     * @var string
+     */
+    private $terms;
+    
+    /**
+     * @var array
+     */
+    private $places;
+    
+    /**
+     * @var array
+     */
+    private $result;
+    
+    /**
+     * @var \PDOStatement
+     */
+    private $statement;
+    
+    /**
+     * @var \PDO
+     */
+    private $conn;
+    
+    /**
+     * Read constructor.
+     *
+     * Obtém a conexão do banco de dados
+     */
+    public function __construct()
+    {
+        $this->conn = Connect::boot();
     }
-    $this->execute();
-  }
+    
+    /**
+     *
+     *
+     * @param string      $table
+     * @param string      $terms
+     * @param string|null $places
+     */
+    public function exec($table, $terms, $places = null)
+    {
+        $this->table = (string)$table;
+        $this->terms = (string)$terms;
+        
+        if (!empty($places)) {
+            parse_str($places, $this->places);
+        }
+        $this->execute();
+    }
     
     /**
      * Obtém a conexão a syntax e executa a query
@@ -122,39 +122,39 @@ final class Delete
     
     
     // Methods privates
-  
-  /**
-   *
-   *
-   * @param string $places
-   */
-  public function setPlaces($places)
-  {
-    parse_str($places, $this->places);
-    $this->execute();
-  }
-  
-  /**
-   *
-   *
-   * @return array
-   */
-  public function getResult()
-  {
-    return $this->result;
-  }
-  
-  /**
-   *
-   *
-   * @return int
-   */
-  public function getRowCount()
-  {
-    if ($this->statement->rowCount() == -1) {
-      return count($this->statement->fetchAll());
+    
+    /**
+     *
+     *
+     * @param string $places
+     */
+    public function setPlaces($places)
+    {
+        parse_str($places, $this->places);
+        $this->execute();
     }
     
-    return $this->statement->rowCount();
-  }
+    /**
+     *
+     *
+     * @return array
+     */
+    public function getResult()
+    {
+        return $this->result;
+    }
+    
+    /**
+     *
+     *
+     * @return int
+     */
+    public function getRowCount()
+    {
+        if ($this->statement->rowCount() == -1) {
+            return count($this->statement->fetchAll());
+        }
+        
+        return $this->statement->rowCount();
+    }
 }

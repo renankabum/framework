@@ -23,18 +23,18 @@ use Symfony\Component\VarDumper\Dumper\HtmlDumper;
  */
 final class Debug
 {
-  /**
-   * Symfony customize dump
-   *
-   * @param $var
-   */
-  public function dump($var)
-  {
-    if (class_exists(CliDumper::class)) {
-        $dump = in_array(PHP_SAPI, ['cli', 'phpdbg']) ? new CliDumper() : new HtmlDumper();
-        $dump->dump((new VarCloner())->cloneVar($var));
-    } else {
-      var_dump($var);
+    /**
+     * Symfony customize dump
+     *
+     * @param $var
+     */
+    public function dump($var)
+    {
+        if (class_exists(CliDumper::class)) {
+            $dump = in_array(PHP_SAPI, ['cli', 'phpdbg']) ? new CliDumper() : new HtmlDumper();
+            $dump->dump((new VarCloner())->cloneVar($var));
+        } else {
+            var_dump($var);
+        }
     }
-  }
 }
