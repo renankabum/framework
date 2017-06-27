@@ -105,11 +105,13 @@ if (!function_exists('asset')) {
     function asset($path)
     {
         $path = (substr($path, 0, 1) === '/' ? $path : "/{$path}");
+    
+        $baseUrl = rtrim(str_ireplace('index.php', '', request()->getUri()->getBasePath()), '/');
         
         if (file_exists(ROOT . "/public{$path}")) {
             $version = substr(md5_file(ROOT . "/public{$path}"), 0, 10);
-            
-            return "{$path}?v={$version}";
+    
+            return "{$baseUrl}{$path}?v={$version}";
         }
         
         return false;
@@ -210,21 +212,21 @@ if (!function_exists('view')) {
     {
         if (is_object(app()->resolve('view'))) {
             $response = response();
-        
+    
             if (!is_null($code)) {
                 $response = $response->withStatus($code);
             }
-        
+    
             $extension = '.php';
             if (config('view.engine') === 'twig') {
                 $extension = '.twig';
             } elseif ($extension === 'blade') {
                 $extension = '.blade.php';
             }
-        
+    
             // replace '.' em '/'
             $view = str_replace('.', '/', $view);
-        
+    
             return app()->resolve('view')->render($response, $view . $extension, $array);
         }
     

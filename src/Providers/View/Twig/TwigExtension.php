@@ -63,8 +63,8 @@ final class TwigExtension extends \Twig_Extension implements \Twig_Extension_Glo
             new \Twig_SimpleFunction('path_for', [$this, 'path_for']),
             new \Twig_SimpleFunction('base_url', [$this, 'base_url']),
             new \Twig_SimpleFunction('config', [$this, 'config']),
-            new \Twig_SimpleFunction('asset', [$this, 'asset']),
-            new \Twig_SimpleFunction('asset_source', [$this, 'asset_source']),
+            new \Twig_SimpleFunction('asset', [$this, 'asset'], ['is_safe' => ['all']]),
+            new \Twig_SimpleFunction('asset_source', [$this, 'asset_source'], ['is_safe' => ['all']]),
             new \Twig_SimpleFunction('is_route', [$this, 'is_route']),
             new \Twig_SimpleFunction('is_route_active', [$this, 'is_route_active']),
         ];
