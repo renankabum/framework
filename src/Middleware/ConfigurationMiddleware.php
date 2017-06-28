@@ -12,6 +12,7 @@
 
 namespace Navegarte\Middleware;
 
+use Carbon\Carbon;
 use Navegarte\Contracts\MiddlewareAbstract;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -55,6 +56,7 @@ final class ConfigurationMiddleware extends MiddlewareAbstract
          * Locale language
          */
         setlocale(LC_ALL, 'pt_BR', 'pt_BR.utf-8', 'portuguese');
+        Carbon::setLocale('pt_BR');
         
         /**
          * Init session
