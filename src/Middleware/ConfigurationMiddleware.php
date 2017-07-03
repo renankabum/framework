@@ -61,16 +61,7 @@ final class ConfigurationMiddleware extends MiddlewareAbstract
         /**
          * Init session
          */
-        if (session_status() != PHP_SESSION_ACTIVE) {
-            $current = session_get_cookie_params();
-            
-            session_set_cookie_params($current['lifetime'], $current['path'], $current['domain'], $current['secure'], true);
-            session_name(md5(md5('VCWeb' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['PHP_SELF'])));
-            session_cache_limiter('nocache');
-            if (!session_id()) {
-                session_start();
-            }
-        }
+        $this->session->verifySessionExists();
         
         /**
          * Configuration timezone app
