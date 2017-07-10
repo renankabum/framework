@@ -1,16 +1,16 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte;
+namespace Core;
 
 use Carbon\Carbon;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -19,7 +19,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 /**
  * Class App
  *
- * @package VCWeb
+ * @package Core
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class App extends \Slim\App
@@ -82,7 +82,7 @@ final class App extends \Slim\App
     /**
      * Get instance class
      *
-     * @return \Navegarte\App
+     * @return \Core\App
      */
     public static function getInstance()
     {
@@ -114,8 +114,7 @@ final class App extends \Slim\App
         if ($this->getContainer()->has($id)) {
             if (is_callable($this->getContainer()->get($id))) {
                 return call_user_func_array(
-                    $this->getContainer()->get($id),
-                    $param_arr
+                    $this->getContainer()->get($id), $param_arr
                 );
             } else {
                 return $this->getContainer()->get($id);
@@ -141,27 +140,25 @@ final class App extends \Slim\App
         
         // Mapping routers
         return $this->map(
-            $methods,
-            $pattern,
-            function (Request $request, Response $response, $params) use ($controller) {
-                
-                if (strpos($controller, '@') === false) {
-                    $class = $controller;
-                    $method = null;
-                } else {
-                    list($class, $method) = explode('@', $controller);
-                }
-                
-                //$controller = 'App\\Http\\Controllers\\' . str_replace('/', '\\', $class);
-                $controller = 'App\\Controllers\\' . str_replace('/', '\\', $class);
-                $object = new $controller($request, $response, $params, $this);
-                
-                if (!method_exists($object, strtolower($request->getMethod()) . ucfirst($method))) {
-                    throw new \Exception('Method <b>' . get_class($object) . '::' . strtolower($request->getMethod()) . ucfirst($method) . '</b> does not exists!');
-                }
-                
-                return call_user_func_array([$object, strtolower($request->getMethod()) . ucfirst($method),], $params);
+            $methods, $pattern, function (Request $request, Response $response, $params) use ($controller) {
+    
+            if (strpos($controller, '@') === false) {
+                $class = $controller;
+                $method = null;
+            } else {
+                list($class, $method) = explode('@', $controller);
             }
+    
+            //$controller = 'App\\Http\\Controllers\\' . str_replace('/', '\\', $class);
+            $controller = 'App\\Controllers\\' . str_replace('/', '\\', $class);
+            $object = new $controller($request, $response, $params, $this);
+    
+            if (!method_exists($object, strtolower($request->getMethod()) . ucfirst($method))) {
+                throw new \Exception('Method <b>' . get_class($object) . '::' . strtolower($request->getMethod()) . ucfirst($method) . '</b> does not exists!');
+            }
+    
+            return call_user_func_array([$object, strtolower($request->getMethod()) . ucfirst($method),], $params);
+        }
         );
     }
     
@@ -193,8 +190,8 @@ final class App extends \Slim\App
         $providers = [];
         foreach ((array)$registers['providers'] as $class) {
             if (class_exists($class)) {
-                
-                /** @var \Navegarte\Contracts\ServiceProviderAbstract $provider */
+    
+                /** @var \Core\Contracts\ServiceProviderAbstract $provider */
                 $provider = new $class();
                 $provider->register($this->getContainer());
                 
@@ -214,26 +211,24 @@ final class App extends \Slim\App
      */
     public function registerRouter()
     {
-        /** @var \Navegarte\App $app */
+        /** @var \Core\App $app */
         $app = $this;
         
         // Router for web
         if (file_exists(ROOT . '/routes/web.php')) {
             $this->group(
-                '',
-                function () use ($app) {
-                    include ROOT . '/routes/web.php';
-                }
+                '', function () use ($app) {
+                include ROOT . '/routes/web.php';
+            }
             );
         }
         
         // Router for api
         if (file_exists(ROOT . '/routes/api.php')) {
             $this->group(
-                '/api',
-                function () use ($app) {
-                    include ROOT . '/routes/api.php';
-                }
+                '/api', function () use ($app) {
+                include ROOT . '/routes/api.php';
+            }
             );
         }
     }
@@ -264,15 +259,12 @@ final class App extends \Slim\App
     private function generateKey()
     {
         file_put_contents(
-            ROOT . '/.env',
-            preg_replace(
-                $this->keyReplacementPattern(),
-                'APP_KEY=base64:' . base64_encode(
+            ROOT . '/.env', preg_replace(
+                $this->keyReplacementPattern(), 'APP_KEY=base64:' . base64_encode(
                     random_bytes(
                         config('app.encryption.cipher') === 'AES-128-CBC' ? 16 : 32
                     )
-                ),
-                file_get_contents(ROOT . '/.env')
+                ), file_get_contents(ROOT . '/.env')
             )
         );
     }

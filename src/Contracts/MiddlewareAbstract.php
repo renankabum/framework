@@ -1,16 +1,16 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Contracts;
+namespace Core\Contracts;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -19,19 +19,19 @@ use Slim\Container;
 /**
  * Class MiddlewareAbstract
  *
- * @package Navegarte\Contracts
+ * @package Core\Contracts
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  *
- * @property \Navegarte\Providers\Hash\BcryptHasher     hash
- * @property \Navegarte\Providers\Session\Session       session
- * @property \Navegarte\Providers\Mailer\Mailer         mailer
- * @property \Navegarte\Providers\Encryption\Encryption encryption
- * @property \Navegarte\Database\Create                 create
- * @property \Navegarte\Database\Read                   read
- * @property \Navegarte\Database\Update                 update
- * @property \Navegarte\Database\Delete                 delete
- * @property \Slim\Router                               router
- * @property \Navegarte\Providers\View\Twig\Twig        view
+ * @property \Core\Providers\Hash\BcryptHasher     hash
+ * @property \Core\Providers\Session\Session       session
+ * @property \Core\Providers\Mailer\Mailer         mailer
+ * @property \Core\Providers\Encryption\Encryption encryption
+ * @property \Core\Database\Create                 create
+ * @property \Core\Database\Read                   read
+ * @property \Core\Database\Update                 update
+ * @property \Core\Database\Delete                 delete
+ * @property \Slim\Router                          router
+ * @property \Core\Providers\View\Twig\Twig        view
  */
 abstract class MiddlewareAbstract
 {

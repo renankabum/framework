@@ -1,23 +1,23 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-${YEAH} Vagner Cardoso - VCWeb
+ * @copyright 2017-${YEAH} Vagner Cardoso - Core
  */
 
-namespace Navegarte\Providers\Session;
+namespace Core\Providers\Session;
 
-use Navegarte\Helpers\Arr;
+use Core\Helpers\Arr;
 
 /**
  * Class Session
  *
- * @package Navegarte\Providers\Session
+ * @package Core\Providers\Session
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class Session
@@ -128,7 +128,7 @@ final class Session
             $current = session_get_cookie_params();
     
             session_set_cookie_params($current['lifetime'], $current['path'], $current['domain'], $current['secure'], true);
-            session_name(md5(md5('VCWeb' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['PHP_SELF'])));
+            session_name(md5(md5('Core' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['PHP_SELF'])));
             session_cache_limiter('nocache');
             
             session_start();

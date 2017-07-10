@@ -1,6 +1,7 @@
 <?php
 
-use Navegarte\Helpers\Debug;
+use Core\Helpers\Debug;
+use Core\Helpers\Str;
 
 if (!function_exists('dd')) {
     /**
@@ -62,6 +63,10 @@ if (!function_exists('env')) {
                 return null;
                 break;
         }
+    
+        if (strlen($value) > 1 && Str::startsWith($value, '"') && Str::endsWith($value, '"')) {
+            return substr($value, 1, -1);
+        }
         
         return $value;
     }
@@ -80,19 +85,23 @@ if (!function_exists('mix')) {
     {
         static $manifest;
     
+        if (!Str::startsWith($path, '/')) {
+            $path = "/{$path}";
+        }
+        
         if (!$manifest) {
             if (!file_exists($manifestPath = ROOT . '/public/mix-manifest.json')) {
                 throw new Exception('The mix manifest does not exists.');
             }
-        
+    
             $manifest = json_decode(file_get_contents($manifestPath), true);
         }
     
-        if (!array_key_exists('/' . $path, $manifest)) {
+        if (!array_key_exists($path, $manifest)) {
             throw new \Exception("Unable to locate Mix file: {$path}. Please check your webpack.mix.js output paths and try again.");
         }
     
-        return $manifest['/' . $path];
+        return $manifest[$path];
     }
 }
 
@@ -104,8 +113,10 @@ if (!function_exists('asset')) {
      */
     function asset($path)
     {
-        $path = (substr($path, 0, 1) === '/' ? $path : "/{$path}");
-    
+        if (!Str::startsWith($path, '/')) {
+            $path = "/{$path}";
+        }
+        
         $baseUrl = rtrim(str_ireplace('index.php', '', request()->getUri()->getBasePath()), '/');
         
         if (file_exists(ROOT . "/public{$path}")) {
@@ -126,13 +137,16 @@ if (!function_exists('asset_source')) {
      */
     function asset_source($path)
     {
+        $paths = [];
         if (!is_array($path)) {
-            $path = [$path];
+            $paths = [$path];
         }
         
         $sources = [];
-        foreach ($path as $item) {
-            $path = (substr($item, 0, 1) === '/' ? $item : "/{$item}");
+        foreach ($paths as $path) {
+            if (!Str::startsWith($path, '/')) {
+                $path = "/{$path}";
+            }
             
             if (file_exists(ROOT . "/public{$path}")) {
                 $sources[] = file_get_contents(ROOT . "/public{$path}");
@@ -457,10 +471,10 @@ if (!function_exists('app')) {
     /**
      * Get instance app
      *
-     * @return \Navegarte\App
+     * @return \Core\App
      */
     function app()
     {
-        return Navegarte\App::getInstance();
+        return Core\App::getInstance();
     }
 }

@@ -1,26 +1,26 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers;
+namespace Core\Providers;
 
+use Core\Contracts\ServiceProviderAbstract;
 use Illuminate\Database\Capsule\Manager as Eloquent;
 use Illuminate\Pagination\Paginator;
-use Navegarte\Contracts\ServiceProviderAbstract;
 use Slim\Container;
 
 /**
  * Class EloquentServiceProvider
  *
- * @package Navegarte\Providers
+ * @package Core\Providers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class EloquentServiceProvider extends ServiceProviderAbstract

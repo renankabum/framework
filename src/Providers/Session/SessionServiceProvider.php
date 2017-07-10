@@ -1,24 +1,24 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-${YEAH} Vagner Cardoso - VCWeb
+ * @copyright 2017-${YEAH} Vagner Cardoso - Core
  */
 
-namespace Navegarte\Providers\Session;
+namespace Core\Providers\Session;
 
-use Navegarte\Contracts\ServiceProviderAbstract;
+use Core\Contracts\ServiceProviderAbstract;
 use Slim\Container;
 
 /**
  * Class SessionServiceProvider
  *
- * @package Navegarte\Providers\Session
+ * @package Core\Providers\Session
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class SessionServiceProvider extends ServiceProviderAbstract
@@ -33,7 +33,7 @@ final class SessionServiceProvider extends ServiceProviderAbstract
     public function register(Container $container)
     {
         /**
-         * @return \Navegarte\Providers\Session\Session
+         * @return \Core\Providers\Session\Session
          */
         $container['session'] = function () {
             return new Session();

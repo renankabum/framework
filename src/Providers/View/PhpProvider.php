@@ -1,25 +1,25 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers\View;
+namespace Core\Providers\View;
 
-use Navegarte\Contracts\ViewAbstract;
-use Navegarte\Helpers\Arr;
+use Core\Contracts\ViewAbstract;
+use Core\Helpers\Arr;
 use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class PhpProvider
  *
- * @package Navegarte\Providers\View
+ * @package Core\Providers\View
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class PhpProvider extends ViewAbstract
@@ -32,7 +32,7 @@ final class PhpProvider extends ViewAbstract
     /**
      * Register new view provider
      *
-     * @return \Navegarte\Providers\View\PhpProvider
+     * @return \Core\Providers\View\PhpProvider
      */
     public function register()
     {

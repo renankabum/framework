@@ -1,31 +1,31 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers;
+namespace Core\Providers;
 
-use Navegarte\Contracts\ServiceProviderAbstract;
-use Navegarte\Database\Create;
-use Navegarte\Database\Delete;
-use Navegarte\Database\Read;
-use Navegarte\Database\Update;
+use Core\Contracts\ServiceProviderAbstract;
+use Core\Database\Create;
+use Core\Database\Delete;
+use Core\Database\Read;
+use Core\Database\Update;
 use Slim\Container;
 
 /**
  * Class DatabaseServiceProvider
  *
- * @package Navegarte\Providers
+ * @package Core\Providers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-class DatabaseServiceProvider extends ServiceProviderAbstract
+final class DatabaseServiceProvider extends ServiceProviderAbstract
 {
     /**
      * Registers services on the given container.
@@ -38,7 +38,7 @@ class DatabaseServiceProvider extends ServiceProviderAbstract
     {
         
         /**
-         * @return \Navegarte\Database\Create
+         * @return \Core\Database\Create
          */
         $container['create'] = function () {
             if (empty($create)) {
@@ -49,7 +49,7 @@ class DatabaseServiceProvider extends ServiceProviderAbstract
         };
         
         /**
-         * @return \Navegarte\Database\Read
+         * @return \Core\Database\Read
          */
         $container['read'] = function () {
             if (empty($read)) {
@@ -60,7 +60,7 @@ class DatabaseServiceProvider extends ServiceProviderAbstract
         };
         
         /**
-         * @return \Navegarte\Database\Update
+         * @return \Core\Database\Update
          */
         $container['update'] = function () {
             if (empty($update)) {
@@ -71,7 +71,7 @@ class DatabaseServiceProvider extends ServiceProviderAbstract
         };
         
         /**
-         * @return \Navegarte\Database\Delete
+         * @return \Core\Database\Delete
          */
         $container['delete'] = function () {
             if (empty($delete)) {

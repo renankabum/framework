@@ -1,24 +1,24 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers\View;
+namespace Core\Providers\View;
 
-use Navegarte\Contracts\ViewAbstract;
+use Core\Contracts\ViewAbstract;
 use Slim\Http\Response;
 
 /**
  * Class BladeProvider
  *
- * @package Navegarte\Providers\BladeProvider
+ * @package Core\Providers\BladeProvider
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class BladeProvider extends ViewAbstract

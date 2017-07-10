@@ -1,21 +1,21 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * Core Networks
  *
  * @package   framework
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso - Core
  */
 
-namespace Navegarte\Helpers;
+namespace Core\Helpers;
 
 /**
  * Class Curl
  *
- * @package Navegarte\Helpers
+ * @package Core\Helpers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class Curl

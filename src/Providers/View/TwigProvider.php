@@ -1,34 +1,34 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers\View;
+namespace Core\Providers\View;
 
-use Navegarte\Contracts\ViewAbstract;
-use Navegarte\Providers\View\Twig\Twig as TwigEngine;
+use Core\Contracts\ViewAbstract;
+use Core\Providers\View\Twig\Twig;
 
 /**
  * Class TwigProvider
  *
- * @package Navegarte\Providers\View
+ * @package Core\Providers\View
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class TwigProvider extends ViewAbstract
 {
     /**
-     * @return \Navegarte\Providers\View\Twig\Twig
+     * @return \Core\Providers\View\Twig\Twig
      */
     public function register()
     {
-        $twig = new TwigEngine(
+        $twig = new Twig(
             $this->container, config('view.path.folder'), [
                 'debug' => config('view.debug', false),
                 'charset' => 'UTF-8',

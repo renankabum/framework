@@ -1,21 +1,21 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Database;
+namespace Core\Database;
 
 /**
  * Class Read
  *
- * @package Navegarte\Database
+ * @package Core\Database
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class Read

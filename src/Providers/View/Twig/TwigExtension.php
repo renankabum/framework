@@ -1,29 +1,29 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers\View\Twig;
+namespace Core\Providers\View\Twig;
 
-use Navegarte\Helpers\Str;
+use Core\Helpers\Str;
 use Psr\Container\ContainerInterface;
 
 /**
  * Class TwigExtension
  *
- * @package Navegarte\Providers\View\TwigProvider
+ * @package Core\Providers\View\TwigProvider
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  *
- * @property \Slim\Router                         router
- * @property \Slim\Http\Request                   request
- * @property \Navegarte\Providers\Session\Session session
+ * @property \Slim\Router                    router
+ * @property \Slim\Http\Request              request
+ * @property \Core\Providers\Session\Session session
  */
 final class TwigExtension extends \Twig_Extension implements \Twig_Extension_GlobalsInterface
 {

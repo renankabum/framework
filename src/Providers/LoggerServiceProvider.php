@@ -1,27 +1,27 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers;
+namespace Core\Providers;
 
+use Core\Contracts\ServiceProviderAbstract;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
-use Navegarte\Contracts\ServiceProviderAbstract;
 use Slim\Container;
 
 /**
  * Class LoggerServiceProvider
  *
- * @package Navegarte\Providers
+ * @package Core\Providers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class LoggerServiceProvider extends ServiceProviderAbstract

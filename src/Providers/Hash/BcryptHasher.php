@@ -1,21 +1,21 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - VCWeb
+ * @copyright 2017-2017 Vagner Cardoso - Core
  */
 
-namespace Navegarte\Providers\Hash;
+namespace Core\Providers\Hash;
 
 /**
  * Class BcryptHasher
  *
- * @package Navegarte\Providers\Hash
+ * @package Core\Providers\Hash
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class BcryptHasher
@@ -36,7 +36,7 @@ final class BcryptHasher
         $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => $this->cost($options)]);
         
         if ($hash === false) {
-            throw new \RuntimeException('Bcrypt hashing não é suportado.');
+            throw new \RuntimeException('Bcrypt hashing not supported.');
         }
         
         return $hash;

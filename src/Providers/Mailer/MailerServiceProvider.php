@@ -1,23 +1,23 @@
 <?php
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers\Mailer;
+namespace Core\Providers\Mailer;
 
-use Navegarte\Contracts\ServiceProviderAbstract;
+use Core\Contracts\ServiceProviderAbstract;
 use Slim\Container;
 
 /**
  * Class MailerServiceProvider
  *
- * @package Navegarte\Providers\Mailer
+ * @package Core\Providers\Mailer
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class MailerServiceProvider extends ServiceProviderAbstract
@@ -32,7 +32,7 @@ final class MailerServiceProvider extends ServiceProviderAbstract
     public function register(Container $container)
     {
         /**
-         * @return \Navegarte\Providers\Mailer\Mailer
+         * @return \Core\Providers\Mailer\Mailer
          */
         $container['mailer'] = function () use ($container) {
             

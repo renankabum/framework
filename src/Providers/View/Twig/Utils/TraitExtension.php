@@ -1,21 +1,21 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers\View\Twig\Utils;
+namespace Core\Providers\View\Twig\Utils;
 
 /**
  * Trait TraitExtension
  *
- * @package Navegarte\Providers\View\TwigProvider\Utils
+ * @package Core\Providers\View\TwigProvider\Utils
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 trait TraitExtension

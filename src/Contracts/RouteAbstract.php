@@ -1,36 +1,36 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * Core Networks
  *
  * @package   framework
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso - Core
  */
 
-namespace Navegarte\Contracts;
+namespace Core\Contracts;
 
-use Navegarte\App;
+use Core\App;
 
 /**
  * Class RouteAbstract
  *
- * @package VCWeb
+ * @package Core
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 abstract class RouteAbstract
 {
     /**
-     * @var \Navegarte\App
+     * @var \Core\App
      */
     protected $app;
     
     /**
      * RouteAbstract constructor.
      *
-     * @param \Navegarte\App $app
+     * @param \Core\App $app
      */
     public function __construct(App $app = null)
     {

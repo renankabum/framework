@@ -1,24 +1,24 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-${YEAH} Vagner Cardoso - VCWeb
+ * @copyright 2017-${YEAH} Vagner Cardoso - Core
  */
 
-namespace Navegarte\Providers\Hash;
+namespace Core\Providers\Hash;
 
-use Navegarte\Contracts\ServiceProviderAbstract;
+use Core\Contracts\ServiceProviderAbstract;
 use Slim\Container;
 
 /**
  * Class BcryptServiceProvider
  *
- * @package Navegarte\Providers\Hash
+ * @package Core\Providers\Hash
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class BcryptServiceProvider extends ServiceProviderAbstract
@@ -33,7 +33,7 @@ final class BcryptServiceProvider extends ServiceProviderAbstract
     public function register(Container $container)
     {
         /**
-         * @return \Navegarte\Providers\Hash\BcryptHasher
+         * @return \Core\Providers\Hash\BcryptHasher
          */
         $container['hash'] = function () {
             return new BcryptHasher();

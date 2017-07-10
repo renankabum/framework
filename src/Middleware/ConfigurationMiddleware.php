@@ -1,26 +1,26 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Middleware;
+namespace Core\Middleware;
 
 use Carbon\Carbon;
-use Navegarte\Contracts\MiddlewareAbstract;
+use Core\Contracts\MiddlewareAbstract;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 /**
  * Class ConfigurationMiddleware
  *
- * @package Navegarte\Middleware
+ * @package Core\Middleware
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class ConfigurationMiddleware extends MiddlewareAbstract

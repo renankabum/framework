@@ -1,25 +1,25 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers\View;
+namespace Core\Providers\View;
 
-use Navegarte\Contracts\ServiceProviderAbstract;
-use Navegarte\Providers\View\Twig\TwigExtension;
+use Core\Contracts\ServiceProviderAbstract;
+use Core\Providers\View\Twig\TwigExtension;
 use Slim\Container;
 
 /**
  * Class ViewServiceProvider
  *
- * @package Navegarte\Providers\View
+ * @package Core\Providers\View
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class ViewServiceProvider extends ServiceProviderAbstract

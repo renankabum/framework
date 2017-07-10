@@ -13,21 +13,19 @@
 namespace Core\Providers;
 
 use Core\Contracts\ServiceProviderAbstract;
+use Core\Helpers\Config;
 use Slim\Container;
-use WideImage\WideImage;
 
 /**
- * Class WideImageServiceProvider
+ * Class ConfigServiceProvider
  *
  * @package Core\Providers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class WideImageServiceProvider extends ServiceProviderAbstract
+class ConfigServiceProvider extends ServiceProviderAbstract
 {
     /**
-     * Registers service on the given container.
-     *
-     * Usar: http://prntscr.com/foimz8
+     * Registers services on the given container.
      *
      * @param \Slim\Container $container
      *
@@ -35,11 +33,13 @@ final class WideImageServiceProvider extends ServiceProviderAbstract
      */
     public function register(Container $container)
     {
+        $items = config();
+        
         /**
-         * @return \WideImage\WideImage
+         * @return \Core\Helpers\Config
          */
-        $container['image'] = function () {
-            return new WideImage();
+        $container['config'] = function () use ($items) {
+            return new Config($items);
         };
     }
 }

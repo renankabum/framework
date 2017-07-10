@@ -1,25 +1,25 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers\View\Twig;
+namespace Core\Providers\View\Twig;
 
-use Navegarte\Helpers\Arr;
+use Core\Helpers\Arr;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class TwigProvider
  *
- * @package Navegarte\Providers\View\Engine
+ * @package Core\Providers\View\Engine
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class Twig

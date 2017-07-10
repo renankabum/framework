@@ -1,18 +1,18 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-${YEAH} Vagner Cardoso - VCWeb
+ * @copyright 2017-${YEAH} Vagner Cardoso - Core
  */
 
-namespace Navegarte\Providers;
+namespace Core\Providers;
 
-use Navegarte\Contracts\ServiceProviderAbstract;
+use Core\Contracts\ServiceProviderAbstract;
 use Slim\Container;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -20,7 +20,7 @@ use Slim\Http\Response;
 /**
  * Class ErrorServiceProvider
  *
- * @package Navegarte\Providers
+ * @package Core\Providers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class ErrorServiceProvider extends ServiceProviderAbstract
@@ -41,11 +41,11 @@ final class ErrorServiceProvider extends ServiceProviderAbstract
             /**
              * @param \Slim\Http\Request  $request
              * @param \Slim\Http\Response $response
-             * @param \Throwable          $exception
+             * @param \Exception          $exception
              *
              * @return mixed
              */
-            return function (Request $request, Response $response, \Throwable $exception) use ($container) {
+            return function (Request $request, Response $response, \Exception $exception) use ($container) {
                 $array = [];
                 
                 if ($request->isXhr()) {

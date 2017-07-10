@@ -1,20 +1,20 @@
 <?php
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Providers\Mailer;
+namespace Core\Providers\Mailer;
 
 /**
  * Class MailerMessage
  *
- * @package Navegarte\Providers\Mailer
+ * @package Core\Providers\Mailer
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class MailerMessage

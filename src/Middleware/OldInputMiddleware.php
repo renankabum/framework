@@ -1,25 +1,25 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * Core <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   Core
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Navegarte\Middleware;
+namespace Core\Middleware;
 
-use Navegarte\Contracts\MiddlewareAbstract;
+use Core\Contracts\MiddlewareAbstract;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 /**
  * Class OldInputMiddleware
  *
- * @package Navegarte\Middleware
+ * @package Core\Middleware
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class OldInputMiddleware extends MiddlewareAbstract
@@ -36,7 +36,6 @@ final class OldInputMiddleware extends MiddlewareAbstract
     public function __invoke(Request $request, Response $response, callable $next)
     {
         if (!$request->isXhr()) {
-            // $this->view->getEnvironment()->addGlobal('old', $this->session->get('old'));
             $this->view->addGlobal('old', $this->session->get('old'));
             $this->session->set('old', $request->getParams());
         }

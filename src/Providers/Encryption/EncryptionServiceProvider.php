@@ -1,32 +1,30 @@
 <?php
 
 /**
- * NAVEGARTE Networks
+ * Core Networks
  *
  * @package   framework
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - NAVEGARTE
+ * @copyright 2017-2017 Vagner Cardoso - Core
  */
 
-namespace Navegarte\Providers\Encryption;
+namespace Core\Providers\Encryption;
 
-use Navegarte\Contracts\ServiceProviderAbstract;
-use Navegarte\Helpers\Str;
+use Core\Contracts\ServiceProviderAbstract;
+use Core\Helpers\Str;
 use Slim\Container;
 
 /**
  * Class EncryptionServiceProvider
  *
- * @package Navegarte\Providers\Encryption
+ * @package Core\Providers\Encryption
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
 final class EncryptionServiceProvider extends ServiceProviderAbstract
 {
     /**
-     * Registers services on the given container.
-     *
      * @param \Slim\Container $container
      *
      * @return mixed|void
@@ -34,14 +32,14 @@ final class EncryptionServiceProvider extends ServiceProviderAbstract
     public function register(Container $container)
     {
         /**
-         * @return \Navegarte\Providers\Encryption\Encryption
+         * @return \Core\Providers\Encryption\Encryption
          */
         $container['encryption'] = function () use ($container) {
             $config = config('app.encryption');
             
             if (empty($config['key'])) {
                 throw new \RuntimeException(
-                    'Nenhuma chave de criptografia de aplicativo foi especificada.'
+                    'No application encryption key has been specified.'
                 );
             }
             
