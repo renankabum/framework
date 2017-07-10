@@ -32,6 +32,7 @@ use Slim\Container;
  * @property \Core\Database\Delete                 delete
  * @property \Slim\Router                          router
  * @property \Core\Providers\View\Twig\Twig        view
+ * @property \Core\Helpers\Config                  config
  */
 abstract class MiddlewareAbstract
 {
