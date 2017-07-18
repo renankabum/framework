@@ -162,9 +162,9 @@ final class TwigExtension extends \Twig_Extension implements \Twig_Extension_Glo
      */
     public function is_route($name)
     {
-        $path = '';
-        
-        if (!Str::startsWith($this->request->getUri()->getPath(), '/')) {
+        $path = $this->request->getUri()->getPath();
+    
+        if (!Str::startsWith($path, '/')) {
             $path = "{$this->base_url()}/{$this->request->getUri()->getPath()}";
         }
         
@@ -180,9 +180,9 @@ final class TwigExtension extends \Twig_Extension implements \Twig_Extension_Glo
      */
     public function is_route_active($name)
     {
-        $path = '';
-        
-        if (!Str::startsWith($this->request->getUri()->getPath(), '/')) {
+        $path = $this->request->getUri()->getPath();
+    
+        if (!Str::startsWith($path, '/')) {
             $path = "{$this->base_url()}/{$this->request->getUri()->getPath()}";
         }
         
