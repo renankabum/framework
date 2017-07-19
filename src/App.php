@@ -215,19 +215,19 @@ final class App extends \Slim\App
         $app = $this;
         
         // Router for web
-        if (file_exists(ROOT . '/routes/web.php')) {
+        if (file_exists(APP_FOLDER . '/routes/web.php')) {
             $this->group(
                 '', function () use ($app) {
-                include ROOT . '/routes/web.php';
+                include APP_FOLDER . '/routes/web.php';
             }
             );
         }
         
         // Router for api
-        if (file_exists(ROOT . '/routes/api.php')) {
+        if (file_exists(APP_FOLDER . '/routes/api.php')) {
             $this->group(
                 '/api', function () use ($app) {
-                include ROOT . '/routes/api.php';
+                include APP_FOLDER . '/routes/api.php';
             }
             );
         }
@@ -243,9 +243,9 @@ final class App extends \Slim\App
     private function getRegisters()
     {
         $array = [];
-        
-        if (file_exists(ROOT . '/bootstrap/registers.php')) {
-            $array = include ROOT . '/bootstrap/registers.php';
+    
+        if (file_exists(APP_FOLDER . '/bootstrap/registers.php')) {
+            $array = include APP_FOLDER . '/bootstrap/registers.php';
             
             return $array;
         }
@@ -259,12 +259,12 @@ final class App extends \Slim\App
     private function generateKey()
     {
         file_put_contents(
-            ROOT . '/.env', preg_replace(
+            APP_FOLDER . '/.env', preg_replace(
                 $this->keyReplacementPattern(), 'APP_KEY=base64:' . base64_encode(
                     random_bytes(
                         config('app.encryption.cipher') === 'AES-128-CBC' ? 16 : 32
                     )
-                ), file_get_contents(ROOT . '/.env')
+                ), file_get_contents(APP_FOLDER . '/.env')
             )
         );
     }

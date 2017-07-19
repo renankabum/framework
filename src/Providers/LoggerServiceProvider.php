@@ -62,7 +62,7 @@ final class LoggerServiceProvider extends ServiceProviderAbstract
                 /**
                  * Salved log dir
                  */
-                $dirOutput = ROOT . "/storage/logs/{$file}";
+                $dirOutput = APP_FOLDER . "/storage/logs/{$file}";
                 
                 /**
                  * Custom formatter logger
