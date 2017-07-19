@@ -3,6 +3,13 @@
 use Core\Helpers\Debug;
 use Core\Helpers\Str;
 
+/**
+ * Root folder
+ *
+ * Adicionado para config da pasta raíz
+ */
+define('ROOT_FOLTER', config('app.root.folder', 'public'));
+
 if (!function_exists('dd')) {
     /**
      * Debug mode
@@ -90,7 +97,7 @@ if (!function_exists('mix')) {
         }
         
         if (!$manifest) {
-            if (!file_exists($manifestPath = ROOT . '/public/mix-manifest.json')) {
+            if (!file_exists($manifestPath = ROOT . "/" . ROOT_FOLTER . "/mix-manifest.json")) {
                 throw new Exception('The mix manifest does not exists.');
             }
     
@@ -118,10 +125,10 @@ if (!function_exists('asset')) {
         }
         
         $baseUrl = rtrim(str_ireplace('index.php', '', request()->getUri()->getBasePath()), '/');
-        
-        if (file_exists(ROOT . "/public{$path}")) {
-            $version = substr(md5_file(ROOT . "/public{$path}"), 0, 10);
     
+        if (file_exists(ROOT . "/" . ROOT_FOLTER . "{$path}")) {
+            $version = substr(md5_file(ROOT . "/" . ROOT_FOLTER . "{$path}"), 0, 10);
+            
             return "{$baseUrl}{$path}?v={$version}";
         }
         
@@ -138,6 +145,7 @@ if (!function_exists('asset_source')) {
     function asset_source($path)
     {
         $paths = [];
+    
         if (!is_array($path)) {
             $paths = [$path];
         }
@@ -147,9 +155,9 @@ if (!function_exists('asset_source')) {
             if (!Str::startsWith($path, '/')) {
                 $path = "/{$path}";
             }
-            
-            if (file_exists(ROOT . "/public{$path}")) {
-                $sources[] = file_get_contents(ROOT . "/public{$path}");
+    
+            if (file_exists(ROOT . "/" . ROOT_FOLTER . "{$path}")) {
+                $sources[] = file_get_contents(ROOT . "/" . ROOT_FOLTER . "{$path}");
             }
         }
         
