@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Core <https://www.vagnercardosoweb.com.br/>
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   Core
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
@@ -42,7 +42,7 @@ final class Twig
     /**
      * @var array
      */
-    protected $var = [];
+    protected $variables = [];
     
     /**
      * TwigProvider constructor.
@@ -163,21 +163,37 @@ final class Twig
     
     /**
      * @param string $key
+     * @param mixed  $value
+     *
+     * @return $this
+     *
+     */
+    public function setVariable($key, $value)
+    {
+        if (!$this->existsVariable($key)) {
+            $this->variables[$key] = $value;
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * @param string $key
      *
      * @return bool
      */
-    public function existsVar($key)
+    public function existsVariable($key)
     {
-        return Arr::exists($this->var, $key);
+        return Arr::exists($this->variables, $key);
     }
     
     /**
      * @return array|bool
      */
-    public function getVar($key)
+    public function getVariable($key)
     {
-        if ($this->existsVar($key)) {
-            return $this->var[$key];
+        if ($this->existsVariable($key)) {
+            return $this->variables[$key];
         }
         
         return false;
@@ -186,25 +202,9 @@ final class Twig
     /**
      * @return array
      */
-    public function getVars()
+    public function getVariables()
     {
-        return $this->var;
-    }
-    
-    /**
-     * @param string $key
-     * @param mixed  $value
-     *
-     * @return $this
-     *
-     */
-    public function setVar($key, $value)
-    {
-        if (!$this->existsVar($key)) {
-            $this->var[$key] = $value;
-        }
-        
-        return $this;
+        return $this->variables;
     }
     
     /**
@@ -212,10 +212,10 @@ final class Twig
      *
      * @return $this
      */
-    public function removeVar($key)
+    public function removeVariable($key)
     {
-        if ($this->existsVar($key)) {
-            Arr::forget($this->var, $key);
+        if ($this->existsVariable($key)) {
+            Arr::forget($this->variables, $key);
         }
         
         return $this;
@@ -251,7 +251,7 @@ final class Twig
      */
     private function fetch($template, array $data)
     {
-        $data = array_merge($this->var, $data);
+        $data = array_merge($this->variables, $data);
         
         return $this->environment->loadTemplate($template)->render($data);
     }
@@ -264,7 +264,7 @@ final class Twig
      */
     private function fetchFromString($string = "", array $data = [])
     {
-        $data = array_merge($this->var, $data);
+        $data = array_merge($this->variables, $data);
         
         return $this->environment->createTemplate($string)->render($data);
     }

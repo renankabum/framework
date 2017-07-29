@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Core <https://www.vagnercardosoweb.com.br/>
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   Core
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-${YEAH} Vagner Cardoso - Core
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Core\Providers\Hash;

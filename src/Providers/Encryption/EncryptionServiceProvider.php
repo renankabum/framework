@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Core Networks
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   framework
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso - Core
+ * @copyright 2017-2017 Vagner Cardoso
  */
 
 namespace Core\Providers\Encryption;

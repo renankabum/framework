@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Core <https://www.vagnercardosoweb.com.br/>
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   Core
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
@@ -18,7 +18,7 @@ namespace Core\Helpers;
  * @package Core\Helpers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-class Config implements \ArrayAccess
+final class Config implements \ArrayAccess
 {
     /**
      * @var array

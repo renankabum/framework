@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Core <https://www.vagnercardosoweb.com.br/>
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   Core
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
@@ -170,8 +170,8 @@ final class App extends \Slim\App
     public function registerMiddleware()
     {
         $registers = $this->getRegisters();
-        
-        foreach ((array)$registers['middleware'] as $class) {
+    
+        foreach ((array) $registers['middleware'] as $class) {
             if (class_exists($class)) {
                 $this->add(new $class($this->getContainer()));
             }
@@ -188,7 +188,7 @@ final class App extends \Slim\App
         $registers = $this->getRegisters();
         
         $providers = [];
-        foreach ((array)$registers['providers'] as $class) {
+        foreach ((array) $registers['providers'] as $class) {
             if (class_exists($class)) {
     
                 /** @var \Core\Contracts\ServiceProviderAbstract $provider */

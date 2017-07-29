@@ -1,8 +1,8 @@
 <?php
 /**
- * Core <https://www.vagnercardosoweb.com.br/>
+ * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
- * @package   Core
+ * @package   VCWeb
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
@@ -97,10 +97,6 @@ final class Mailer
     {
         return $this->error;
     }
-    
-    // ========================================
-    // Metodos da classe privados
-    // ========================================
     
     /**
      * Configura SMTP e Rementente, Retorno
