@@ -42,16 +42,16 @@ class Request
     public function create($method, $endPoint, array $data = array())
     {
         $method = strtoupper($method);
+        if (!empty($data)) {
+            $data = $this->http_build_curl($data);
+        }
+        
         if ($method != 'GET') {
             $this->options[CURLOPT_POSTFIELDS] = $data;
         }
         
         if ($method == 'POST') {
             $this->options[CURLOPT_POST] = 1;
-        }
-        
-        if (!empty($data)) {
-            $data = $this->http_build_curl($data);
         }
         
         $response = $this->createRequest($method, $endPoint, $data);
@@ -215,12 +215,12 @@ class Request
      *
      * @param string $method
      * @param string $endPoint
-     * @param array  $data
+     * @param string $data
      *
      * @return mixed|string
      * @throws \Exception()
      */
-    private function createRequest($method, $endPoint, array $data = array())
+    private function createRequest($method, $endPoint, $data)
     {
         /**
          * Inicia o cURL
