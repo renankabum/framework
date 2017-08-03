@@ -242,7 +242,7 @@ class Request
         /**
          * Junta as opções padrões com a setadas.
          */
-        $options = array_merge($options, $this->options);
+        $options = $options + $this->options;
         
         /**
          * Passa as opções para o cURL

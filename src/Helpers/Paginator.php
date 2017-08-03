@@ -18,7 +18,7 @@ namespace Core\Helpers;
  * @package App\Helpers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class Paginator
+class Paginator
 {
     /**
      * @var int

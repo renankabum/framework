@@ -18,7 +18,7 @@ namespace Core\Helpers;
  * @package Core\Helpers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class Str extends \Illuminate\Support\Str
+class Str extends \Illuminate\Support\Str
 {
     /**
      * @param string $string

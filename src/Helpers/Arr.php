@@ -18,7 +18,7 @@ namespace Core\Helpers;
  * @package Core\Helpers
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-final class Arr extends \Illuminate\Support\Arr
+class Arr extends \Illuminate\Support\Arr
 {
     /**
      * @param array $array
