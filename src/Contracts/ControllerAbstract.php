@@ -89,7 +89,11 @@ abstract class ControllerAbstract
             return $params;
         }
     
-        return $params[$name];
+        if (array_key_exists($name, $params)) {
+            return $params[$name];
+        }
+    
+        return null;
     }
     
     /**
