@@ -36,7 +36,7 @@ final class Delete
     private $places;
     
     /**
-     * @var array
+     * @var bool
      */
     private $result;
     
@@ -61,46 +61,67 @@ final class Delete
     }
     
     /**
+     * Executa a query
      *
+     * @param string $table
+     * @param string $terms
+     * @param string $places
      *
-     * @param string      $table
-     * @param string      $terms
-     * @param string|null $places
+     * @return $this
      */
     public function exec($table, $terms, $places = null)
     {
-        $this->table = (string)$table;
-        $this->terms = (string)$terms;
+        $this->table = (string) $table;
+        $this->terms = (string) $terms;
         
         if (!empty($places)) {
             parse_str($places, $this->places);
         }
+    
         $this->execute();
+    
+        return $this;
     }
     
     /**
-     * Obtém a conexão a syntax e executa a query
+     * Muda os place da query para uma nova consulta
+     *
+     * @param string $places
+     *
+     * @return $this
      */
-    private function execute()
+    public function setPlaces($places)
     {
-        try {
-            $this->syntax();
-            $this->connect();
-            $this->statement->execute();
-            $this->result = true;
-        } catch (\PDOException $e) {
-            $this->result = null;
-            
-            throw new \Exception("Delete:: {$e->getMessage()}");
+        parse_str($places, $this->places);
+    
+        $this->execute();
+    
+        return $this;
+    }
+    
+    /**
+     * Retorna true caso tenha deletado ou não dado erro
+     *
+     * @return bool
+     */
+    public function getResult()
+    {
+        return $this->result;
+    }
+    
+    /**
+     * Obtém a quantidade de linhas afetadas
+     * ou retorna true se foi sucesso
+     *
+     * @return int
+     */
+    public function getRowCount()
+    {
+        if ($this->statement->rowCount() == -1) {
+            return $this->result;
         }
-    }
-    
-    /**
-     * Cria a syntax da query para prepared statement
-     */
-    private function syntax()
-    {
-        $this->statement = "DELETE FROM {$this->table} {$this->terms}";
+        
+        return $this->statement->rowCount();
     }
     
     /**
@@ -114,47 +135,33 @@ final class Delete
          * Percore os dados e places para montar os binds
          */
         if ($this->places) {
-            foreach ($this->places as $index => $place) {
-                $this->statement->bindValue(":{$index}", $place, (is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR));
-            }
+            Connect::bindValues($this->statement, $this->places);
         }
     }
     
-    
-    // Methods privates
-    
     /**
-     *
-     *
-     * @param string $places
+     * Cria a syntax da query para prepared statement
      */
-    public function setPlaces($places)
+    private function syntax()
     {
-        parse_str($places, $this->places);
-        $this->execute();
+        $this->statement = "DELETE FROM {$this->table} {$this->terms}";
     }
     
     /**
-     *
-     *
-     * @return array
+     * Obtém a conexão a syntax e executa a query
      */
-    public function getResult()
+    private function execute()
     {
-        return $this->result;
-    }
-    
-    /**
-     *
-     *
-     * @return int
-     */
-    public function getRowCount()
-    {
-        if ($this->statement->rowCount() == -1) {
-            return count($this->statement->fetchAll());
+        try {
+            $this->syntax();
+            $this->connect();
+            $this->statement->execute();
+            
+            $this->result = true;
+        } catch (\PDOException $e) {
+            $this->result = null;
+            
+            throw new \Exception("Delete:: {$e->getMessage()}");
         }
-        
-        return $this->statement->rowCount();
     }
 }

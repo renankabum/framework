@@ -26,13 +26,12 @@ use Slim\Container;
  * @property \Core\Providers\Session\Session       session
  * @property \Core\Providers\Mailer\Mailer         mailer
  * @property \Core\Providers\Encryption\Encryption encryption
+ * @property \Core\Providers\View\Twig\Twig        view
+ *
  * @property \Core\Database\Create                 create
  * @property \Core\Database\Read                   read
  * @property \Core\Database\Update                 update
  * @property \Core\Database\Delete                 delete
- * @property \Slim\Router                          router
- * @property \Core\Providers\View\Twig\Twig        view
- * @property \Core\Helpers\Config                  config
  */
 abstract class MiddlewareAbstract
 {

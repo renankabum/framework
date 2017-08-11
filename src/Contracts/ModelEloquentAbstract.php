@@ -15,11 +15,11 @@ namespace Core\Contracts;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Class ModalEloquentAbstract
+ * Class ModelEloquentAbstract
  *
  * @package Core\Contracts
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-abstract class ModalEloquentAbstract extends Model
+abstract class ModelEloquentAbstract extends Model
 {
 }

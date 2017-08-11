@@ -40,7 +40,7 @@ final class Update
     private $places;
     
     /**
-     * @var array
+     * @var bool
      */
     private $result;
     
@@ -65,55 +65,69 @@ final class Update
     }
     
     /**
-     *
+     * Executa o update no banco de dados simplificado
      *
      * @param string      $table
      * @param array       $data
      * @param string      $terms
      * @param string|null $places
+     *
+     * @return $this;
      */
     public function exec($table, array $data, $terms, $places = null)
     {
-        $this->table = (string)$table;
-        $this->data = (array)$data;
-        $this->terms = (string)$terms;
+        $this->table = (string) $table;
+        $this->data = (array) $data;
+        $this->terms = (string) $terms;
         
         if (!empty($places)) {
             parse_str($places, $this->places);
         }
+    
         $this->execute();
+    
+        return $this;
     }
     
     /**
-     * Obtém a conexão a syntax e executa a query
+     * Muda os place da query para uma nova query
+     *
+     * @param string $places
+     *
+     * @return $this
      */
-    private function execute()
+    public function setPlaces($places)
     {
-        try {
-            $this->syntax();
-            $this->connect();
-            $this->statement->execute();
-            $this->result = true;
-        } catch (\PDOException $e) {
-            $this->result = null;
-            
-            throw new \Exception("Update:: {$e->getMessage()}");
-        }
+        parse_str($places, $this->places);
+        
+        $this->execute();
+        
+        return $this;
     }
     
     /**
-     * Cria a syntax da query para prepared statement
+     * Retorna true se não ocorrer erros, ou false.
+     *
+     * @return bool
      */
-    private function syntax()
+    public function getResult()
     {
-        $data = [];
-        
-        foreach ($this->data as $index => $value) {
-            $data[] = "{$index} = :{$index}";
+        return $this->result;
+    }
+    
+    /**
+     * Retorna o número de linhas alteradas no banco
+     * ou retorna true
+     *
+     * @return int|bool
+     */
+    public function getRowCount()
+    {
+        if ($this->statement->rowCount() == -1) {
+            return $this->getResult();
         }
         
-        $data = implode(', ', $data);
-        $this->statement = "UPDATE {$this->table} SET {$data} {$this->terms}";
+        return $this->statement->rowCount();
     }
     
     /**
@@ -133,52 +147,44 @@ final class Update
         /**
          * Percore os dados e places para montar os binds
          */
-        $merging = $this->data;
+        $bindings = $this->data;
         
         if ($this->places) {
-            $merging = array_merge($this->data, $this->places);
+            $bindings = array_merge($this->data, $this->places);
         }
         
-        foreach ($merging as $index => $place) {
-            $this->statement->bindValue(":{$index}", $place, (is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR));
-        }
-    }
-    
-    
-    // Methods privates
-    
-    /**
-     *
-     *
-     * @param string $places
-     */
-    public function setPlaces($places)
-    {
-        parse_str($places, $this->places);
-        $this->execute();
+        Connect::bindValues($this->statement, $bindings);
     }
     
     /**
-     *
-     *
-     * @return array
+     * Cria a syntax da query para prepared statement
      */
-    public function getResult()
+    private function syntax()
     {
-        return $this->result;
-    }
-    
-    /**
-     *
-     *
-     * @return int
-     */
-    public function getRowCount()
-    {
-        if ($this->statement->rowCount() == -1) {
-            return count($this->statement->fetchAll());
+        $places = [];
+        foreach ($this->data as $index => $value) {
+            $places[] = "{$index} = :{$index}";
         }
         
-        return $this->statement->rowCount();
+        $places = implode(', ', $places);
+        $this->statement = "UPDATE {$this->table} SET {$places} {$this->terms}";
+    }
+    
+    /**
+     * Obtém a conexão a syntax e executa a query
+     */
+    private function execute()
+    {
+        try {
+            $this->syntax();
+            $this->connect();
+            $this->statement->execute();
+    
+            $this->result = true;
+        } catch (\PDOException $e) {
+            $this->result = null;
+            
+            throw new \Exception("Update:: {$e->getMessage()}");
+        }
     }
 }

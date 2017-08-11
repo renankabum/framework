@@ -42,6 +42,7 @@ class Request
     public function create($method, $endPoint, array $data = array())
     {
         $method = strtoupper($method);
+    
         if (!empty($data)) {
             $data = $this->http_build_curl($data);
         }

@@ -52,8 +52,8 @@ final class Encryption
     public function __construct(Container $container, $key, $cipher = 'AES-128-CBC')
     {
         $this->container = $container;
-        
-        $key = (string)$key;
+    
+        $key = (string) $key;
         
         if (static::supported($key, $cipher)) {
             $this->key = $key;
@@ -88,6 +88,16 @@ final class Encryption
     public static function generateKey($cipher)
     {
         return random_bytes($cipher == 'AES-128-CBC' ? 16 : 32);
+    }
+    
+    /**
+     * Get the encryption key.
+     *
+     * @return string
+     */
+    public function getKey()
+    {
+        return $this->key;
     }
     
     /**
@@ -262,15 +272,5 @@ final class Encryption
     protected function calculateMac($payload, $bytes)
     {
         return hash_hmac('sha256', $this->hash($payload['iv'], $payload['value']), $bytes, true);
-    }
-    
-    /**
-     * Get the encryption key.
-     *
-     * @return string
-     */
-    public function getKey()
-    {
-        return $this->key;
     }
 }

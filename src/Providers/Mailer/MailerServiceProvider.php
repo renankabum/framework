@@ -35,7 +35,6 @@ final class MailerServiceProvider extends ServiceProviderAbstract
          * @return \Core\Providers\Mailer\Mailer
          */
         $container['mailer'] = function () use ($container) {
-            
             return new Mailer($container);
         };
     }

@@ -13,11 +13,11 @@
 namespace Core\Contracts;
 
 /**
- * Class ModalAbstract
+ * Class ModelAbstract
  *
  * @package Core\Contracts
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
  */
-abstract class ModalAbstract
+abstract class ModelAbstract
 {
 }

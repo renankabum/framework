@@ -69,7 +69,7 @@ final class App extends \Slim\App
         /**
          * Regenerate encryption key in days
          */
-        if (config('app.encryption.regenerate.days') !== false) {
+        if (config('app.encryption.regenerate.days') === true) {
             $time = Carbon::now()->getTimestamp();
             $newTime = Carbon::now()->addDays(config('app.encryption.regenerate.days'))->getTimestamp();
             
@@ -130,36 +130,58 @@ final class App extends \Slim\App
      * @param string $methods
      * @param string $pattern
      * @param string $controller
+     * @param string $name
+     * @param string $middleware
      *
      * @return \Slim\Interfaces\RouteInterface
      */
-    public function route($methods, $pattern, $controller)
+    public function route($methods, $pattern, $controller, $name = null, $middleware = null)
     {
         // Transform methods in array
         $methods = explode(',', strtoupper($methods));
+        $name = strtolower($name);
         
         // Mapping routers
-        return $this->map(
+        $map = $this->map(
             $methods, $pattern, function (Request $request, Response $response, $params) use ($controller) {
-    
+        
             if (strpos($controller, '@') === false) {
                 $class = $controller;
                 $method = null;
             } else {
                 list($class, $method) = explode('@', $controller);
             }
-    
-            //$controller = 'App\\Http\\Controllers\\' . str_replace('/', '\\', $class);
+        
             $controller = 'App\\Controllers\\' . str_replace('/', '\\', $class);
             $object = new $controller($request, $response, $params, $this);
-    
+        
             if (!method_exists($object, strtolower($request->getMethod()) . ucfirst($method))) {
                 throw new \Exception('Method <b>' . get_class($object) . '::' . strtolower($request->getMethod()) . ucfirst($method) . '</b> does not exists!');
             }
-    
+        
             return call_user_func_array([$object, strtolower($request->getMethod()) . ucfirst($method),], $params);
         }
         );
+    
+        /**
+         * Support a name in route
+         */
+        if (!is_null($name)) {
+            $map->setName($name);
+        }
+    
+        /**
+         * Support middleware in route
+         */
+        if (!is_null($middleware)) {
+            $middlewares = $this->getRegisters()['middleware']['web'];
+        
+            if (array_key_exists($middleware, $middlewares)) {
+                $map->add($middlewares[$middleware]);
+            }
+        }
+    
+        return $map;
     }
     
     /**
@@ -171,7 +193,7 @@ final class App extends \Slim\App
     {
         $registers = $this->getRegisters();
     
-        foreach ((array) $registers['middleware'] as $class) {
+        foreach ((array) $registers['middleware']['app'] as $key => $class) {
             if (class_exists($class)) {
                 $this->add(new $class($this->getContainer()));
             }
@@ -188,14 +210,18 @@ final class App extends \Slim\App
         $registers = $this->getRegisters();
         
         $providers = [];
-        foreach ((array) $registers['providers'] as $class) {
-            if (class_exists($class)) {
-    
-                /** @var \Core\Contracts\ServiceProviderAbstract $provider */
-                $provider = new $class();
-                $provider->register($this->getContainer());
-                
-                array_push($providers, $provider);
+        foreach ((array) $registers['providers'] as $key => $item) {
+            if (is_array($item)) {
+                foreach ($item as $class) {
+                    if (class_exists($class)) {
+                    
+                        /** @var \Core\Contracts\ServiceProviderAbstract $provider */
+                        $provider = new $class();
+                        $provider->register($this->getContainer());
+                    
+                        array_push($providers, $provider);
+                    }
+                }
             }
         }
         
@@ -254,7 +280,7 @@ final class App extends \Slim\App
     }
     
     /**
-     *
+     * Troca o APP_KEY do arquivos .env
      */
     private function generateKey()
     {

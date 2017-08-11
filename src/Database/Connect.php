@@ -39,7 +39,7 @@ abstract class Connect
      */
     public static function boot()
     {
-        return static::Connect();
+        return static::connect();
     }
     
     /**
@@ -48,7 +48,7 @@ abstract class Connect
      * @return \PDO
      * @throws \Exception
      */
-    private static function Connect()
+    private static function connect()
     {
         /**
          * Pega as configurações
@@ -70,19 +70,20 @@ abstract class Connect
                 static::$conn = new PDO($dsn, $username, $password);
                 static::$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 static::$conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                static::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
                 
                 /**
                  * Usa o banco configurado
                  */
                 if (!empty($database)) {
-                    static::$conn->exec("use {$database};");
+                    static::$conn->exec("USE {$database};");
                 }
                 
                 /**
                  * Configura o encoding
                  */
                 if (!empty($charset) && !empty($collation)) {
-                    static::$conn->exec("set names {$charset} collate {$collation}");
+                    static::$conn->exec("SET NAMES {$charset} COLLATE {$collation}");
                 }
             }
         } catch (\PDOException $e) {
@@ -92,6 +93,27 @@ abstract class Connect
         }
         
         return static::$conn;
+    }
+    
+    /**
+     * Bind values to their parameters in the given statement
+     *
+     * @param \PDOStatement $statement
+     * @param  array        $bindings
+     *
+     * @return void
+     */
+    public static function bindValues(\PDOStatement $statement, $bindings)
+    {
+        foreach ($bindings as $index => $place) {
+            if ($index == 'limit' || $index == 'offset') {
+                $place = (int) $place;
+            }
+            
+            $statement->bindValue(
+                is_string($index) ? ":{$index}" : (int) $index + 1, $place, is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR
+            );
+        }
     }
     
     /**

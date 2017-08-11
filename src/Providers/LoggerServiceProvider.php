@@ -48,15 +48,15 @@ final class LoggerServiceProvider extends ServiceProviderAbstract
                 /**
                  * Instance logger
                  */
-                $logger = new Logger('log');
+                $logger = new Logger('VCWEB_LOG');
                 
                 /**
                  * Verify name/dir
                  */
                 if (is_null($file)) {
-                    $file = 'log.' . substr(md5(date('Ymd')), 0, 10) . '.log';
+                    $file = 'app-' . substr(md5(date('Ymd')), 0, 10) . '.log';
                 } else {
-                    $file = $file . '.' . substr(md5(date('Ymd')), 0, 10) . '.log';
+                    $file = $file . '-' . substr(md5(date('Ymd')), 0, 10) . '.log';
                 }
                 
                 /**

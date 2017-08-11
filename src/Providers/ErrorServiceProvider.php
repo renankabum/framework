@@ -45,7 +45,7 @@ final class ErrorServiceProvider extends ServiceProviderAbstract
              *
              * @return mixed
              */
-            return function (Request $request, Response $response, \Exception $exception) use ($container) {
+            return function (Request $request, Response $response, $exception) use ($container) {
                 $array = [];
                 
                 if ($request->isXhr()) {

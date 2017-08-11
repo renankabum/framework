@@ -56,11 +56,13 @@ final class Read
     }
     
     /**
+     * Executa a query simplificada
      *
+     * @param string $table
+     * @param string $terms
+     * @param string $places
      *
-     * @param string      $table
-     * @param string|null $terms
-     * @param string|null $places
+     * @return $this
      */
     public function exec($table, $terms = null, $places = null)
     {
@@ -69,7 +71,89 @@ final class Read
         }
         
         $this->select = "SELECT * FROM {$table} {$terms}";
+    
         $this->execute();
+    
+        return $this;
+    }
+    
+    /**
+     * Executa a query passando toda ela
+     *
+     * @param string $query
+     * @param string $places
+     *
+     * @return $this
+     */
+    public function query($query, $places = null)
+    {
+        $this->select = (string) $query;
+        
+        if (!empty($places)) {
+            parse_str($places, $this->places);
+        }
+        
+        $this->execute();
+    
+        return $this;
+    }
+    
+    /**
+     * Muda os place da query para uma nova consulta
+     *
+     * @param string $places
+     *
+     * @return $this
+     */
+    public function setPlaces($places)
+    {
+        parse_str($places, $this->places);
+    
+        $this->execute();
+    
+        return $this;
+    }
+    
+    /**
+     * Retorna um array com todos os dados obtidos na consulta
+     *
+     * @return array
+     */
+    public function getResult()
+    {
+        return $this->result;
+    }
+    
+    /**
+     * Obtém o número de registro encontrados
+     *
+     * @return int
+     */
+    public function getRowCount()
+    {
+        if ($this->statement->rowCount() == -1) {
+            return count($this->getResult());
+        }
+        
+        return $this->statement->rowCount();
+    }
+    
+    /**
+     * Obtém o PDO e Prepara a Query
+     */
+    private function connect()
+    {
+        $this->statement = $this->conn->prepare($this->select);
+    }
+    
+    /**
+     * Cria a syntax da query para prepared statement
+     */
+    private function syntax()
+    {
+        if ($this->places) {
+            Connect::bindValues($this->statement, $this->places);
+        }
     }
     
     /**
@@ -81,91 +165,12 @@ final class Read
             $this->connect();
             $this->syntax();
             $this->statement->execute();
+            
             $this->result = $this->statement->fetchAll();
         } catch (\PDOException $e) {
             $this->result = null;
             
             throw new \Exception("Read:: {$e->getMessage()}");
         }
-    }
-    
-    /**
-     * Obtém o PDO e Prepara a Query
-     */
-    private function connect()
-    {
-        
-        $this->statement = $this->conn->prepare($this->select);
-    }
-    
-    /**
-     * Cria a syntax da query para prepared statement
-     */
-    private function syntax()
-    {
-        if ($this->places) {
-            foreach ($this->places as $index => $place) {
-                if ($index == 'limit' || $index == 'offset') {
-                    $place = (int)$place;
-                }
-                
-                $this->statement->bindValue(":{$index}", $place, (is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR));
-            }
-        }
-    }
-    
-    /**
-     *
-     *
-     * @param string      $query
-     * @param string|null $places
-     */
-    public function query($query, $places = null)
-    {
-        $this->select = (string)$query;
-        
-        if (!empty($places)) {
-            parse_str($places, $this->places);
-        }
-        
-        $this->execute();
-    }
-    
-    
-    // Methods privates
-    
-    /**
-     *
-     *
-     * @param string $places
-     */
-    public function setPlaces($places)
-    {
-        parse_str($places, $this->places);
-        $this->execute();
-    }
-    
-    /**
-     *
-     *
-     * @return array
-     */
-    public function getResult()
-    {
-        return $this->result;
-    }
-    
-    /**
-     *
-     *
-     * @return int
-     */
-    public function getRowCount()
-    {
-        if ($this->statement->rowCount() == -1) {
-            return count($this->statement->fetchAll());
-        }
-        
-        return $this->statement->rowCount();
     }
 }

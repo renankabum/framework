@@ -69,8 +69,8 @@ final class Mailer
         $this->config();
         
         $message = new MailerMessage($this->mail);
-        
-        $message->body($this->container['view.mail']->render("mail/{$view}.twig", ['data' => $data]));
+    
+        $message->body($this->container['view.mail']->render("{$view}.twig", ['data' => $data]));
         
         call_user_func($callback, $message);
         

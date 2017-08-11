@@ -31,7 +31,7 @@ final class Create
     private $data;
     
     /**
-     * @var array
+     * @var int
      */
     private $result;
     
@@ -56,33 +56,105 @@ final class Create
     }
     
     /**
-     *
+     * Cria o registro de forma simples
      *
      * @param string $table
      * @param array  $data
+     *
+     * @return $this
      */
     public function exec($table, array $data)
     {
-        $this->table = (string)$table;
-        $this->data = (array)$data;
+        $this->table = (string) $table;
+        $this->data = (array) $data;
+        
         $this->execute();
+    
+        return $this;
     }
     
     /**
-     * Obtém a conexão a syntax e executa a query
+     * Cria vários registro passando um array multimensional
+     *
+     * @param string $table
+     * @param array  $data
+     *
+     * @throws \Exception
      */
-    private function execute()
+    public function execMulti($table, array $data)
     {
+        // INSERT INTO table (colunas) VALUES (?), (?), (?), (?)
+        $this->table = (string) $table;
+        $this->data = (array) $data;
+        
+        $fields = implode(', ', array_keys($this->data[0]));
+        $places = null;
+        $inserts = null;
+        $links = count(array_keys($this->data[0]));
+    
+        foreach ($data as $multi) {
+            $places .= '(';
+            $places .= str_repeat('?, ', $links);
+            $places .= '), ';
+        
+            foreach ($multi as $item) {
+                $inserts[] = $item;
+            }
+        }
+        
+        $places = rtrim(str_replace(', )', ')', $places), ', ');
+        $this->data = $inserts;
+        
         try {
-            $this->syntax();
-            $this->connect();
+            $statement = "INSERT INTO {$this->table} ({$fields}) VALUES {$places}";
+            $this->statement = $this->conn->prepare($statement);
+            Connect::bindValues($this->statement, $this->data);
             $this->statement->execute();
+            
             $this->result = $this->conn->lastInsertId();
         } catch (\PDOException $e) {
             $this->result = null;
-            
-            throw new \Exception("Create:: {$e->getMessage()}");
+    
+            throw new \Exception("Create Multi:: {$e->getMessage()}");
         }
+    }
+    
+    /**
+     * Returna o ID do registro inserido
+     *
+     * @return int
+     */
+    public function getResult()
+    {
+        return $this->result;
+    }
+    
+    /**
+     * Obtém a quantidade de linhas afetadas
+     * ou o ultimo ID inserido
+     *
+     * @return int
+     */
+    public function getRowCount()
+    {
+        if ($this->statement->rowCount() == -1) {
+            return $this->result;
+        }
+        
+        return $this->statement->rowCount();
+    }
+    
+    /**
+     * Obtém o PDO e Prepara a Query
+     */
+    private function connect()
+    {
+        $this->statement = $this->conn->prepare($this->statement);
+        
+        /**
+         * Percore os dados e places para montar os binds
+         */
+        Connect::bindValues($this->statement, $this->data);
     }
     
     /**
@@ -97,85 +169,20 @@ final class Create
     }
     
     /**
-     * Obtém o PDO e Prepara a Query
+     * Obtém a conexão a syntax e executa a query
      */
-    private function connect()
+    private function execute()
     {
-        $this->statement = $this->conn->prepare($this->statement);
-        
-        /**
-         * Percore os dados e places para montar os binds
-         */
-        foreach ($this->data as $index => $place) {
-            $this->statement->bindValue(":{$index}", $place, (is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR));
-        }
-    }
-    
-    
-    // Methods privates
-    
-    /**
-     *
-     *
-     * @param string $table
-     * @param array  $data
-     */
-    public function execMulti($table, array $data)
-    {
-        // INSERT INTO table (colunas) VALUES (?), (?), (?), (?)
-        $this->table = (string)$table;
-        $this->data = (array)$data;
-        
-        $fields = implode(', ', array_keys($this->data[0]));
-        $places = null;
-        $inserts = null;
-        $links = count(array_keys($this->data[0]));
-        
-        foreach ($data as $valueMulti) {
-            $places .= '(';
-            $places .= str_repeat('?, ', $links);
-            $places .= '), ';
-            
-            foreach ($valueMulti as $item) {
-                $inserts[] = $item;
-            }
-        }
-        
-        $places = rtrim(str_replace(', )', ')', $places), ', ');
-        $this->data = $inserts;
-        
         try {
-            $statement = "INSERT INTO {$this->table} ({$fields}) VALUES {$places}";
-            $this->statement = $this->conn->prepare($statement);
-            $this->statement->execute($this->data);
+            $this->syntax();
+            $this->connect();
+            $this->statement->execute();
+            
             $this->result = $this->conn->lastInsertId();
         } catch (\PDOException $e) {
             $this->result = null;
-            die($e->getMessage());
+            
+            throw new \Exception("Create:: {$e->getMessage()}");
         }
-    }
-    
-    /**
-     *
-     *
-     * @return array
-     */
-    public function getResult()
-    {
-        return $this->result;
-    }
-    
-    /**
-     *
-     *
-     * @return int
-     */
-    public function getRowCount()
-    {
-        if ($this->statement->rowCount() == -1) {
-            return count($this->statement->fetchAll());
-        }
-        
-        return $this->statement->rowCount();
     }
 }

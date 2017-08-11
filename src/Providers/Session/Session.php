@@ -128,7 +128,7 @@ final class Session
             $current = session_get_cookie_params();
     
             session_set_cookie_params($current['lifetime'], $current['path'], $current['domain'], $current['secure'], true);
-            session_name(md5(md5('Core' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['PHP_SELF'])));
+            session_name(md5(md5('VCWEB_APP' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['PHP_SELF'])));
             session_cache_limiter('nocache');
             
             session_start();

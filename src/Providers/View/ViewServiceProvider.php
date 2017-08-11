@@ -62,7 +62,7 @@ final class ViewServiceProvider extends ServiceProviderAbstract
          * @return \Twig_Environment
          */
         $container['view.mail'] = function () use ($container) {
-            $twig = new \Twig_Environment(new \Twig_Loader_Filesystem(config('view.path.folder')));
+            $twig = new \Twig_Environment(new \Twig_Loader_Filesystem(APP_FOLDER . '/resources/mail'));
             $twig->addExtension(new TwigExtension($container));
             
             return $twig;

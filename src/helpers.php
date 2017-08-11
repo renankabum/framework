@@ -13,13 +13,6 @@ if (!function_exists('dd')) {
      */
     function dd(...$dumps)
     {
-        /* array_map(
-           function ($var) {
-             (new Debug())->dump($var);
-           },
-           func_get_args()
-         );*/
-        
         foreach ($dumps as $dump) {
             (new Debug())->dump($dump);
         }
@@ -120,7 +113,7 @@ if (!function_exists('asset')) {
         $baseUrl = rtrim(str_ireplace('index.php', '', request()->getUri()->getBasePath()), '/');
     
         if (file_exists(PUBLIC_FOLDER . "{$path}")) {
-            $version = substr(md5_file(PUBLIC_FOLDER . "{$path}"), 0, 10);
+            $version = substr(md5_file(PUBLIC_FOLDER . "{$path}"), 0, 15);
             
             return "{$baseUrl}{$path}?v={$version}";
         }
@@ -158,9 +151,31 @@ if (!function_exists('asset_source')) {
     }
 }
 
+if (!function_exists('glob_recursive')) {
+    /**
+     * Percore os diretórios recursivamente
+     * verificando se existe o `pattern` passado
+     *
+     * @param string $pattern
+     * @param int    $flags
+     *
+     * @return array
+     */
+    function glob_recursive($pattern, $flags = 0)
+    {
+        $files = glob($pattern, $flags);
+        
+        foreach (glob(dirname($pattern) . '/*', GLOB_ONLYDIR | GLOB_NOSORT) as $dir) {
+            $files = array_merge($files, glob_recursive($dir . '/' . basename($pattern), $flags));
+        }
+        
+        return $files;
+    }
+}
+
 if (!function_exists('config')) {
     /**
-     * Get config
+     * Configurações do sistema
      *
      * @param string|null     $name
      * @param string|int|null $default
@@ -170,9 +185,10 @@ if (!function_exists('config')) {
     function config($name = null, $default = null)
     {
         $config = [];
-        foreach (glob(APP_FOLDER . '/config/*') as $filePath) {
-            $fileName = basename($filePath, '.php');
-            $config[$fileName] = include "{$filePath}";
+    
+        foreach (glob(APP_FOLDER . '/config/*.php') as $path) {
+            $file = basename($path, '.php');
+            $config[$file] = include "{$path}";
         }
         
         if (is_null($name)) {
@@ -197,31 +213,31 @@ if (!function_exists('config')) {
 
 if (!function_exists('logger')) {
     /**
-     * @param string|null $file
+     * Logger do sistemas
+     *
+     * @param string $file
      *
      * @return bool|\Monolog\Logger
-     * @throws \Exception
      */
     function logger($file = null)
     {
-        if (is_object(app()->resolve('logger'))) {
-            return app()->resolve('logger', [$file]);
+        if (!is_object(app()->resolve('logger'))) {
+            return false;
         }
-        
-        throw new \Exception('Logger configurado incorretamente!');
+    
+        return app()->resolve('logger', [$file]);
     }
 }
 
 if (!function_exists('view')) {
     /**
-     * Rendering view content
+     * Renderiza a view
      *
-     * @param string   $view
-     * @param array    $array
-     * @param int|null $code
+     * @param string $view
+     * @param array  $array
+     * @param int    $code
      *
      * @return mixed
-     * @throws \Exception
      */
     function view($view, array $array = [], $code = null)
     {
@@ -233,6 +249,7 @@ if (!function_exists('view')) {
             }
     
             $extension = '.php';
+    
             if (config('view.engine') === 'twig') {
                 $extension = '.twig';
             } elseif ($extension === 'blade') {
@@ -245,12 +262,14 @@ if (!function_exists('view')) {
             return app()->resolve('view')->render($response, $view . $extension, $array);
         }
     
-        throw new Exception('View configurado incorretamente!');
+        return false;
     }
 }
 
 if (!function_exists('imagem')) {
     /**
+     * Cria imagem
+     *
      * @param $src
      * @param $dest
      * @param $maxWidth
@@ -345,6 +364,8 @@ if (!function_exists('imagem')) {
 
 if (!function_exists('imagemTamExato')) {
     /**
+     * Cria imagem com tamanho exato
+     *
      * @param $imgSrc
      * @param $dest
      * @param $thumbnail_width
