@@ -183,7 +183,7 @@ final class Twig
      */
     private function fetch($template, array $data)
     {
-        $data = array_merge($this->variables, $data);
+        /*$data = array_merge($this->variables, $data);*/
         
         return $this->environment->loadTemplate($template)->render($data);
     }
