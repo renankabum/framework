@@ -12,7 +12,6 @@
 
 namespace Core\Providers\View\Twig;
 
-use Core\Helpers\Arr;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -38,11 +37,6 @@ final class Twig
      * @var \Psr\Container\ContainerInterface
      */
     protected $container;
-    
-    /**
-     * @var array
-     */
-    protected $variables = [];
     
     /**
      * TwigProvider constructor.
@@ -162,68 +156,6 @@ final class Twig
     }
     
     /**
-     * @param string $key
-     * @param mixed  $value
-     *
-     * @return $this
-     *
-     */
-    public function setVariable($key, $value)
-    {
-        if (!$this->existsVariable($key)) {
-            $this->variables[$key] = $value;
-        }
-        
-        return $this;
-    }
-    
-    /**
-     * @param string $key
-     *
-     * @return bool
-     */
-    public function existsVariable($key)
-    {
-        return Arr::exists($this->variables, $key);
-    }
-    
-    /**
-     * @return array|bool
-     */
-    public function getVariable($key)
-    {
-        if ($this->existsVariable($key)) {
-            return $this->variables[$key];
-        }
-        
-        return false;
-    }
-    
-    /**
-     * @return array
-     */
-    public function getVariables()
-    {
-        return $this->variables;
-    }
-    
-    /**
-     * @param string|array $key
-     *
-     * @return $this
-     */
-    public function removeVariable($key)
-    {
-        if ($this->existsVariable($key)) {
-            Arr::forget($this->variables, $key);
-        }
-        
-        return $this;
-    }
-    
-    // PRIVATES METHODS
-    
-    /**
      * @param array $paths
      *
      * @return \Twig_Loader_Filesystem
@@ -254,18 +186,5 @@ final class Twig
         $data = array_merge($this->variables, $data);
         
         return $this->environment->loadTemplate($template)->render($data);
-    }
-    
-    /**
-     * @param string $string
-     * @param array  $data
-     *
-     * @return string
-     */
-    private function fetchFromString($string = "", array $data = [])
-    {
-        $data = array_merge($this->variables, $data);
-        
-        return $this->environment->createTemplate($string)->render($data);
     }
 }

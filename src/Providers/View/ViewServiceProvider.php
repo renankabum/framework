@@ -39,21 +39,18 @@ final class ViewServiceProvider extends ServiceProviderAbstract
             
             switch (config('view.engine')) {
                 case 'php':
-                    $engineObject = (new PhpProvider($container))->register();
-                    break;
-                case 'blade':
-                    $engineObject = (new BladeProvider($container))->register();
+                    $engineObject = new PhpProvider($container);
                     break;
                 case 'twig':
-                    $engineObject = (new TwigProvider($container))->register();
+                    $engineObject = new TwigProvider($container);
                     break;
             }
             
             if (!is_object($engineObject)) {
                 throw new \Exception('Erro processamento da view.', E_USER_ERROR);
             }
-            
-            return $engineObject;
+    
+            return $engineObject->register();
         };
         
         /**

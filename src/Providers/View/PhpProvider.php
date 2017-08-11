@@ -13,7 +13,6 @@
 namespace Core\Providers\View;
 
 use Core\Contracts\ViewAbstract;
-use Core\Helpers\Arr;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -25,21 +24,48 @@ use Psr\Http\Message\ResponseInterface;
 final class PhpProvider extends ViewAbstract
 {
     /**
-     * @var array
+     * @var string
      */
-    protected $var;
+    protected $templatePath;
     
     /**
-     * Register new view provider
+     * @var string
+     */
+    protected $templatePhp;
+    
+    /**
+     * @var array
+     */
+    protected $attributes = [];
+    
+    /**
+     * @var array
+     */
+    protected $data = [];
+    
+    /**
+     * @var string
+     */
+    protected $content;
+    
+    /**
+     * Registar o novo provider
      *
      * @return \Core\Providers\View\PhpProvider
      */
     public function register()
     {
+        $config = (object) config('view');
+    
+        $this->templatePath = rtrim($config->path['folder'], '/\\');
+        $this->templatePhp = $this->templatePath . '/app.php';
+        
         return $this;
     }
     
     /**
+     * Renderiza a view
+     *
      * @param \Psr\Http\Message\ResponseInterface $response
      * @param string                              $template
      * @param array                               $data
@@ -56,66 +82,127 @@ final class PhpProvider extends ViewAbstract
     }
     
     /**
-     * @param string $key
+     * Método para incluir um novo arquivo no template
      *
-     * @return bool
+     * @param string $pathFile
+     *
+     * @return $this
      */
-    public function existsVar($key)
+    public function includeFile($pathFile)
     {
-        return Arr::exists($this->var, $key);
+        $pathFile = (string) "{$this->templatePath}/{$pathFile}.php";
+    
+        if (file_exists($pathFile)) {
+            include "{$pathFile}";
+        }
+        
+        return $this;
     }
     
     /**
-     * @return array|bool
+     * Método para incluir todas view dentro
+     * do template `app.php`
+     *
+     * @return $this
      */
-    public function getVar($key)
+    public function content()
     {
-        if ($this->existsVar($key)) {
-            return $this->var[$key];
+        include "{$this->content}";
+        
+        return $this;
+    }
+    
+    /**
+     * Adiciona os atributos
+     *
+     * @param array $attributes
+     *
+     * @return $this
+     */
+    public function setAttributes(array $attributes)
+    {
+        $this->attributes = $attributes;
+        
+        return $this;
+    }
+    
+    /**
+     * Recupera todos atributos passados
+     *
+     * @return array
+     */
+    public function getAttributes()
+    {
+        return $this->attributes;
+    }
+    
+    /**
+     * Adiciona um atributo
+     *
+     * @param mixed $key
+     * @param mixed $value
+     *
+     * @return $this
+     */
+    public function addAttribute($key, $value)
+    {
+        $this->attributes[$key] = $value;
+        
+        return $this;
+    }
+    
+    /**
+     * Recupera o atributo
+     *
+     * @param string $key
+     *
+     * @return bool|mixed
+     */
+    public function getAttribute($key)
+    {
+        if (!isset($this->attributes[$key])) {
+            return false;
+        }
+        
+        if (array_key_exists($key, $this->attributes)) {
+            return $this->attributes[$key];
         }
         
         return false;
     }
     
     /**
-     * @return array
+     * Adiciona um atributo ( Padrão Twig Template )
+     *
+     * @param mixed $key
+     * @param mixed $value
+     *
+     * @return \Core\Providers\View\PhpProvider
      */
-    public function getVars()
+    public function addGlobal($key, $value)
     {
-        return $this->var;
+        $this->addAttribute($key, $value);
     }
     
     /**
-     * @param string $key
-     * @param mixed  $value
+     * Recupera a data, atributos e container da classe
      *
-     * @return $this
+     * @param string $name
      *
+     * @return mixed
      */
-    public function setVar($key, $value)
+    public function __get($name)
     {
-        if (!$this->existsVar($key)) {
-            $this->var[$key] = $value;
-        }
+        $data = array_merge($this->attributes, $this->data);
         
-        return $this;
-    }
-    
-    /**
-     * @param string|array $key
-     *
-     * @return $this
-     */
-    public function removeVar($key)
-    {
-        if ($this->existsVar($key)) {
-            Arr::forget($this->var, $key);
+        if (array_key_exists($name, $data)) {
+            return $data[$name];
         }
-        
-        return $this;
     }
     
     /**
+     * Cria o render
+     *
      * @param string $template
      * @param array  $data
      *
@@ -125,25 +212,25 @@ final class PhpProvider extends ViewAbstract
      */
     private function fetch($template, array $data = [])
     {
-        $templatePath = rtrim(config('view.path.folder'), '/\\') . "/php/{$template}";
-    
-        if (isset($data['template'])) {
-            throw new \InvalidArgumentException("Duplicate template key found");
-        }
-    
-        if (!is_file($templatePath)) {
+        if (!is_file($this->templatePath . '/' . $template)) {
             throw new \RuntimeException("View cannot render `$template` because the template does not exist");
         }
     
-        $data = array_merge($this->var, $data);
-    
+        $this->data = $this->attributes + $data;
+        
         try {
             ob_start();
+    
+            extract($this->data);
+    
+            if (file_exists($this->templatePhp)) {
+                $this->content = $this->templatePath . '/' . $template;
         
-            extract($data);
-        
-            include $templatePath;
-        
+                include "{$this->templatePhp}";
+            } else {
+                include "{$this->templatePath}/{$template}";
+            }
+            
             $output = ob_get_clean();
         } catch (\Throwable $e) { // PHP 7+
             ob_end_clean();

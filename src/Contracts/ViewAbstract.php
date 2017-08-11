@@ -19,6 +19,8 @@ use Slim\Container;
  *
  * @package Core\Contracts
  * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
+ *
+ * @property \Core\Providers\Session\Session session
  */
 abstract class ViewAbstract
 {
