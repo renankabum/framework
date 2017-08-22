@@ -62,7 +62,12 @@ final class LoggerServiceProvider extends ServiceProviderAbstract
                 /**
                  * Salved log dir
                  */
-                $dirOutput = APP_FOLDER . "/storage/logs/{$file}";
+                $dirName = APP_FOLDER . "/storage/logs";
+                if (!is_dir($dirName)) {
+                    mkdir($dirName, 0755, true);
+                }
+                
+                $dirOutput = "{$dirName}/{$file}";
                 
                 /**
                  * Custom formatter logger

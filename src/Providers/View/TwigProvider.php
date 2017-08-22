@@ -32,7 +32,7 @@ final class TwigProvider extends ViewAbstract
             $this->container, config('view.path.folder'), [
                 'debug' => config('view.debug', false),
                 'charset' => 'UTF-8',
-                'cache' => (config('view.cache', false) ? config('view.path.compiled') . '/twig' : false),
+                'cache' => (config('view.cache', false) ? config('view.path.compiled') : false),
                 'auto_reload' => true,
             ]
         );
