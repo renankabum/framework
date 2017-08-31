@@ -93,9 +93,13 @@ final class TwigExtension extends \Twig_Extension implements \Twig_Extension_Glo
      *
      * @return string
      */
-    public function path_for($name, array $data = [], array $queryParams = [])
+    public function path_for($name, $data = [], $queryParams = [], $hash = null)
     {
-        return $this->router->pathFor($name, $data, $queryParams);
+        if (!is_null($hash)) {
+            $hash = "#{$hash}";
+        }
+        
+        return $this->router->pathFor($name, (array) $data, (array) $queryParams) . $hash;
     }
     
     /**
@@ -163,7 +167,7 @@ final class TwigExtension extends \Twig_Extension implements \Twig_Extension_Glo
     public function is_route($name)
     {
         $path = $this->request->getUri()->getPath();
-    
+        
         if (!Str::startsWith($path, '/')) {
             $path = "{$this->base_url()}/{$this->request->getUri()->getPath()}";
         }
@@ -181,7 +185,7 @@ final class TwigExtension extends \Twig_Extension implements \Twig_Extension_Glo
     public function is_route_active($name)
     {
         $path = $this->request->getUri()->getPath();
-    
+        
         if (!Str::startsWith($path, '/')) {
             $path = "{$this->base_url()}/{$this->request->getUri()->getPath()}";
         }
