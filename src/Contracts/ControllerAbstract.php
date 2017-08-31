@@ -88,11 +88,11 @@ abstract class ControllerAbstract
         if (is_null($name)) {
             return $params;
         }
-    
+        
         if (array_key_exists($name, $params)) {
             return $params[$name];
         }
-    
+        
         return null;
     }
     
@@ -206,7 +206,7 @@ abstract class ControllerAbstract
     public function pathFor($name = null, array $data = [], array $queryParams = [])
     {
         $name = !is_null($name) ? $name : 'home';
-    
+        
         return $this->getRouter()->pathFor($name, $data, $queryParams);
     }
     
@@ -316,7 +316,7 @@ abstract class ControllerAbstract
      */
     private function filterParams(array $params)
     {
-        $filtered = [];
+        $data = [];
         
         foreach ((array) $params as $key => $param) {
             if (is_null($param)) {
@@ -324,14 +324,38 @@ abstract class ControllerAbstract
             }
             
             if (is_array($param)) {
-                $filtered[$key] = $this->filterParams($param);
+                $data[$key] = $this->filterParams($param);
             } else {
-                $filter = (is_int($param) ? FILTER_SANITIZE_NUMBER_INT : (is_float($param) ? FILTER_SANITIZE_NUMBER_FLOAT : FILTER_SANITIZE_STRING));
+                $filter = (is_int($param) ? FILTER_SANITIZE_NUMBER_INT : (is_float($param) ? FILTER_SANITIZE_NUMBER_FLOAT : (is_string($param) ? FILTER_SANITIZE_STRING : FILTER_DEFAULT)));
                 
-                $filtered[$key] = strip_tags(trim(filter_var($param, $filter)));
+                $data[$key] = strip_tags(trim(filter_var($param, $filter)));
             }
         }
         
-        return $filtered;
+        return $data;
+    }
+    
+    /**
+     * Verifica se os parametros está vazio
+     *
+     * @param array $params
+     *
+     * @return bool
+     */
+    public function filterEmptyParams(array $params)
+    {
+        $result = true;
+        
+        foreach ((array) $params as $key => $param) {
+            if (is_array($param)) {
+                return $this->filterEmptyParams($param);
+            } else {
+                if (empty($param)) {
+                    $result = false;
+                }
+            }
+        }
+        
+        return $result;
     }
 }

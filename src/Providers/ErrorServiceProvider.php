@@ -52,7 +52,8 @@ final class ErrorServiceProvider extends ServiceProviderAbstract
                     $array = [
                         'error' => [
                             'status' => 500,
-                            'message' => htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8', false),
+                            #'message' => htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8', false),
+                            'message' => $exception->getMessage(),
                             'file' => $exception->getFile(),
                             'line' => $exception->getLine()
                         ]
