@@ -42,7 +42,7 @@ class Request
     public function create($method, $endPoint, array $data = array())
     {
         $method = strtoupper($method);
-    
+        
         if (!empty($data)) {
             $data = $this->http_build_curl($data);
         }
@@ -53,6 +53,7 @@ class Request
         
         if ($method == 'POST') {
             $this->options[CURLOPT_POST] = 1;
+            $this->headers[] = "Content-length: " . strlen($data);
         }
         
         $response = $this->createRequest($method, $endPoint, $data);
@@ -167,7 +168,7 @@ class Request
         $this->headers[] = "User-Agent: VCWeb Create cURL";
         $this->headers[] = "Accept-Charset: UTF-8";
         $this->headers[] = "Accept-Language: pt-br;q=0.9,pt-BR";
-        $this->headers[] = "Accept: application/json";
+        /* $this->headers[] = "Accept: application/json";*/
         $this->headers[] = "Content-Type: application/x-www-form-urlencoded";
         
         return $this->headers;
@@ -224,6 +225,13 @@ class Request
     private function createRequest($method, $endPoint, $data)
     {
         /**
+         * Verifica se e GET e transforma a URL
+         */
+        if ($method == 'GET') {
+            $endPoint = "{$endPoint}?{$data}";
+        }
+        
+        /**
          * Inicia o cURL
          */
         $cURL = curl_init();
@@ -252,7 +260,7 @@ class Request
         
         $response = curl_exec($cURL);
         $error = curl_error($cURL);
-        $code = curl_getinfo($cURL, CURLINFO_HTTP_CODE);
+        //$code = curl_getinfo($cURL, CURLINFO_HTTP_CODE);
         
         /**
          * Fecha a requisição
@@ -263,19 +271,22 @@ class Request
             return $error;
         }
         
-        if ($code != 200) {
-            throw new \Exception($response);
-        }
+        /*if ($code != 200) {
+            return "Error != 200: {$code}";
+        }*/
         
         /**
          * Transforma em array o retorno
          */
-        $response = json_decode($response, true);
+        $result = json_decode($response, true);
         
         if (json_last_error() != JSON_ERROR_NONE) {
-            throw new \Exception($response);
+            
+            // Se não conseguir converte o json ele converte o xml
+            $xml = simplexml_load_string($response);
+            $result = json_decode(json_encode($xml), true);
         }
         
-        return $response;
+        return $result;
     }
 }
