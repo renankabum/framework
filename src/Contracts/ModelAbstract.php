@@ -105,10 +105,6 @@ abstract class Model
     {
         $update = $this->container['update']->exec($table, $data, $terms, $places);
         
-        if ($update->getRowCount() <= 0) {
-            return $update->getRowCount();
-        }
-        
         return $update->getResult();
     }
     
