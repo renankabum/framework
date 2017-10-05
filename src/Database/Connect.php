@@ -70,7 +70,7 @@ abstract class Connect
                 static::$conn = new PDO($dsn, $username, $password);
                 static::$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 static::$conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                static::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+                //static::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
                 
                 /**
                  * Usa o banco configurado
