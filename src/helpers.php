@@ -101,10 +101,11 @@ if (!function_exists('mix')) {
 if (!function_exists('asset')) {
     /**
      * @param string $path
+     * @param bool   $url
      *
      * @return bool|string
      */
-    function asset($path)
+    function asset($path, $url = false)
     {
         if (!Str::startsWith($path, '/')) {
             $path = "/{$path}";
@@ -120,8 +121,9 @@ if (!function_exists('asset')) {
 
         if (file_exists(PUBLIC_FOLDER . "{$path}")) {
             $version = substr(md5_file(PUBLIC_FOLDER . "{$path}"), 0, 15);
+            $fullUrl = ($url === true) ? BASE_URL : '';
 
-            return "{$baseUrl}{$path}?v={$version}";
+            return "{$fullUrl}{$baseUrl}{$path}?v={$version}";
         }
 
         return false;
