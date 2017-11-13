@@ -36,7 +36,11 @@ final class SessionServiceProvider extends ServiceProviderAbstract
          * @return \Core\Providers\Session\Session
          */
         $container['session'] = function () {
-            return new Session();
+            if (config('app.session') == true) {
+                return new Session();
+            }
+
+            return false;
         };
     }
 }

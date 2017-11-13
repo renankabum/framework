@@ -35,13 +35,13 @@ final class OldInputMiddleware extends MiddlewareAbstract
      */
     public function __invoke(Request $request, Response $response, callable $next)
     {
-        if (!$request->isXhr()) {
+        if (!$request->isXhr() && config('app.session') == true) {
             $this->view->addGlobal('old', $this->session->get('old'));
             $this->session->set('old', $request->getParams());
         }
-        
+
         $response = $next($request, $response);
-        
+
         return $response;
     }
 }
