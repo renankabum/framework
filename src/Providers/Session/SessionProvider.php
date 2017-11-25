@@ -30,17 +30,25 @@ namespace Core\Providers\Session {
         public function register()
         {
             /**
-             * @return \Core\Providers\Session\Session
+             * @return bool|\Core\Providers\Session\Session
              */
             $this->container['session'] = function () {
-                return new Session;
+                if (config('app.session')) {
+                    return new Session;
+                }
+
+                return false;
             };
 
             /**
-             * @return \Core\Providers\Session\Flash
+             * @return bool|\Core\Providers\Session\Flash
              */
             $this->container['flash'] = function () {
-                return new Flash;
+                if (config('app.session')) {
+                    return new Flash;
+                }
+
+                return false;
             };
         }
     }

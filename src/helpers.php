@@ -114,14 +114,16 @@ if (!function_exists('asset')) {
         $baseUrl = rtrim(
             str_ireplace(
                 'index.php', '', request()
-                ->getUri()
-                ->getBasePath()
+                    ->getUri()
+                    ->getBasePath()
             ), '/'
         );
 
         if (file_exists(PUBLIC_FOLDER . "{$path}")) {
             $version = substr(md5_file(PUBLIC_FOLDER . "{$path}"), 0, 15);
-            $fullUrl = ($url === true) ? BASE_URL : '';
+            $fullUrl = ($url === true)
+                ? BASE_URL
+                : '';
 
             return "{$fullUrl}{$baseUrl}{$path}?v={$version}";
         }
@@ -332,9 +334,7 @@ if (!function_exists('logger')) {
 
         return app()
             ->resolve('logger', [$file])
-            ->{"add{$type}"}(
-                $message, $context
-            );
+            ->{"add{$type}"}($message, $context);
     }
 }
 
@@ -568,7 +568,7 @@ if (!function_exists('json')) {
      * @param mixed $data
      * @param int   $status
      *
-     * @return static
+     * @return \Slim\Http\Response
      */
     function json($data, $status = 200)
     {
@@ -595,6 +595,19 @@ if (!function_exists('path_for')) {
     }
 }
 
+if (!function_exists('location')) {
+    /**
+     * @param string $route
+     * @param int    $status
+     */
+    function location($route, $status = 200)
+    {
+        header("Location: {$route}", true, $status);
+
+        exit;
+    }
+}
+
 if (!function_exists('redirect')) {
     /**
      * @param string $name
@@ -602,11 +615,49 @@ if (!function_exists('redirect')) {
      * @param array  $queryParams
      * @param string $hash
      *
-     * @return static
+     * @return \Slim\Http\Response
      */
     function redirect($name, array $data = [], array $queryParams = [], $hash = null)
     {
         return response()->withRedirect(path_for($name, $data, $queryParams, $hash));
+    }
+}
+
+if (!function_exists('__')) {
+    /**
+     * @param string $value
+     *
+     * @return string
+     */
+    function __($value)
+    {
+        return html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('entities')) {
+    /**
+     * @param array $values
+     *
+     * @return array
+     */
+    function entities(array $values)
+    {
+        $post = [];
+
+        foreach ((array) $values as $key => $value) {
+            if (is_array($value)) {
+                $post[$key] = entities($value);
+            } else {
+                if (is_string($value)) {
+                    $value = htmlentities($value, ENT_QUOTES, 'UTF-8', false);
+                }
+
+                $post[$key] = $value;
+            }
+        }
+
+        return $post;
     }
 }
 

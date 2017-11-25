@@ -53,7 +53,14 @@ namespace Core\Contracts {
         public function __construct(Container $container)
         {
             $this->container = $container;
+
+            $this->boot();
         }
+
+        /**
+         * Inicia junto com a middleware
+         */
+        protected function boot(){}
 
         /**
          * Register middleware

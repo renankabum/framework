@@ -47,7 +47,16 @@ namespace Core\Contracts {
         public function __construct()
         {
             $this->container = app()->getContainer();
+
+            $this->boot();
         }
+
+        /**
+         * Inicializa junto com o Model
+         *
+         * @return mixed
+         */
+        protected function boot(){}
 
         /**
          * Pega os provider cadastrados

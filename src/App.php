@@ -39,7 +39,7 @@ namespace Core {
             /**
              * Start session
              */
-            if (!session_id()) {
+            if (!session_id() && config('app.session')) {
                 $current = session_get_cookie_params();
 
                 session_set_cookie_params($current['lifetime'], $current['path'], $current['domain'], $current['secure'], true);
@@ -57,20 +57,21 @@ namespace Core {
                     if (!($code & error_reporting())) {
                         return;
                     }
+
                     throw new \ErrorException($message, $code, 0, $file, $line);
                 }
             );
+
+            /**
+             * ConfigurationMiddleware timezone app
+             */
+            date_default_timezone_set(config('app.timezone', 'America/Sao_Paulo'));
 
             /**
              * Locale language
              */
             setlocale(LC_ALL, 'pt_BR', 'pt_BR.utf-8', 'portuguese');
             Carbon::setLocale('pt_BR');
-
-            /**
-             * ConfigurationMiddleware timezone app
-             */
-            date_default_timezone_set(config('app.timezone', 'America/Sao_Paulo'));
 
             /**
              * ConfigurationMiddleware default charset app
@@ -114,7 +115,9 @@ namespace Core {
                     'responseChunkSize' => 4096,
                     'outputBuffering' => 'append',
                     'determineRouteBeforeAppMiddleware' => true,
-                    'displayErrorDetails' => (config('app.environment') === 'production' ? false : true),
+                    'displayErrorDetails' => (config('app.environment') === 'production'
+                        ? false
+                        : true),
                     'addContentLengthHeader' => false,
                     'routerCacheFile' => false,
                 ],
@@ -133,10 +136,8 @@ namespace Core {
             /**
              * Generate encryption key
              */
-            if (empty(config('app.encryption.key'))) {
-                if (substr(config('app.encryption.key'), 0, 7) !== "base64:") {
-                    $this->generateKey();
-                }
+            if (substr(config('app.encryption.key'), 0, 7) !== "base64:") {
+                $this->generateKey();
             }
 
             /**
@@ -174,8 +175,7 @@ namespace Core {
             $name = strtolower($name);
 
             // Mapping routers
-            $map = $this->map(
-                $methods, $pattern, function (Request $request, Response $response, $params) use ($controller) {
+            $map = $this->map($methods, $pattern, function (Request $request, Response $response, $params) use ($controller) {
 
                 if (strpos($controller, '@') === false) {
                     $method = null;
@@ -194,8 +194,7 @@ namespace Core {
                 }
 
                 return call_user_func_array([$controller, $method], $params);
-            }
-            );
+            });
 
             /**
              * Support a name in route
@@ -230,14 +229,10 @@ namespace Core {
         {
             if ($this->getContainer()
                 ->has($id)) {
-                if (is_callable(
-                    $this->getContainer()
-                        ->get($id)
-                )) {
-                    return call_user_func_array(
-                        $this->getContainer()
-                            ->get($id), $param_arr
-                    );
+                if (is_callable($this->getContainer()
+                    ->get($id))) {
+                    return call_user_func_array($this->getContainer()
+                        ->get($id), $param_arr);
                 } else {
                     return $this->getContainer()
                         ->get($id);
@@ -336,20 +331,16 @@ namespace Core {
 
             // Router for web
             if (file_exists(APP_FOLDER . '/routes/web.php')) {
-                $this->group(
-                    '', function () use ($app) {
+                $this->group('', function () use ($app) {
                     include APP_FOLDER . '/routes/web.php';
-                }
-                );
+                });
             }
 
             // Router for api
             if (file_exists(APP_FOLDER . '/routes/api.php')) {
-                $this->group(
-                    '/api', function () use ($app) {
+                $this->group('/api', function () use ($app) {
                     include APP_FOLDER . '/routes/api.php';
-                }
-                );
+                });
             }
         }
 
@@ -379,17 +370,19 @@ namespace Core {
         private function generateKey()
         {
             file_put_contents(
-                APP_FOLDER . '/.env', preg_replace(
+                APP_FOLDER . '/.env',
+                preg_replace(
                     $this->keyReplacementPattern(), 'APP_KEY=base64:' . base64_encode(
                         random_bytes(
-                            config('app.encryption.cipher') === 'AES-128-CBC' ? 16 : 32
+                            config('app.encryption.cipher') === 'AES-128-CBC'
+                            ? 16
+                            : 32
                         )
                     ), file_get_contents(APP_FOLDER . '/.env')
                 )
             );
 
-            header('Location: ' . BASE_URL);
-            exit;
+            location(BASE_URL);
         }
 
         /**

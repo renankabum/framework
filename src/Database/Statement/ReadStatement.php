@@ -41,9 +41,6 @@ namespace Core\Database\Statement {
             // Executa o bind e query
             $this->execute();
 
-            // Recupera o resultado
-            $this->result = true;
-
             return $this;
         }
 
@@ -63,9 +60,6 @@ namespace Core\Database\Statement {
             // Executa o bind e query
             $this->execute();
 
-            // Recupera o resultado
-            $this->result = true;
-
             return $this;
         }
 
@@ -82,21 +76,7 @@ namespace Core\Database\Statement {
             // Executa o bind e query
             $this->execute();
 
-            // Recupera o resultado
-            $this->result = true;
-
             return $this;
-        }
-
-        /**
-         * @return array
-         */
-        public function fetchAll()
-        {
-            $this->result = $this->stmt->fetchAll();
-            $this->stmt->closeCursor();
-
-            return $this->result;
         }
 
         /**
@@ -111,18 +91,6 @@ namespace Core\Database\Statement {
         }
 
         /**
-         * @return int
-         */
-        public function rowCount()
-        {
-            if ($this->stmt->rowCount() === -1) {
-                return count($this->fetchAll());
-            }
-
-            return $this->stmt->rowCount();
-        }
-
-        /**
          * @return array
          */
         public function getResult()
@@ -131,11 +99,30 @@ namespace Core\Database\Statement {
         }
 
         /**
+         * @return array
+         */
+        public function fetchAll()
+        {
+            $this->result = $this->stmt->fetchAll();
+            $this->stmt->closeCursor();
+
+            return $this->result;
+        }
+
+        /**
          * @return int
          */
         public function getRowCount()
         {
             return $this->rowCount();
+        }
+
+        /**
+         * @return int
+         */
+        public function rowCount()
+        {
+            return count($this->result);
         }
 
         /**
