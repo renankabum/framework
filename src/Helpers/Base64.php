@@ -10,50 +10,51 @@
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Core\Helpers;
+namespace Core\Helpers {
 
-/**
- * Class Base64
- *
- * @package Core\Helpers
- * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
- */
-final class Base64
-{
     /**
-     * Encoda o valor passado
+     * Class Base64
      *
-     * @param string|int $value
-     *
-     * @return mixed
+     * @package Core\Helpers
+     * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    public static function encode($value)
+    final class Base64
     {
-        return str_replace(
-            '=', '', strtr(
-                base64_encode($value), '+/', '-_'
-            )
-        );
-    }
-    
-    /**
-     * Decoda o valor passado como encode
-     *
-     * @param string $value
-     *
-     * @return bool|string
-     */
-    public static function decode($value)
-    {
-        $remainder = strlen($value) % 4;
-        
-        if ($remainder) {
-            $padlen = 4 - $remainder;
-            $value .= str_repeat('=', $padlen);
+        /**
+         * Encoda o valor passado
+         *
+         * @param string|int $value
+         *
+         * @return mixed
+         */
+        public static function encode($value)
+        {
+            return str_replace(
+                '=', '', strtr(
+                    base64_encode($value), '+/', '-_'
+                )
+            );
         }
-        
-        return base64_decode(
-            strtr($value, '-/', '+/')
-        );
+
+        /**
+         * Decoda o valor passado como encode
+         *
+         * @param string $value
+         *
+         * @return bool|string
+         */
+        public static function decode($value)
+        {
+            $remainder = strlen($value) % 4;
+
+            if ($remainder) {
+                $padlen = 4 - $remainder;
+                $value .= str_repeat('=', $padlen);
+            }
+
+            return base64_decode(
+                strtr($value, '-/', '+/')
+            );
+        }
     }
 }

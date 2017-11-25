@@ -16,7 +16,7 @@ if (!function_exists('dd')) {
         foreach ($dumps as $dump) {
             (new Debug())->dump($dump);
         }
-    
+
         die(1);
     }
 }
@@ -33,11 +33,11 @@ if (!function_exists('env')) {
     function env($name, $default = null)
     {
         $value = getenv($name);
-        
+
         if ($value === false) {
             return $default;
         }
-        
+
         switch (strtolower($value)) {
             case 'true':
             case '(true)':
@@ -56,11 +56,11 @@ if (!function_exists('env')) {
                 return null;
                 break;
         }
-    
+
         if (strlen($value) > 1 && Str::startsWith($value, '"') && Str::endsWith($value, '"')) {
             return substr($value, 1, -1);
         }
-        
+
         return $value;
     }
 }
@@ -77,23 +77,23 @@ if (!function_exists('mix')) {
     function mix($path)
     {
         static $manifest;
-    
+
         if (!Str::startsWith($path, '/')) {
             $path = "/{$path}";
         }
-        
+
         if (!$manifest) {
             if (!file_exists($manifestPath = PUBLIC_FOLDER . "/mix-manifest.json")) {
                 throw new Exception('The mix manifest does not exists.');
             }
-    
+
             $manifest = json_decode(file_get_contents($manifestPath), true);
         }
-    
+
         if (!array_key_exists($path, $manifest)) {
             throw new \Exception("Unable to locate Mix file: {$path}. Please check your webpack.mix.js output paths and try again.");
         }
-    
+
         return $manifest[$path];
     }
 }
@@ -101,23 +101,33 @@ if (!function_exists('mix')) {
 if (!function_exists('asset')) {
     /**
      * @param string $path
+     * @param bool   $url
      *
      * @return bool|string
      */
-    function asset($path)
+    function asset($path, $url = false)
     {
         if (!Str::startsWith($path, '/')) {
             $path = "/{$path}";
         }
-        
-        $baseUrl = rtrim(str_ireplace('index.php', '', request()->getUri()->getBasePath()), '/');
-    
+
+        $baseUrl = rtrim(
+            str_ireplace(
+                'index.php', '', request()
+                    ->getUri()
+                    ->getBasePath()
+            ), '/'
+        );
+
         if (file_exists(PUBLIC_FOLDER . "{$path}")) {
             $version = substr(md5_file(PUBLIC_FOLDER . "{$path}"), 0, 15);
-            
-            return "{$baseUrl}{$path}?v={$version}";
+            $fullUrl = ($url === true)
+                ? BASE_URL
+                : '';
+
+            return "{$fullUrl}{$baseUrl}{$path}?v={$version}";
         }
-        
+
         return false;
     }
 }
@@ -131,22 +141,22 @@ if (!function_exists('asset_source')) {
     function asset_source($path)
     {
         $paths = [];
-    
+
         if (!is_array($path)) {
             $paths = [$path];
         }
-        
+
         $sources = [];
         foreach ($paths as $path) {
             if (!Str::startsWith($path, '/')) {
                 $path = "/{$path}";
             }
-    
+
             if (file_exists(PUBLIC_FOLDER . "{$path}")) {
                 $sources[] = file_get_contents(PUBLIC_FOLDER . "{$path}");
             }
         }
-        
+
         return implode('', $sources);
     }
 }
@@ -164,12 +174,100 @@ if (!function_exists('glob_recursive')) {
     function glob_recursive($pattern, $flags = 0)
     {
         $files = glob($pattern, $flags);
-        
+
         foreach (glob(dirname($pattern) . '/*', GLOB_ONLYDIR | GLOB_NOSORT) as $dir) {
             $files = array_merge($files, glob_recursive($dir . '/' . basename($pattern), $flags));
         }
-        
+
         return $files;
+    }
+}
+
+if (!function_exists('object_set')) {
+    /**
+     * Seta um array para objeto
+     *
+     * @param array $array
+     *
+     * @return object
+     */
+    function object_set($array)
+    {
+        $object = new stdClass();
+
+        if (empty($array)) {
+            return $object;
+        }
+
+        foreach ((array) $array as $key => $value) {
+            if (is_array($value)) {
+                $object->{$key} = object_set($value);
+            } else {
+                if (isset($key)) {
+                    $object->{$key} = $value;
+                }
+            }
+        }
+
+        return $object;
+    }
+}
+
+if (!function_exists('object_get')) {
+    /**
+     * Recupera um objeto
+     *
+     * @param object $object
+     * @param string $name
+     * @param string $default
+     *
+     * @return mixed
+     */
+    function object_get($object, $name, $default = null)
+    {
+        if (is_null($name) && trim($name) == '') {
+            return $object;
+        }
+
+        foreach (explode('.', $name) as $segment) {
+            if (is_object($object) || isset($object->{$segment})) {
+                $object = $object->{$segment};
+            } else {
+                return $default;
+            }
+        }
+
+        return $object;
+    }
+}
+
+if (!function_exists('object_to_array')) {
+    /**
+     * Converte o objecto em array
+     *
+     * @param $object
+     *
+     * @return array
+     */
+    function object_to_array($object)
+    {
+        $array = [];
+
+        foreach ((object) $object as $key => $value) {
+            if (!isset($value) && trim($value) == '') {
+                return $array;
+            }
+
+            if (is_object($value)) {
+                $array[$key] = object_to_array($value);
+            } else {
+                if (isset($key)) {
+                    $array[$key] = $value;
+                }
+            }
+        }
+
+        return $array;
     }
 }
 
@@ -185,20 +283,23 @@ if (!function_exists('config')) {
     function config($name = null, $default = null)
     {
         $config = [];
-    
-        foreach (glob(APP_FOLDER . '/config/*.php') as $path) {
-            $file = basename($path, '.php');
-            $config[$file] = include "{$path}";
+
+        foreach (glob_recursive(APP_FOLDER . '/config/**') as $path) {
+            if (mb_strpos($path, '.php') !== false) {
+                $file = basename($path, '.php');
+
+                $config[$file] = include "{$path}";
+            }
         }
-        
+
         if (is_null($name)) {
             return $config;
         }
-        
+
         if (array_key_exists($name, $config)) {
             return $config[$name];
         }
-        
+
         foreach (explode('.', $name) as $key) {
             if (is_array($config) && array_key_exists($key, $config)) {
                 $config = $config[$key];
@@ -206,7 +307,7 @@ if (!function_exists('config')) {
                 return $default;
             }
         }
-        
+
         return $config;
     }
 }
@@ -215,17 +316,25 @@ if (!function_exists('logger')) {
     /**
      * Logger do sistemas
      *
+     * @param string $message
+     * @param array  $context
+     * @param string $type
      * @param string $file
      *
      * @return bool|\Monolog\Logger
      */
-    function logger($file = null)
+    function logger($message, array $context = array(), $type = 'info', $file = null)
     {
         if (!is_object(app()->resolve('logger'))) {
             return false;
         }
-    
-        return app()->resolve('logger', [$file]);
+
+        $type = strtolower($type);
+        $type = strtoupper(substr($type, 0, 1)) . substr($type, 1);
+
+        return app()
+            ->resolve('logger', [$file])
+            ->{"add{$type}"}($message, $context);
     }
 }
 
@@ -243,25 +352,26 @@ if (!function_exists('view')) {
     {
         if (is_object(app()->resolve('view'))) {
             $response = response();
-    
+
             if (!is_null($code)) {
                 $response = $response->withStatus($code);
             }
-    
+
             $extension = '.php';
-    
+
             if (config('view.engine') === 'twig') {
                 $extension = '.twig';
             } elseif ($extension === 'blade') {
                 $extension = '.blade.php';
             }
-    
             // replace '.' em '/'
             $view = str_replace('.', '/', $view);
-    
-            return app()->resolve('view')->render($response, $view . $extension, $array);
+
+            return app()
+                ->resolve('view')
+                ->render($response, $view . $extension, $array);
         }
-    
+
         return false;
     }
 }
@@ -286,7 +396,7 @@ if (!function_exists('imagem')) {
             $destInfo = pathinfo($dest);
             // Retorna o tamanho da imagem
             $srcSize = getimagesize($src);
-            
+
             // tamanho de destino $destSize[0] = width, $destSize[1] = height
             $srcRatio = $srcSize[0] / $srcSize[1]; // width/height média
             $destRatio = $maxWidth / $maxHeight;
@@ -301,7 +411,7 @@ if (!function_exists('imagem')) {
             if ($destInfo['extension'] == "gif") {
                 $dest = substr_replace($dest, 'jpg', -3);
             }
-            
+
             // cria uma imagem com a extensão original
             switch ($srcSize[2]) {
                 case 1: //GIF
@@ -319,18 +429,18 @@ if (!function_exists('imagem')) {
                     return false;
                     break;
             }
-            
+
             // ajusta a cor
             if (function_exists("imagecreatetruecolor")) {
                 $destImage = imagecreatetruecolor($destSize[0], $destSize[1]);
             } else {
                 $destImage = imagecreate($destSize[0], $destSize[1]);
             }
-            
+
             if (function_exists("imageantialias")) {
                 imageantialias($destImage, true);
             }
-            
+
             if ($png) {
                 if (substr($dest, -3) == 'png') {
                     imagealphablending($destImage, false);
@@ -341,20 +451,20 @@ if (!function_exists('imagem')) {
                     imagefilledrectangle($destImage, 0, 0, $destSize[0], $destSize[1], $white);
                 }
             }
-            
+
             // copia a figura redimencionando o seu tamanho
             if (function_exists("imagecopyresampled")) {
                 imagecopyresampled($destImage, $srcImage, 0, 0, 0, 0, $destSize[0], $destSize[1], $srcSize[0], $srcSize[1]);
             } else {
                 imagecopyresized($destImage, $srcImage, 0, 0, 0, 0, $destSize[0], $destSize[1], $srcSize[0], $srcSize[1]);
             }
-            
+
             if (substr($dest, -3) == 'png') {
                 imagepng($destImage, $dest);
             } else {
                 imagejpeg($destImage, $dest, $quality);
             }
-            
+
             return true;
         } else {
             return false;
@@ -379,16 +489,16 @@ if (!function_exists('imagemTamExato')) {
         if (file_exists($imgSrc) && isset($dest)) {
             $srcSize = getimagesize($imgSrc);
             $destInfo = pathinfo($dest);
-            
+
             // retifica o arquivo
             if ($destInfo['extension'] == "gif") {
                 $dest = substr_replace($dest, 'jpg', -3);
             }
-            
+
             list($width_orig, $height_orig) = getimagesize($imgSrc);
-            
+
             $png = false;
-            
+
             switch ($srcSize[2]) {
                 case 1: //GIF
                     $myImage = imagecreatefromgif($imgSrc);
@@ -404,9 +514,9 @@ if (!function_exists('imagemTamExato')) {
                     return false;
                     break;
             }
-            
+
             $ratio_orig = $width_orig / $height_orig;
-            
+
             if ($thumbnail_width / $thumbnail_height > $ratio_orig) {
                 $new_height = $thumbnail_width / $ratio_orig;
                 $new_width = $thumbnail_width;
@@ -414,13 +524,13 @@ if (!function_exists('imagemTamExato')) {
                 $new_width = $thumbnail_height * $ratio_orig;
                 $new_height = $thumbnail_height;
             }
-            
+
             $x_mid = $new_width / 2;  //horizontal middle
             $y_mid = $new_height / 2; //vertical middle
-            
+
             $process = imagecreatetruecolor(round($new_width), round($new_height));
             $thumb = imagecreatetruecolor($thumbnail_width, $thumbnail_height);
-            
+
             if ($png) {
                 if (substr($dest, -3) == 'png') {
                     imagesavealpha($myImage, true);
@@ -439,17 +549,192 @@ if (!function_exists('imagemTamExato')) {
                 imagecopyresampled($process, $myImage, 0, 0, 0, 0, $new_width, $new_height, $width_orig, $height_orig);
                 imagecopyresampled($thumb, $process, 0, 0, ($x_mid - ($thumbnail_width / 2)), ($y_mid - ($thumbnail_height / 2)), $thumbnail_width, $thumbnail_height, $thumbnail_width, $thumbnail_height);
             }
-            
+
             if (substr($dest, -3) == 'png') {
                 imagepng($thumb, $dest);
             } else {
                 imagejpeg($thumb, $dest, $quality);
             }
-            
+
             return true;
         } else {
             return false;
         }
+    }
+}
+
+if (!function_exists('json')) {
+    /**
+     * @param mixed $data
+     * @param int   $status
+     *
+     * @return \Slim\Http\Response
+     */
+    function json($data, $status = 200)
+    {
+        return response()->withJson($data, $status, JSON_PRETTY_PRINT);
+    }
+}
+
+if (!function_exists('path_for')) {
+    /**
+     * @param string $name
+     * @param array  $data
+     * @param array  $queryParams
+     * @param string $hash
+     *
+     * @return string
+     */
+    function path_for($name, array $data = [], array $queryParams = [], $hash = null)
+    {
+        if (!empty($hash)) {
+            $hash = "#{$hash}";
+        }
+
+        return router()->pathFor(strtolower($name), $data, $queryParams) . $hash;
+    }
+}
+
+if (!function_exists('location')) {
+    /**
+     * @param string $route
+     * @param int    $status
+     */
+    function location($route, $status = 200)
+    {
+        header("Location: {$route}", true, $status);
+
+        exit;
+    }
+}
+
+if (!function_exists('redirect')) {
+    /**
+     * @param string $name
+     * @param array  $data
+     * @param array  $queryParams
+     * @param string $hash
+     *
+     * @return \Slim\Http\Response
+     */
+    function redirect($name, array $data = [], array $queryParams = [], $hash = null)
+    {
+        return response()->withRedirect(path_for($name, $data, $queryParams, $hash));
+    }
+}
+
+if (!function_exists('__')) {
+    /**
+     * @param string $value
+     *
+     * @return string
+     */
+    function __($value)
+    {
+        return html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('entities')) {
+    /**
+     * @param array $values
+     *
+     * @return array
+     */
+    function entities(array $values)
+    {
+        $post = [];
+
+        foreach ((array) $values as $key => $value) {
+            if (is_array($value)) {
+                $post[$key] = entities($value);
+            } else {
+                if (is_string($value)) {
+                    $value = htmlentities($value, ENT_QUOTES, 'UTF-8', false);
+                }
+
+                $post[$key] = $value;
+            }
+        }
+
+        return $post;
+    }
+}
+
+if (!function_exists('empty_filter')) {
+    /**
+     * @param array $data
+     *
+     * @return bool
+     */
+    function empty_filter(array $data)
+    {
+        foreach ((array) $data as $key => $value) {
+            if (is_array($value)) {
+                return empty_filter($value);
+            } else {
+                if (!isset($value) || empty($value)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+}
+
+if (!function_exists('input_filter')) {
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    function input_filter(array $data)
+    {
+        $request = [];
+
+        foreach ((array) $data as $key => $value) {
+            if (is_array($value)) {
+                $request[$key] = input_filter($value);
+            } else {
+                if (is_int($value)) {
+                    $filter = FILTER_SANITIZE_NUMBER_INT;
+                } elseif (is_float($value)) {
+                    $filter = FILTER_SANITIZE_NUMBER_FLOAT;
+                } elseif (is_string($value)) {
+                    $filter = FILTER_SANITIZE_STRING;
+                } else {
+                    $filter = FILTER_DEFAULT;
+                }
+
+                $request[$key] = strip_tags(trim(filter_var($value, $filter)));
+            }
+        }
+
+        return $request;
+    }
+}
+
+if (!function_exists('input')) {
+    /**
+     * @param string $name
+     *
+     * @return mixed
+     */
+    function input($name = null)
+    {
+        $data = request()->getParams();
+        $data = input_filter($data);
+
+        if (empty($name)) {
+            return $data;
+        }
+
+        if (array_key_exists($name, $data)) {
+            return $data[$name];
+        }
+
+        return null;
     }
 }
 
@@ -469,7 +754,7 @@ if (!function_exists('response')) {
     /**
      * Get instance response
      *
-     * @return \Psr\Http\Message\ResponseInterface|\Slim\Http\Response
+     * @return \Psr\Http\Message\ResponseInterface|\Slim\Http\Response|
      */
     function response()
     {
@@ -489,6 +774,57 @@ if (!function_exists('router')) {
     }
 }
 
+if (!function_exists('is_route')) {
+    /**
+     * @param string $route
+     * @param string $active
+     *
+     * @return bool|string
+     */
+    function is_route($route, $active = null)
+    {
+        $current = request()
+            ->getUri()
+            ->getPath();
+
+        if (substr($current, 0, 1) !== '/') {
+            $current = "/{$current}";
+        }
+
+        if (path_for($route) === $current) {
+            if (!empty($active)) {
+                return 'active';
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+}
+
+if (!function_exists('has_route')) {
+    /**
+     * @param mixed $routes
+     *
+     * @return bool
+     */
+    function has_route($routes)
+    {
+        $current = request()
+            ->getUri()
+            ->getPath();
+
+        foreach ((array) $routes as $name) {
+            if ($name !== '' && mb_strpos($current, $name) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('app')) {
     /**
      * Get instance app
@@ -497,6 +833,6 @@ if (!function_exists('app')) {
      */
     function app()
     {
-        return Core\App::getInstance();
+        return \Core\App::getInstance();
     }
 }

@@ -10,24 +10,25 @@
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Core\Helpers;
+namespace Core\Helpers {
 
-/**
- * Class Arr
- *
- * @package Core\Helpers
- * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
- */
-class Arr extends \Illuminate\Support\Arr
-{
     /**
-     * @param array $array
-     * @param int   $mode
+     * Class Arr
      *
-     * @return int
+     * @package Core\Helpers
+     * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    public static function count(array $array, $mode = COUNT_NORMAL)
+    final class Arr extends \Illuminate\Support\Arr
     {
-        return count($array, $mode);
+        /**
+         * @param array $array
+         * @param int   $mode
+         *
+         * @return int
+         */
+        public static function count(array $array, $mode = COUNT_NORMAL)
+        {
+            return count($array, $mode);
+        }
     }
 }

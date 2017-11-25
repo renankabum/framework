@@ -10,31 +10,32 @@
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Core\Helpers;
+namespace Core\Helpers {
 
-use Symfony\Component\VarDumper\Cloner\VarCloner;
-use Symfony\Component\VarDumper\Dumper\CliDumper;
-use Symfony\Component\VarDumper\Dumper\HtmlDumper;
+    use Symfony\Component\VarDumper\Cloner\VarCloner;
+    use Symfony\Component\VarDumper\Dumper\CliDumper;
+    use Symfony\Component\VarDumper\Dumper\HtmlDumper;
 
-/**
- * Class DumpHelper
- *
- * @package Core\Helpers
- */
-final class Debug
-{
     /**
-     * Symfony customize dump
+     * Class DumpHelper
      *
-     * @param $var
+     * @package Core\Helpers
      */
-    public function dump($var)
+    final class Debug
     {
-        if (class_exists(CliDumper::class)) {
-            $dump = in_array(PHP_SAPI, ['cli', 'phpdbg']) ? new CliDumper() : new HtmlDumper();
-            $dump->dump((new VarCloner())->cloneVar($var));
-        } else {
-            var_dump($var);
+        /**
+         * Symfony customize dump
+         *
+         * @param $var
+         */
+        public function dump($var)
+        {
+            if (class_exists(CliDumper::class)) {
+                $dump = in_array(PHP_SAPI, ['cli', 'phpdbg']) ? new CliDumper() : new HtmlDumper();
+                $dump->dump((new VarCloner())->cloneVar($var));
+            } else {
+                var_dump($var);
+            }
         }
     }
 }

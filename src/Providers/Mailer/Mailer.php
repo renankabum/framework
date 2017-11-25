@@ -1,4 +1,5 @@
 <?php
+
 /**
  * VCWeb <https://www.vagnercardosoweb.com.br/>
  *
@@ -9,113 +10,107 @@
  * @copyright 2017-2017 Vagner Cardoso
  */
 
-namespace Core\Providers\Mailer;
+namespace Core\Providers\Mailer {
 
-use Slim\Container;
+    use Psr\Container\ContainerInterface as Container;
 
-/**
- * Class Mailer
- *
- * @package Core\Providers\Mailer
- * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
- */
-final class Mailer
-{
     /**
-     * Retorna o erro ocorrido
-     */
-    protected $error;
-    
-    /**
-     * @var \Slim\Container
-     */
-    protected $container;
-    
-    /**
-     * @var \PHPMailer
-     */
-    protected $mail;
-    
-    /**
-     * Mailer constructor.
+     * Class Mailer
      *
-     * @param \Slim\Container $container
+     * @package Core\Providers\Mailer
+     * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    public function __construct(Container $container)
+    final class Mailer
     {
-        $this->container = $container;
-        $this->mail = new \PHPMailer();
-        
         /**
-         * Configuração dos dados de envio de emails.
+         * Retorna o erro ocorrido
          */
-        $this->mail->Host = config('mail.host');
-        $this->mail->Port = config('mail.port');
-        $this->mail->Username = config('mail.username');
-        $this->mail->Password = config('mail.password');
-        $this->mail->SMTPAuth = config('mail.auth');
-        $this->mail->SMTPSecure = config('mail.secure');
-    }
-    
-    /**
-     * @param $view
-     * @param $data
-     * @param $callback
-     *
-     * @return $this
-     */
-    public function send($view, $data, $callback)
-    {
-        $this->config();
-        
-        $message = new MailerMessage($this->mail);
-    
-        $message->body($this->container['view.mail']->render("{$view}.twig", ['data' => $data]));
-        
-        call_user_func($callback, $message);
-        
-        if (!$this->mail->send()) {
-            $this->error = $this->mail->ErrorInfo;
-            
+        protected $error;
+
+        /**
+         * @var \Slim\Container
+         */
+        protected $container;
+
+        /**
+         * @var \PHPMailer
+         */
+        protected $mail;
+
+        /**
+         * Mailer constructor.
+         *
+         * @param Container $container
+         */
+        public function __construct(Container $container)
+        {
+            $this->container = $container;
+            $this->mail = new \PHPMailer();
+            $mail = object_set(config('mail'));
+
+            /**
+             * SMTP Autenticação
+             */
+            $this->mail->CharSet = $mail->charset;
+            $this->mail->setLanguage($mail->language->name, $mail->language->path);
+            $this->mail->isSMTP();
+            $this->mail->isHTML(true);
+
+            /**
+             * Configuração dos dados de envio de emails.
+             */
+            $this->mail->Host = $mail->host;
+            $this->mail->Port = $mail->port;
+            $this->mail->Username = $mail->username;
+            $this->mail->Password = $mail->password;
+            $this->mail->SMTPAuth = $mail->auth;
+            $this->mail->SMTPSecure = $mail->secure;
+
+            /**
+             * Remetente e retorno do email
+             */
+            $this->mail->From = $mail->from->mail;
+            $this->mail->FromName = $mail->from->name;
+            $this->mail->addReplyTo($mail->reply->mail, $mail->reply->name);
+        }
+
+        /**
+         * @param $view
+         * @param $data
+         * @param $callback
+         *
+         * @return $this
+         */
+        public function send($view, $data, $callback)
+        {
+            $message = new MailerMessage($this->mail);
+
+            $message->body($this->container['mailView']->render("{$view}.twig", ['data' => $data]));
+
+            call_user_func($callback, $message);
+
+            if (!$this->mail->send()) {
+                $this->error = $this->mail->ErrorInfo;
+
+                return $this;
+            }
+
+            $this->error = null;
+
+            $this->mail->clearAddresses();
+            $this->mail->clearReplyTos();
+            $this->mail->clearAllRecipients();
+            $this->mail->clearAttachments();
+
             return $this;
         }
-        
-        $this->error = null;
-        
-        $this->mail->clearAddresses();
-        $this->mail->clearReplyTos();
-        $this->mail->clearAllRecipients();
-        $this->mail->clearAttachments();
-        
-        return $this;
-    }
-    
-    /**
-     * @return mixed
-     */
-    public function failed()
-    {
-        return $this->error;
-    }
-    
-    /**
-     * Configura SMTP e Rementente, Retorno
-     */
-    private function config()
-    {
+
         /**
-         * SMTP Autenticação
+         * @return mixed
          */
-        $this->mail->CharSet = config('mail.charset', 'utf-8');
-        $this->mail->setLanguage(config('mail.language.name'), config('mail.language.path'));
-        $this->mail->isSMTP();
-        $this->mail->isHTML(true);
-        
-        /**
-         * Remetente e retorno do email
-         */
-        $this->mail->From = config('mail.from.mail');
-        $this->mail->FromName = config('mail.from.name');
-        $this->mail->addReplyTo(config('mail.reply.mail'), config('mail.reply.name'));
+        public function failed()
+        {
+            return $this->error;
+        }
     }
 }
