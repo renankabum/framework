@@ -224,6 +224,8 @@ namespace Core {
          * @param array  $param_arr
          *
          * @return mixed|null
+         * @throws \Psr\Container\ContainerExceptionInterface
+         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function resolve($id, $param_arr = [])
         {

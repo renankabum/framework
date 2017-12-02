@@ -707,7 +707,7 @@ if (!function_exists('input_filter')) {
                     $filter = FILTER_DEFAULT;
                 }
 
-                $request[$key] = strip_tags(trim(filter_var($value, $filter)));
+                $request[$key] = addslashes(strip_tags(trim(filter_var($value, $filter))));
             }
         }
 
