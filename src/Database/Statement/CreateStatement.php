@@ -12,31 +12,40 @@
 
 namespace Core\Database\Statement {
 
+    use Core\Database\Statement;
+
     /**
      * Class CreateStatement
      *
      * @package Core\Database\Statement
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class CreateStatement extends StatementContainer
+    class CreateStatement extends Statement
     {
         /**
          * @param string $table
          * @param array  $columnsOrPairs
          *
          * @return string|int
+         * @throws \Exception
          */
         public function exec($table, array $columnsOrPairs)
         {
+            // Trata os dados
             $this->table = (string) $table;
             $this->places = (array) $columnsOrPairs;
 
-            // Executa o bind e query
-            $this->execute();
+            try {
+                // Executa o bind e query
+                $this->execute();
 
-            // Recupera o resultado
-            $this->result = $this->dbh->lastInsertId();
+                // Recupera o resultado
+                $this->result = $this->container['db']->lastInsertId();
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
 
+            // Retorna os resultado
             return $this->result;
         }
 
@@ -75,12 +84,12 @@ namespace Core\Database\Statement {
 
             $values = '(' . implode('), (', $values) . ')';
             $this->places = $places;
-            $this->sql = "INSERT INTO {$this->table} ({$fields}) VALUES {$values}";
+            $sql = "INSERT INTO {$this->table} ({$fields}) VALUES {$values}";
             //
 
             try {
                 // Prepara a query
-                $this->stmt = $this->dbh->prepare($this->sql);
+                $this->stmt = $this->container['db']->prepare($sql);
 
                 // Binds values
                 if (is_array($this->places) && !empty($this->places)) {
@@ -89,12 +98,14 @@ namespace Core\Database\Statement {
 
                 // Executa a query
                 $this->stmt->execute();
+
+                // Recupera o resultado
+                $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
                 throw new \Exception($e->getMessage());
             }
 
-            $this->result = $this->stmt->rowCount();
-
+            // Retorna o resultado
             return $this->result;
         }
 
@@ -118,9 +129,9 @@ namespace Core\Database\Statement {
             $fields = implode(', ', array_keys($this->places));
             $values = ":" . implode(", :", array_keys($this->places));
 
-            $this->sql = "INSERT INTO {$this->table} ($fields) VALUES ({$values})";
+            $sql = "INSERT INTO {$this->table} ($fields) VALUES ({$values})";
 
-            return $this->sql;
+            return $sql;
         }
     }
 }

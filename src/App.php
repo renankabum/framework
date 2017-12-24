@@ -384,7 +384,8 @@ namespace Core {
                 )
             );
 
-            location(BASE_URL);
+            header('Location: ' . BASE_URL);
+            exit;
         }
 
         /**

@@ -35,82 +35,86 @@ namespace Core\Helpers {
          *
          * @param string $method
          * @param string $endPoint
-         * @param array  $data
+         * @param array  $params
          *
          * @return array
          */
-        public function create($method, $endPoint, array $data = array())
+        public function create($method, $endPoint, array $params = array())
         {
-            $method = strtoupper($method);
+            try {
+                // Cria a requisição
+                $response = $this->createRequest($method, $endPoint, $params);
 
-            if (!empty($data)) {
-                $data = $this->http_build_curl($data);
+                // Trata o retorno
+                $result = json_decode($response, true);
+
+                if (json_last_error() != JSON_ERROR_NONE) {
+
+                    // Se não conseguir converte o json ele converte o xml
+                    $xml = simplexml_load_string($response);
+                    $result = json_decode(json_encode($xml), true);
+                }
+
+                return $result;
+            } catch (\Exception $e) {
+                $result = [
+                    'error' => $e->getMessage(),
+                ];
             }
 
-            if ($method != 'GET') {
-                $this->options[CURLOPT_POSTFIELDS] = $data;
-            }
-
-            if ($method == 'POST') {
-                $this->options[CURLOPT_POST] = 1;
-                /*$this->headers[] = "Content-length: " . strlen($data);*/
-            }
-
-            $response = $this->createRequest($method, $endPoint, $data);
-
-            return $response;
+            return $result;
         }
 
         /**
          * Metodo get cURL
          *
          * @param string $endPoint
-         * @param array  $data
+         * @param array  $params
          *
          * @return array
          */
-        public function get($endPoint, array $data = array())
+        public function get($endPoint, array $params = array())
         {
-            return $this->create('get', $endPoint, $data);
+            return $this->create('get', $endPoint, $params);
         }
 
         /**
          * Metodo post cURL
          *
          * @param string $endPoint
-         * @param array  $data
+         * @param array  $params
          *
          * @return array
          */
-        public function post($endPoint, array $data = array())
+        public function post($endPoint, array $params = array())
         {
-            return $this->create('post', $endPoint, $data);
+            return $this->create('post', $endPoint, $params);
         }
 
         /**
          * Metodo put cURL
          *
          * @param string $endPoint
-         * @param array  $data
+         * @param array  $params
          *
          * @return array
          */
-        public function put($endPoint, array $data = array())
+        public function put($endPoint, array $params = array())
         {
-            return $this->create('put', $endPoint, $data);
+            return $this->create('put', $endPoint, $params);
         }
 
         /**
          * Metodo delete cURL
          *
          * @param string $endPoint
-         * @param array  $data
+         * @param array  $params
          *
          * @return array
          */
-        public function delete($endPoint, array $data = array())
+        public function delete($endPoint, array $params = array())
         {
-            return $this->create('delete', $endPoint, $data);
+            return $this->create('delete', $endPoint, $params);
         }
 
         /**
@@ -120,7 +124,7 @@ namespace Core\Helpers {
          */
         public function setHeaders($headers)
         {
-            foreach ($headers as $header) {
+            foreach ((array) $headers as $header) {
                 $this->headers[] = $header;
             }
 
@@ -128,10 +132,20 @@ namespace Core\Helpers {
         }
 
         /**
+         * Cria as headers (cabeçalhos) padrões
+         * para a requisição e recupera
+         *
          * @return array
          */
         public function getHeaders()
         {
+            // Defaults headers
+            $this->headers[] = "User-Agent: VCWeb Create cURL";
+            $this->headers[] = "Accept-Charset: utf-8";
+            $this->headers[] = "Accept-Language: pt-br;q=0.9,pt-BR";
+            /* $this->headers[] = "Accept: application/json";*/
+            $this->headers[] = "Content-Type: application/x-www-form-urlencoded";
+
             return $this->headers;
         }
 
@@ -142,7 +156,7 @@ namespace Core\Helpers {
          */
         public function setOptions($options)
         {
-            foreach ($options as $key => $option) {
+            foreach ((array) $options as $key => $option) {
                 $this->options[$key] = $option;
             }
 
@@ -155,23 +169,6 @@ namespace Core\Helpers {
         public function getOptions()
         {
             return $this->options;
-        }
-
-        /**
-         * Cria as headers (cabeçalhos) padrões
-         * para a requisição
-         *
-         * @return array
-         */
-        private function getDefaultHeaders()
-        {
-            $this->headers[] = "User-Agent: VCWeb Create cURL";
-            $this->headers[] = "Accept-Charset: UTF-8";
-            $this->headers[] = "Accept-Language: pt-br;q=0.9,pt-BR";
-            /* $this->headers[] = "Accept: application/json";*/
-            $this->headers[] = "Content-Type: application/x-www-form-urlencoded";
-
-            return $this->headers;
         }
 
         /**
@@ -217,86 +214,71 @@ namespace Core\Helpers {
          *
          * @param string $method
          * @param string $endPoint
-         * @param string $data
+         * @param array  $params
          *
-         * @return mixed|string
+         * @return mixed
          * @throws \Exception()
          */
-        private function createRequest($method, $endPoint, $data)
+        private function createRequest($method, $endPoint, array $params)
         {
-            /**
-             * Verifica se e GET e transforma a URL
-             */
-            if ($method === 'GET') {
-                if (is_array($data)) {
-                    $data = $this->http_build_curl($data);
-                }
+            $method = mb_strtoupper($method, 'UTF-8');
 
+            // Verifica se a data e array e está passada
+            if (is_array($params) && !empty($params)) {
+                $params = $this->http_build_curl($params);
+            }
+
+            // Trata a URL se for GET
+            if ($method === 'GET') {
                 $separator = '?';
                 if (strpos($endPoint, '?') !== false) {
                     $separator = '&';
                 }
 
-                $endPoint = "{$endPoint}{$separator}{$data}";
+                $endPoint .= "{$separator}{$params}";
             }
 
-            /**
-             * Inicia o cURL
-             */
-            $cURL = curl_init();
+            // Inicializa o cURL
+            $curl = curl_init();
 
-            /**
-             * Opções padrões para a requisição
-             */
+            // Monta as opções da requisição
             $options = [
                 CURLOPT_URL => $endPoint,
-                CURLOPT_RETURNTRANSFER => 1,
+                CURLOPT_HTTPHEADER => $this->getHeaders(),
+                CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CONNECTTIMEOUT => 30,
                 CURLOPT_TIMEOUT => 80,
                 CURLOPT_CUSTOMREQUEST => $method,
-                CURLOPT_HTTPHEADER => $this->getDefaultHeaders()
             ];
 
-            /**
-             * Junta as opções padrões com a setadas.
-             */
-            $options = $options + $this->options;
+            // Verifica se não e GET e passa os parametros
+            if ($method !== 'GET') {
+                $options[CURLOPT_POSTFIELDS] = $params;
+            }
 
-            /**
-             * Passa as opções para o cURL
-             */
-            curl_setopt_array($cURL, $options);
+            // Verifica se a requisição e POST
+            if ($method === 'POST') {
+                $options[CURLOPT_POST] = true;
+            }
 
-            $response = curl_exec($cURL);
-            $error = curl_error($cURL);
-            //$code = curl_getinfo($cURL, CURLINFO_HTTP_CODE);
+            // Junta os options default com os passados
+            $options = $options + $this->getOptions();
 
-            /**
-             * Fecha a requisição
-             */
-            curl_close($cURL);
+            // Passa os options para a requisição
+            curl_setopt_array($curl, $options);
 
+            // Resultados
+            $response = curl_exec($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            // Verifica se houve erros
             if ($error) {
                 return $error;
             }
 
-            /*if ($code != 200) {
-                return "Error != 200: {$code}";
-            }*/
-
-            /**
-             * Transforma em array o retorno
-             */
-            $result = json_decode($response, true);
-
-            if (json_last_error() != JSON_ERROR_NONE) {
-
-                // Se não conseguir converte o json ele converte o xml
-                $xml = simplexml_load_string($response);
-                $result = json_decode(json_encode($xml), true);
-            }
-
-            return $result;
+            // Retorna a resposta da requisição
+            return $response;
         }
     }
 }

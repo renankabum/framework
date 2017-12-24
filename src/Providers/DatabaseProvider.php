@@ -35,11 +35,22 @@ namespace Core\Providers {
         public function register()
         {
             /**
+             * @return \Core\Database\Database|\PDO
+             */
+            $this->container['db'] = function () {
+                if (empty($dbh)) {
+                    $dbh = new Database;
+                }
+
+                return $dbh;
+            };
+
+            /**
              * @return CreateStatement
              */
             $this->container['create'] = function () {
                 if (empty($create)) {
-                    $create = new CreateStatement;
+                    $create = new CreateStatement($this->container);
                 }
 
                 return $create;
@@ -50,7 +61,7 @@ namespace Core\Providers {
              */
             $this->container['read'] = function () {
                 if (empty($read)) {
-                    $read = new ReadStatement;
+                    $read = new ReadStatement($this->container);
                 }
 
                 return $read;
@@ -61,7 +72,7 @@ namespace Core\Providers {
              */
             $this->container['update'] = function () {
                 if (empty($update)) {
-                    $update = new UpdateStatement;
+                    $update = new UpdateStatement($this->container);
                 }
 
                 return $update;
@@ -72,21 +83,10 @@ namespace Core\Providers {
              */
             $this->container['delete'] = function () {
                 if (empty($delete)) {
-                    $delete = new DeleteStatement;
+                    $delete = new DeleteStatement($this->container);
                 }
 
                 return $delete;
-            };
-
-            /**
-             * @return \Core\Database\Database|\PDO
-             */
-            $this->container['db'] = function () {
-                if (empty($dbh)) {
-                    $dbh = new Database;
-                }
-
-                return $dbh;
             };
         }
     }

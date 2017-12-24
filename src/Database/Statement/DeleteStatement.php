@@ -12,13 +12,15 @@
 
 namespace Core\Database\Statement {
 
+    use Core\Database\Statement;
+
     /**
      * Class DeleteStatement
      *
      * @package Core\Database\Statement
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class DeleteStatement extends StatementContainer
+    class DeleteStatement extends Statement
     {
         /**
          * @param string $table
@@ -26,6 +28,7 @@ namespace Core\Database\Statement {
          * @param mixed  $places
          *
          * @return bool
+         * @throws \Exception
          */
         public function exec($table, $terms = null, $places = null)
         {
@@ -35,12 +38,17 @@ namespace Core\Database\Statement {
             // Recupera o places
             $this->setPlaces($places);
 
-            // Executa o bind e query
-            $this->execute();
+            try {
+                // Executa o bind e query
+                $this->execute();
 
-            // Recupera o resultado
-            $this->result = $this->stmt->rowCount();
+                // Recupera o resultado
+                $this->result = $this->stmt->rowCount();
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
 
+            // Retorna o resultado
             return $this->result;
         }
 
@@ -48,18 +56,24 @@ namespace Core\Database\Statement {
          * @param $places
          *
          * @return bool
+         * @throws \Exception
          */
         public function execPlaces($places)
         {
             // Recupera o places
             $this->setPlaces($places);
 
-            // Executa o bind e query
-            $this->execute();
+            try {
+                // Executa o bind e query
+                $this->execute();
 
-            // Recupera o resultado
-            $this->result = $this->stmt->rowCount();
+                // Recupera o resultado
+                $this->result = $this->stmt->rowCount();
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
 
+            // Retorna o resultado
             return $this->result;
         }
 
@@ -80,9 +94,9 @@ namespace Core\Database\Statement {
          */
         public function __toString()
         {
-            $this->sql = "DELETE FROM {$this->table} {$this->terms}";
+            $sql = "DELETE FROM {$this->table} {$this->terms}";
 
-            return $this->sql;
+            return $sql;
         }
     }
 }

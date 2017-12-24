@@ -35,14 +35,14 @@ namespace Core\Providers\View {
                 $view = null;
 
                 if ($config->engine === 'twig') {
-                    $view = new Twig(
-                        $config->path->folder, [
-                            'debug' => $config->debug,
-                            'charset' => 'UTF-8',
-                            'cache' => $config->cache ? $config->path->compiled : false,
-                            'auto_reload' => true,
-                        ]
-                    );
+                    $view = new Twig($config->path->folder, [
+                        'debug' => $config->debug,
+                        'charset' => 'UTF-8',
+                        'cache' => $config->cache
+                            ? $config->path->compiled
+                            : false,
+                        'auto_reload' => true,
+                    ]);
                 }
 
                 if ($config->engine === 'php') {

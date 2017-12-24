@@ -12,13 +12,15 @@
 
 namespace Core\Database\Statement {
 
+    use Core\Database\Statement;
+
     /**
      * Class UpdateStatement
      *
      * @package Core\Database\Statement
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class UpdateStatement extends StatementContainer
+    class UpdateStatement extends Statement
     {
         /**
          * @var array
@@ -32,6 +34,7 @@ namespace Core\Database\Statement {
          * @param mixed  $places
          *
          * @return bool
+         * @throws \Exception
          */
         public function exec($table, array $columnsOrPairs, $terms = null, $places = null)
         {
@@ -42,12 +45,17 @@ namespace Core\Database\Statement {
             // Recupera o places
             $this->setPlaces($places);
 
-            // Executa o bind e query
-            $this->execute();
+            try {
+                // Executa o bind e query
+                $this->execute();
 
-            // Recupera o resultado
-            $this->result = $this->stmt->rowCount();
+                // Recupera o resultado
+                $this->result = $this->stmt->rowCount();
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
 
+            // Retorna o resultado
             return $this->result;
         }
 
@@ -55,18 +63,24 @@ namespace Core\Database\Statement {
          * @param $places
          *
          * @return bool
+         * @throws \Exception
          */
         public function execPlaces($places)
         {
             // Recupera o places
             $this->setPlaces($places);
 
-            // Executa o bind e query
-            $this->execute();
+            try {
+                // Executa o bind e query
+                $this->execute();
 
-            // Recupera o resultado
-            $this->result = $this->stmt->rowCount();
+                // Recupera o resultado
+                $this->result = $this->stmt->rowCount();
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
 
+            // Retorna o resultado
             return $this->result;
         }
 
@@ -94,15 +108,17 @@ namespace Core\Database\Statement {
                     $time = time();
                 }
 
-                $this->places[$key . $time] = ($value == '' ? null : $value);
+                $this->places[$key . $time] = ($value == ''
+                    ? null
+                    : $value);
 
                 $columns[] = "{$key} = :{$key}{$time}";
             }
 
             $this->columns = implode(', ', $columns);
-            $this->sql = "UPDATE {$this->table} SET {$this->columns} {$this->terms}";
+            $sql = "UPDATE {$this->table} SET {$this->columns} {$this->terms}";
 
-            return $this->sql;
+            return $sql;
         }
     }
 }

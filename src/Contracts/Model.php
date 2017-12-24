@@ -30,6 +30,7 @@ namespace Core\Contracts {
      * @property \Core\Database\Statement\ReadStatement   read
      * @property \Core\Database\Statement\UpdateStatement update
      * @property \Core\Database\Statement\DeleteStatement delete
+     *
      * @property \Slim\Http\Response                      response
      * @property \Slim\Http\Request                       request
      * @property \Slim\Router                             router

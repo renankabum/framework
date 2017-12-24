@@ -12,13 +12,15 @@
 
 namespace Core\Database\Statement {
 
+    use Core\Database\Statement;
+
     /**
      * Class ReadStatement
      *
      * @package Core\Database\Statement
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class ReadStatement extends StatementContainer
+    class ReadStatement extends Statement
     {
         /**
          * @param string $table
@@ -26,9 +28,11 @@ namespace Core\Database\Statement {
          * @param mixed  $places
          *
          * @return \Core\Database\Statement\ReadStatement
+         * @throws \Exception
          */
         public function exec($table, $terms = null, $places = null)
         {
+            // Trata os dados
             $this->table = (string) $table;
             $this->terms = (string) $terms;
 
@@ -36,10 +40,14 @@ namespace Core\Database\Statement {
             $this->setPlaces($places);
 
             // Monta a query
-            $this->sql = "SELECT * FROM {$this->table} {$this->terms}";
+            $sql = "SELECT * FROM {$this->table} {$this->terms}";
 
-            // Executa o bind e query
-            $this->execute();
+            try {
+                // Executa o bind e query
+                $this->execute($sql);
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
 
             return $this;
         }
@@ -49,16 +57,22 @@ namespace Core\Database\Statement {
          * @param mixed  $places
          *
          * @return \Core\Database\Statement\ReadStatement
+         * @throws \Exception
          */
         public function query($sql, $places = null)
         {
-            $this->sql = $sql;
+            // Trata a query
+            $sql = (string) $sql;
 
             // Recupera o places
             $this->setPlaces($places);
 
-            // Executa o bind e query
-            $this->execute();
+            try {
+                // Executa o bind e query
+                $this->execute($sql);
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
 
             return $this;
         }
@@ -67,14 +81,19 @@ namespace Core\Database\Statement {
          * @param $places
          *
          * @return \Core\Database\Statement\ReadStatement
+         * @throws \Exception
          */
         public function execPlaces($places)
         {
             // Recupera o places
             $this->setPlaces($places);
 
-            // Executa o bind e query
-            $this->execute();
+            try {
+                // Executa o bind e query
+                $this->execute();
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
 
             return $this;
         }

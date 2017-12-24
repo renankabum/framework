@@ -85,11 +85,13 @@ namespace Core\Providers\View {
                 }
 
                 $output = ob_get_clean();
-            } catch (\Throwable $e) { // PHP 7+
-                ob_end_clean();
-                throw $e;
             } catch (\Exception $e) { // PHP < 7
                 ob_end_clean();
+
+                throw $e;
+            } catch (\Throwable $e) { // PHP 7+
+                ob_end_clean();
+
                 throw $e;
             }
 
@@ -104,13 +106,21 @@ namespace Core\Providers\View {
          * @param array    $context
          *
          * @return Response
+         * @throws \Exception
+         * @throws \Throwable
          */
         public function render(Response $response, $template, array $context = [])
         {
-            $output = $this->fetch($template, $context);
+            try {
+                $output = $this->fetch($template, $context);
 
-            $response->getBody()
-                ->write($output);
+                $response->getBody()
+                    ->write($output);
+            } catch (\Exception $e) {
+                throw $e;
+            } catch (\Throwable $e) {
+                throw $e;
+            }
 
             return $response;
         }
