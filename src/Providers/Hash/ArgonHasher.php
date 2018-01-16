@@ -7,23 +7,33 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso
+ * @copyright 2017-2018 Vagner Cardoso
  */
 
 namespace Core\Providers\Hash {
 
     /**
-     * Class BcryptHasher
+     * Class ArgonHasher
      *
      * @package Core\Providers\Hash
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class BcryptHasher
+    final class ArgonHasher
     {
         /**
          * @var int
          */
-        protected $rounds = 10;
+        protected $threads = 2;
+
+        /**
+         * @var int
+         */
+        protected $memory = 1024;
+
+        /**
+         * @var int
+         */
+        protected $time = 2;
 
         /**
          * Retorna a informações sobre o hash fornecido
@@ -47,8 +57,10 @@ namespace Core\Providers\Hash {
          */
         public function make($password, array $options = [])
         {
-            $hash = password_hash($password, PASSWORD_BCRYPT, [
-                'cost' => $this->cost($options),
+            $hash = password_hash($password, PASSWORD_ARGON2I, [
+                'memory_cost' => $this->memory($options),
+                'time_cost' => $this->time($options),
+                'threads' => $this->threads($options),
             ]);
 
             if ($hash === false) {
@@ -87,36 +99,82 @@ namespace Core\Providers\Hash {
         public function needsRehash($hash, array $options = [])
         {
             return password_needs_rehash($hash, PASSWORD_BCRYPT, [
-                'cost' => $this->cost($options),
+                'memory_cost' => $this->memory($options),
+                'time_cost' => $this->time($options),
+                'threads' => $this->threads($options),
             ]);
         }
 
         /**
-         * Defina o fator de trabalho de senha padrão.
+         * @param int $threads
          *
-         * @param int $rounds
-         *
-         * @return $this
+         * @return ArgonHasher
          */
-        public function setRounds($rounds)
+        public function setThreads($threads)
         {
-            $this->rounds = (int) $rounds;
+            $this->threads = $threads;
 
             return $this;
         }
 
         /**
-         * Extraia o valor de custo da matriz de opções.
+         * @param int $memory
          *
+         * @return ArgonHasher
+         */
+        public function setMemory($memory)
+        {
+            $this->memory = $memory;
+
+            return $this;
+        }
+
+        /**
+         * @param int $time
+         *
+         * @return ArgonHasher
+         */
+        public function setTime($time)
+        {
+            $this->time = $time;
+
+            return $this;
+        }
+
+        /**
          * @param array $options
          *
          * @return int
          */
-        protected function cost(array $options)
+        protected function memory(array $options)
         {
-            return isset($options['rounds'])
-                ? $options['rounds']
-                : $this->rounds;
+            return isset($options['memory'])
+                ? $options['memory']
+                : $this->memory;
+        }
+
+        /**
+         * @param array $options
+         *
+         * @return int
+         */
+        protected function time(array $options)
+        {
+            return isset($options['time'])
+                ? $options['time']
+                : $this->time;
+        }
+
+        /**
+         * @param array $options
+         *
+         * @return int
+         */
+        protected function threads(array $options)
+        {
+            return isset($options['threads'])
+                ? $options['threads']
+                : $this->threads;
         }
     }
 }

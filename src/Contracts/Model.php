@@ -19,6 +19,7 @@ namespace Core\Contracts {
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      *
      * @property \Core\Providers\Hash\BcryptHasher        hash
+     * @property \Core\Providers\Hash\ArgonHasher         hashArgon
      * @property \Core\Providers\Session\Session          session
      * @property \Core\Providers\Mailer\Mailer            mailer
      * @property \Core\Providers\Encryption\Encryption    encryption
@@ -31,6 +32,7 @@ namespace Core\Contracts {
      * @property \Core\Database\Statement\UpdateStatement update
      * @property \Core\Database\Statement\DeleteStatement delete
      *
+     * @property \Slim\Container                          container
      * @property \Slim\Http\Response                      response
      * @property \Slim\Http\Request                       request
      * @property \Slim\Router                             router
@@ -65,6 +67,7 @@ namespace Core\Contracts {
          * @param $name
          *
          * @return mixed
+         * @throws \Interop\Container\Exception\ContainerException
          */
         public function __get($name)
         {

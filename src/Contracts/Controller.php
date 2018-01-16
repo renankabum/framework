@@ -24,6 +24,7 @@ namespace Core\Contracts {
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      *
      * @property \Core\Providers\Hash\BcryptHasher        hash
+     * @property \Core\Providers\Hash\ArgonHasher         hashArgon
      * @property \Core\Providers\Session\Session          session
      * @property \Core\Providers\Mailer\Mailer            mailer
      * @property \Core\Providers\Encryption\Encryption    encryption
@@ -36,6 +37,7 @@ namespace Core\Contracts {
      * @property \Core\Database\Statement\UpdateStatement update
      * @property \Core\Database\Statement\DeleteStatement delete
      *
+     * @property \Slim\Container                          container
      * @property \Slim\Http\Response                      response
      * @property \Slim\Http\Request                       request
      * @property \Slim\Router                             router
@@ -86,6 +88,8 @@ namespace Core\Contracts {
          * @param null|string $name
          *
          * @return array|mixed
+         * @throws \Psr\Container\ContainerExceptionInterface
+         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function param($name = null)
         {
@@ -100,6 +104,8 @@ namespace Core\Contracts {
          * @param int    $code
          *
          * @return Response
+         * @throws \Psr\Container\ContainerExceptionInterface
+         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function view($view, array $array = array(), $code = null)
         {
@@ -128,6 +134,8 @@ namespace Core\Contracts {
          * @param string $file
          *
          * @return mixed
+         * @throws \Psr\Container\ContainerExceptionInterface
+         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function logger($message, array $context = array(), $type = 'info', $file = null)
         {
@@ -144,6 +152,8 @@ namespace Core\Contracts {
          * @param string      $hash
          *
          * @return \Slim\Http\Response
+         * @throws \Psr\Container\ContainerExceptionInterface
+         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function redirect($name = null, array $data = [], array $queryParams = [], $hash = null)
         {
@@ -160,6 +170,8 @@ namespace Core\Contracts {
          * @param string $hash
          *
          * @return string
+         * @throws \Psr\Container\ContainerExceptionInterface
+         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function pathFor($name = null, array $data = [], array $queryParams = [], $hash = null)
         {
@@ -173,6 +185,8 @@ namespace Core\Contracts {
          * @param int   $status
          *
          * @return \Slim\Http\Response
+         * @throws \Psr\Container\ContainerExceptionInterface
+         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function json($data, $status = 200)
         {

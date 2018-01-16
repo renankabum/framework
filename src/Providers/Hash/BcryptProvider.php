@@ -33,8 +33,18 @@ namespace Core\Providers\Hash {
              * @return \Core\Providers\Hash\BcryptHasher
              */
             $this->container['hash'] = function () {
-                return new BcryptHasher();
+                return new BcryptHasher;
             };
+
+            // PHP 7.1 >=
+            if (PHP_VERSION_ID >= 70200) {
+                /**
+                 * @return \Core\Providers\Hash\ArgonHasher
+                 */
+                $this->container['hashArgon'] = function () {
+                    return new ArgonHasher;
+                };
+            }
         }
     }
 }

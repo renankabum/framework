@@ -26,12 +26,12 @@ namespace Core\Helpers {
         protected $total;
 
         /**
-         * @var int|null
+         * @var int
          */
         protected $limit;
 
         /**
-         * @var int|null
+         * @var int
          */
         protected $maxLinks;
 
@@ -46,7 +46,7 @@ namespace Core\Helpers {
         protected $page;
 
         /**
-         * @var int|mixed
+         * @var int
          */
         protected $number;
 
@@ -105,6 +105,16 @@ namespace Core\Helpers {
         public function limit()
         {
             return $this->limit;
+        }
+
+        /**
+         * Next page
+         *
+         * @return bool
+         */
+        public function next()
+        {
+            return  ceil($this->total / $this->limit) > $this->number;
         }
 
         /**

@@ -104,6 +104,8 @@ if (!function_exists('asset')) {
      * @param bool   $url
      *
      * @return bool|string
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function asset($path, $url = false)
     {
@@ -111,13 +113,9 @@ if (!function_exists('asset')) {
             $path = "/{$path}";
         }
 
-        $baseUrl = rtrim(
-            str_ireplace(
-                'index.php', '', request()
-                    ->getUri()
-                    ->getBasePath()
-            ), '/'
-        );
+        $baseUrl = rtrim(str_ireplace('index.php', '', request()
+            ->getUri()
+            ->getBasePath()), '/');
 
         if (file_exists(PUBLIC_FOLDER . "{$path}")) {
             $version = substr(md5_file(PUBLIC_FOLDER . "{$path}"), 0, 15);
@@ -322,6 +320,8 @@ if (!function_exists('logger')) {
      * @param string $file
      *
      * @return bool|\Monolog\Logger
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function logger($message, array $context = array(), $type = 'info', $file = null)
     {
@@ -347,6 +347,8 @@ if (!function_exists('view')) {
      * @param int    $code
      *
      * @return mixed
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function view($view, array $array = [], $code = null)
     {
@@ -361,7 +363,7 @@ if (!function_exists('view')) {
 
             if (config('view.engine') === 'twig') {
                 $extension = '.twig';
-            } elseif ($extension === 'blade') {
+            } else if ($extension === 'blade') {
                 $extension = '.blade.php';
             }
             // replace '.' em '/'
@@ -569,6 +571,8 @@ if (!function_exists('json')) {
      * @param int   $status
      *
      * @return \Slim\Http\Response
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function json($data, $status = 200)
     {
@@ -584,6 +588,8 @@ if (!function_exists('path_for')) {
      * @param string $hash
      *
      * @return string
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function path_for($name, array $data = [], array $queryParams = [], $hash = null)
     {
@@ -616,10 +622,23 @@ if (!function_exists('redirect')) {
      * @param string $hash
      *
      * @return \Slim\Http\Response
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function redirect($name, array $data = [], array $queryParams = [], $hash = null)
     {
-        return response()->withRedirect(path_for($name, $data, $queryParams, $hash));
+        $uri = path_for($name, $data, $queryParams, $hash);
+
+        // Verify ajax
+        // Return location ajax
+        if (request()->isXhr()) {
+            return json([
+                'location' => $uri,
+            ]);
+        }
+
+        // Return redirect
+        return response()->withRedirect($uri);
     }
 }
 
@@ -637,27 +656,27 @@ if (!function_exists('__')) {
 
 if (!function_exists('entities')) {
     /**
-     * @param array $values
+     * @param mixed $values
      *
      * @return array
      */
-    function entities(array $values)
+    function entities($values)
     {
-        $post = [];
+        $params = [];
 
         foreach ((array) $values as $key => $value) {
             if (is_array($value)) {
-                $post[$key] = entities($value);
+                $params[$key] = entities($value);
             } else {
                 if (is_string($value)) {
                     $value = htmlentities($value, ENT_QUOTES, 'UTF-8', false);
                 }
 
-                $post[$key] = $value;
+                $params[$key] = $value;
             }
         }
 
-        return $post;
+        return $params;
     }
 }
 
@@ -699,9 +718,9 @@ if (!function_exists('input_filter')) {
             } else {
                 if (is_int($value)) {
                     $filter = FILTER_SANITIZE_NUMBER_INT;
-                } elseif (is_float($value)) {
+                } else if (is_float($value)) {
                     $filter = FILTER_SANITIZE_NUMBER_FLOAT;
-                } elseif (is_string($value)) {
+                } else if (is_string($value)) {
                     $filter = FILTER_SANITIZE_STRING;
                 } else {
                     $filter = FILTER_DEFAULT;
@@ -720,6 +739,8 @@ if (!function_exists('input')) {
      * @param string $name
      *
      * @return mixed
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function input($name = null)
     {
@@ -743,6 +764,8 @@ if (!function_exists('request')) {
      * Get instance request
      *
      * @return \Psr\Http\Message\ServerRequestInterface|\Slim\Http\Request
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function request()
     {
@@ -754,7 +777,9 @@ if (!function_exists('response')) {
     /**
      * Get instance response
      *
-     * @return \Psr\Http\Message\ResponseInterface|\Slim\Http\Response|
+     * @return \Psr\Http\Message\ResponseInterface|\Slim\Http\Response
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function response()
     {
@@ -767,6 +792,8 @@ if (!function_exists('router')) {
      * Get instance router
      *
      * @return \Slim\Router
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function router()
     {
@@ -780,6 +807,8 @@ if (!function_exists('is_route')) {
      * @param string $active
      *
      * @return bool|string
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function is_route($route, $active = null)
     {
@@ -808,6 +837,8 @@ if (!function_exists('has_route')) {
      * @param mixed $routes
      *
      * @return bool
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     function has_route($routes)
     {

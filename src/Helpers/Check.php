@@ -78,10 +78,67 @@ namespace Core\Helpers {
                 $digitoB += self::$data[$i] * $x;
             }
 
-            $somaA = (($digitoA % 11) < 2) ? 0 : 11 - ($digitoA % 11);
-            $somaB = (($digitoB % 11) < 2) ? 0 : 11 - ($digitoB % 11);
+            $somaA = (($digitoA % 11) < 2)
+                ? 0
+                : 11 - ($digitoA % 11);
+            $somaB = (($digitoB % 11) < 2)
+                ? 0
+                : 11 - ($digitoB % 11);
 
             if ($somaA != self::$data[9] || $somaB != self::$data[10]) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        /**
+         * <b>Checa CNPJ:</b> Informe um CNPJ para checar sua validade via algoritmo!
+         *
+         * @param string $cnpj = CNPJ com ou sem pontuação
+         *
+         * @return boolean = True se for um CNJP válido
+         */
+        public static function cnpj($cnpj)
+        {
+            self::$data = (string) $cnpj;
+            self::$data = preg_replace('/[^0-9]/', '', self::$data);
+
+            if (strlen(self::$data) != 14) {
+                return false;
+            }
+
+            $A = 0;
+            $B = 0;
+
+            for ($i = 0, $c = 5; $i <= 11; $i++, $c--) {
+                $c = ($c == 1
+                    ? 9
+                    : $c);
+                $A += self::$data[$i] * $c;
+            }
+
+            for ($i = 0, $c = 6; $i <= 12; $i++, $c--) {
+                if (str_repeat($i, 14) == self::$data) {
+                    return false;
+                }
+
+                $c = ($c == 1
+                    ? 9
+                    : $c);
+                $B += self::$data[$i] * $c;
+            }
+
+            $somaA = (($A % 11) < 2)
+                ? 0
+                : 11 - ($A % 11);
+            $somaB = (($B % 11) < 2)
+                ? 0
+                : 11 - ($B % 11);
+
+            if (strlen(self::$data) != 14) {
+                return false;
+            } else if ($somaA != self::$data[12] || $somaB != self::$data[13]) {
                 return false;
             } else {
                 return true;
@@ -161,15 +218,15 @@ namespace Core\Helpers {
             static::$data = '';
             if (getenv('HTTP_CLIENT_IP')) {
                 static::$data = getenv('HTTP_CLIENT_IP');
-            } elseif (getenv('HTTP_X_FORWARDED_FOR')) {
+            } else if (getenv('HTTP_X_FORWARDED_FOR')) {
                 static::$data = getenv('HTTP_X_FORWARDED_FOR');
-            } elseif (getenv('HTTP_X_FORWARDED')) {
+            } else if (getenv('HTTP_X_FORWARDED')) {
                 static::$data = getenv('HTTP_X_FORWARDED');
-            } elseif (getenv('HTTP_FORWARDED_FOR')) {
+            } else if (getenv('HTTP_FORWARDED_FOR')) {
                 static::$data = getenv('HTTP_FORWARDED_FOR');
-            } elseif (getenv('HTTP_FORWARDED')) {
+            } else if (getenv('HTTP_FORWARDED')) {
                 static::$data = getenv('HTTP_FORWARDED');
-            } elseif (getenv('REMOTE_ADDR')) {
+            } else if (getenv('REMOTE_ADDR')) {
                 static::$data = getenv('REMOTE_ADDR');
             } else {
                 static::$data = $_SERVER['REMOTE_ADDR'];
