@@ -11,9 +11,9 @@
  */
 
 namespace Core\Providers\View {
-
+    
     use Core\Contracts\Provider;
-
+    
     /**
      * Class ViewProvider
      *
@@ -30,37 +30,33 @@ namespace Core\Providers\View {
         public function register()
         {
             $this->container['view'] = function () {
-                $config = object_set(config('view'));
-
                 $view = null;
-
-                if ($config->engine === 'twig') {
-                    $view = new Twig($config->path->folder, [
-                        'debug' => $config->debug,
+                
+                if (config('view.engine') === 'twig') {
+                    $view = new Twig(config('view.path.folder'), [
+                        'debug' => config('view.debug'),
                         'charset' => 'UTF-8',
-                        'cache' => $config->cache
-                            ? $config->path->compiled
-                            : false,
+                        'cache' => (config('view.cache') && config('app.environment') === 'production') ? config('view.path.compiled') : false,
                         'auto_reload' => true,
                     ]);
                 }
-
-                if ($config->engine === 'php') {
-                    $view = new Php($config->path->folder);
+                
+                if (config('view.engine') === 'php') {
+                    $view = new Php(config('view.path.folder'));
                 }
-
+                
                 return $view;
             };
-
+            
             /**
              * Register view in mail
              *
              * @return \Twig_Environment
              */
             $this->container['mailView'] = function () {
-                $mailView = new \Twig_Environment(new \Twig_Loader_Filesystem(APP_FOLDER . '/resources/mail'));
+                $mailView = new \Twig_Environment(new \Twig_Loader_Filesystem(APP_FOLDER.'/resources/mail'));
                 $mailView->addExtension(new TwigExtension());
-
+                
                 return $mailView;
             };
         }
