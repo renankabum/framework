@@ -11,11 +11,11 @@
  */
 
 namespace Core {
-
+    
     use Carbon\Carbon;
     use Psr\Http\Message\ResponseInterface as Response;
     use Psr\Http\Message\ServerRequestInterface as Request;
-
+    
     /**
      * Class App
      *
@@ -28,7 +28,7 @@ namespace Core {
          * @var \Core\App
          */
         private static $instance = null;
-
+        
         /**
          * App constructor.
          *
@@ -41,48 +41,46 @@ namespace Core {
              */
             if (!session_id() && config('app.session')) {
                 $current = session_get_cookie_params();
-
+                
                 session_set_cookie_params($current['lifetime'], $current['path'], $current['domain'], $current['secure'], true);
-                session_name(md5(md5('VCWEB_APP' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['PHP_SELF'])));
+                session_name(md5(md5('VCWEB_APP'.$_SERVER['SERVER_NAME'].'/'.$_SERVER['PHP_SELF'])));
                 session_cache_limiter('nocache');
-
+                
                 session_start();
             }
-
+            
             /**
              * Error app
              */
-            set_error_handler(
-                function ($code, $message, $file, $line) {
-                    if (!($code & error_reporting())) {
-                        return;
-                    }
-
-                    throw new \ErrorException($message, $code, 0, $file, $line);
+            set_error_handler(function ($code, $message, $file, $line) {
+                if (!($code & error_reporting())) {
+                    return;
                 }
-            );
-
+                
+                throw new \ErrorException($message, $code, 0, $file, $line);
+            });
+            
             /**
              * ConfigurationMiddleware timezone app
              */
             date_default_timezone_set(config('app.timezone', 'America/Sao_Paulo'));
-
+            
             /**
              * Locale language
              */
-            setlocale(LC_ALL, 'pt_BR', 'pt_BR.utf-8', 'portuguese');
+            setlocale(LC_ALL, config('app.locale'), config('app.locale').'.utf-8');
             Carbon::setLocale('pt_BR');
-
+            
             /**
              * ConfigurationMiddleware default charset app
              */
             ini_set('default_charset', 'UTF-8');
-
+            
             /**
              * Char set mb internal
              */
             mb_internal_encoding('UTF-8');
-
+            
             /**
              * Switch environment app
              */
@@ -92,20 +90,20 @@ namespace Core {
                     ini_set('display_errors', 1);
                     /*error_reporting(E_ALL);*/
                     break;
-
+                
                 case 'production':
                     ini_set('error_reporting', 0);
                     ini_set('display_errors', 0);
                     /*error_reporting(E_ERROR);*/
                     break;
-
+                
                 default:
                     header('HTTP/1.1 503 Service Unavailable', true, 503);
                     echo 'The application environment is not set correctly.';
                     die(1);
                     break;
             }
-
+            
             /**
              * Slim setup
              */
@@ -115,31 +113,29 @@ namespace Core {
                     'responseChunkSize' => 4096,
                     'outputBuffering' => 'append',
                     'determineRouteBeforeAppMiddleware' => true,
-                    'displayErrorDetails' => (config('app.environment') === 'production'
-                        ? false
-                        : true),
+                    'displayErrorDetails' => (config('app.environment') === 'production' ? false : true),
                     'addContentLengthHeader' => false,
                     'routerCacheFile' => false,
                 ],
             ];
-
+            
             /**
              * Merge all settings
              */
             //$settings = array_merge($settings, config());
-
+            
             /**
              * Slim parent construct
              */
             parent::__construct($settings);
-
+            
             /**
              * Generate encryption key
              */
             if (substr(config('app.encryption.key'), 0, 7) !== "base64:") {
                 $this->generateKey();
             }
-
+            
             /**
              * Regenerate encryption key in days
              */
@@ -156,7 +152,7 @@ namespace Core {
                 }
             }*/
         }
-
+        
         /**
          * Customized route mapping for a cleaner workflow.
          *
@@ -173,50 +169,50 @@ namespace Core {
             // Transform methods in array
             $methods = explode(',', strtoupper($methods));
             $name = strtolower($name);
-
+            
             // Mapping routers
             $map = $this->map($methods, $pattern, function (Request $request, Response $response, $params) use ($controller) {
-
+                
                 if (strpos($controller, '@') === false) {
                     $method = null;
                 } else {
                     list($controller, $method) = explode('@', $controller);
                 }
-
+                
                 // Método criado conforme o request
-                $method = mb_strtolower($request->getMethod(), 'UTF-8') . ucfirst($method);
-
-                $controller = 'App\\Controllers\\' . str_replace('/', '\\', $controller);
+                $method = mb_strtolower($request->getMethod(), 'UTF-8').ucfirst($method);
+                
+                $controller = 'App\\Controllers\\'.str_replace('/', '\\', $controller);
                 $controller = new $controller($request, $response, $params, $this);
-
+                
                 if (!method_exists($controller, $method)) {
-                    throw new \Exception('O Método <b>' . get_class($controller) . '::' . $method . '</b> não existe.');
+                    throw new \Exception('O Método <b>'.get_class($controller).'::'.$method.'</b> não existe.');
                 }
-
+                
                 return call_user_func_array([$controller, $method], $params);
             });
-
+            
             /**
              * Support a name in route
              */
             if (!is_null($name)) {
                 $map->setName($name);
             }
-
+            
             /**
              * Support middleware in route
              */
             if (!is_null($middleware)) {
                 $middlewares = $this->getRegisters()['middleware']['web'];
-
+                
                 if (array_key_exists($middleware, $middlewares)) {
                     $map->add($middlewares[$middleware]);
                 }
             }
-
+            
             return $map;
         }
-
+        
         /**
          * Resolve callable for container
          *
@@ -240,10 +236,10 @@ namespace Core {
                         ->get($id);
                 }
             }
-
+            
             return null;
         }
-
+        
         /**
          * Get instance class
          *
@@ -254,10 +250,10 @@ namespace Core {
             if (self::$instance === null) {
                 self::$instance = new static();
             }
-
+            
             return self::$instance;
         }
-
+        
         /**
          * Register Middleware for application
          *
@@ -266,7 +262,7 @@ namespace Core {
         public function registerMiddleware()
         {
             $registers = $this->getRegisters();
-
+            
             if (!empty($registers['middleware']['app'])) {
                 foreach ((array) $registers['middleware']['app'] as $key => $class) {
                     if (class_exists($class)) {
@@ -275,7 +271,7 @@ namespace Core {
                 }
             }
         }
-
+        
         /**
          * Register functions for application
          *
@@ -284,14 +280,14 @@ namespace Core {
         public function registerFunctions()
         {
             $registers = $this->getRegisters();
-
+            
             if (!empty($registers['functions'])) {
                 foreach ((array) $registers['functions'] as $function) {
                     include "{$function}";
                 }
             }
         }
-
+        
         /**
          * Register container for application
          *
@@ -300,13 +296,13 @@ namespace Core {
         public function registerProviders()
         {
             $registers = $this->getRegisters();
-
+            
             $providers = [];
             foreach ((array) $registers['providers'] as $key => $items) {
                 if (is_array($items)) {
                     foreach ($items as $class) {
                         if (class_exists($class)) {
-
+                            
                             /** @var \Core\Contracts\Provider $provider */
                             $provider = new $class($this->getContainer());
                             $provider->register();
@@ -315,12 +311,12 @@ namespace Core {
                     }
                 }
             }
-
+            
             foreach ($providers as $provider) {
                 $provider->boot();
             }
         }
-
+        
         /**
          * Register router for application
          *
@@ -330,24 +326,24 @@ namespace Core {
         {
             /** @var \Core\App $app */
             $app = $this;
-
+            
             // Router for web
-            if (file_exists(APP_FOLDER . '/routes/web.php')) {
+            if (file_exists(APP_FOLDER.'/routes/web.php')) {
                 $this->group('', function () use ($app) {
-                    include APP_FOLDER . '/routes/web.php';
+                    include APP_FOLDER.'/routes/web.php';
                 });
             }
-
+            
             // Router for api
-            if (file_exists(APP_FOLDER . '/routes/api.php')) {
+            if (file_exists(APP_FOLDER.'/routes/api.php')) {
                 $this->group('/api', function () use ($app) {
-                    include APP_FOLDER . '/routes/api.php';
+                    include APP_FOLDER.'/routes/api.php';
                 });
             }
         }
-
+        
         // PRIVATE
-
+        
         /**
          * Get middleware & container
          *
@@ -356,16 +352,16 @@ namespace Core {
         private function getRegisters()
         {
             $array = [];
-
-            if (file_exists(APP_FOLDER . '/bootstrap/registers.php')) {
-                $array = include APP_FOLDER . '/bootstrap/registers.php';
-
+            
+            if (file_exists(APP_FOLDER.'/bootstrap/registers.php')) {
+                $array = include APP_FOLDER.'/bootstrap/registers.php';
+                
                 return $array;
             }
-
+            
             return $array;
         }
-
+        
         /**
          * Troca o APP_KEY do arquivos .env
          */
@@ -387,15 +383,15 @@ namespace Core {
             header('Location: ' . BASE_URL);
             exit;
         }
-
+        
         /**
          * @return string
          */
         private function keyReplacementPattern()
         {
-            $escaped = preg_quote('=' . config('app.encryption.key'), '/');
-
-            return "/^APP_KEY" . $escaped . "/m";
+            $escaped = preg_quote('='.config('app.encryption.key'), '/');
+            
+            return "/^APP_KEY".$escaped."/m";
         }
     }
 }
