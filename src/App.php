@@ -220,8 +220,6 @@ namespace Core {
          * @param array  $param_arr
          *
          * @return mixed|null
-         * @throws \Psr\Container\ContainerExceptionInterface
-         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function resolve($id, $param_arr = [])
         {
@@ -373,14 +371,15 @@ namespace Core {
                     $this->keyReplacementPattern(), 'APP_KEY=base64:' . base64_encode(
                         random_bytes(
                             config('app.encryption.cipher') === 'AES-128-CBC'
-                            ? 16
-                            : 32
+                                ? 16
+                                : 32
                         )
                     ), file_get_contents(APP_FOLDER . '/.env')
                 )
             );
-
+    
             header('Location: ' . BASE_URL);
+    
             exit;
         }
         
