@@ -11,9 +11,9 @@
  */
 
 namespace Core\Providers\View {
-
+    
     use Psr\Http\Message\ResponseInterface as Response;
-
+    
     /**
      * Class Php
      *
@@ -26,22 +26,22 @@ namespace Core\Providers\View {
          * @var string
          */
         protected $path;
-
+        
         /**
          * @var string
          */
         protected $pathPhp;
-
+        
         /**
          * @var array
          */
         protected $context = [];
-
+        
         /**
          * @var string
          */
         protected $content;
-
+        
         /**
          * Php constructor.
          *
@@ -50,9 +50,9 @@ namespace Core\Providers\View {
         public function __construct($path)
         {
             $this->path = rtrim($path, '/\\');
-            $this->pathPhp = $this->path . '/app.php';
+            $this->pathPhp = $this->path.'/app.php';
         }
-
+        
         /**
          * Cria o render
          *
@@ -65,39 +65,39 @@ namespace Core\Providers\View {
          */
         public function fetch($template, array $context = [])
         {
-            if (!is_file($this->path . '/' . $template)) {
+            if (!is_file($this->path.'/'.$template)) {
                 throw new \Exception("O template `{$template}` não existe.");
             }
-
+            
             $this->context = $context;
-
+            
             try {
                 ob_start();
-
+                
                 extract($this->context);
-
+                
                 $this->content = "{$this->path}/{$template}";
-
+                
                 if (file_exists($this->pathPhp)) {
                     include "{$this->pathPhp}";
                 } else {
                     include "{$this->content}";
                 }
-
+                
                 $output = ob_get_clean();
             } catch (\Exception $e) { // PHP < 7
                 ob_end_clean();
-
+                
                 throw $e;
             } catch (\Throwable $e) { // PHP 7+
                 ob_end_clean();
-
+                
                 throw $e;
             }
-
+            
             return $output;
         }
-
+        
         /**
          * Renderiza a view
          *
@@ -113,7 +113,7 @@ namespace Core\Providers\View {
         {
             try {
                 $output = $this->fetch($template, $context);
-
+                
                 $response->getBody()
                     ->write($output);
             } catch (\Exception $e) {
@@ -121,10 +121,10 @@ namespace Core\Providers\View {
             } catch (\Throwable $e) {
                 throw $e;
             }
-
+            
             return $response;
         }
-
+        
         /**
          * Método para incluir todas view dentro
          * do template `app.php`
@@ -133,7 +133,7 @@ namespace Core\Providers\View {
         {
             include "{$this->content}";
         }
-
+        
         /**
          * Recupera a context, atributos e container da classe
          *

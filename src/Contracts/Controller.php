@@ -11,12 +11,12 @@
  */
 
 namespace Core\Contracts {
-
+    
     use Slim\Container;
     use Slim\Exception\NotFoundException;
     use Slim\Http\Request;
     use Slim\Http\Response;
-
+    
     /**
      * Class Controller
      *
@@ -48,22 +48,22 @@ namespace Core\Contracts {
          * @var \Slim\Http\Request
          */
         protected $request;
-
+        
         /**
          * @var \Slim\Http\Response
          */
         protected $response;
-
+        
         /**
          * @var string|array
          */
         private $params;
-
+        
         /**
          * @var \Slim\Container
          */
         protected $container;
-
+        
         /**
          * BaseController constructor.
          *
@@ -78,24 +78,22 @@ namespace Core\Contracts {
             $this->response = $response;
             $this->params = $params;
             $this->container = $container;
-
+            
             $this->boot();
         }
-
+        
         /**
          * Pega os parametros get, post etc.
          *
          * @param null|string $name
          *
          * @return array|mixed
-         * @throws \Psr\Container\ContainerExceptionInterface
-         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function param($name = null)
         {
             return input($name);
         }
-
+        
         /**
          * Retorna a view e popula seus dados dentro dela
          *
@@ -104,14 +102,12 @@ namespace Core\Contracts {
          * @param int    $code
          *
          * @return Response
-         * @throws \Psr\Container\ContainerExceptionInterface
-         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function view($view, array $array = array(), $code = null)
         {
             return view($view, $array, $code);
         }
-
+        
         /**
          * Pega as configurações do sistema
          *
@@ -124,7 +120,7 @@ namespace Core\Contracts {
         {
             return config($name, $default);
         }
-
+        
         /**
          * Realiza a salvação de logs no sistema
          *
@@ -134,14 +130,12 @@ namespace Core\Contracts {
          * @param string $file
          *
          * @return mixed
-         * @throws \Psr\Container\ContainerExceptionInterface
-         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function logger($message, array $context = array(), $type = 'info', $file = null)
         {
             return logger($message, $context, $type, $file);
         }
-
+        
         /**
          * Redireciona passando o nome da rota
          * e seus parametros e querys
@@ -152,14 +146,12 @@ namespace Core\Contracts {
          * @param string      $hash
          *
          * @return \Slim\Http\Response
-         * @throws \Psr\Container\ContainerExceptionInterface
-         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function redirect($name = null, array $data = [], array $queryParams = [], $hash = null)
         {
             return redirect($name, $data, $queryParams, $hash);
         }
-
+        
         /**
          * Retorna a URL da rota passando o name
          * dado na rota
@@ -170,14 +162,12 @@ namespace Core\Contracts {
          * @param string $hash
          *
          * @return string
-         * @throws \Psr\Container\ContainerExceptionInterface
-         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function pathFor($name = null, array $data = [], array $queryParams = [], $hash = null)
         {
             return path_for($name, $data, $queryParams, $hash);
         }
-
+        
         /**
          * Retorna um json populado
          *
@@ -185,14 +175,12 @@ namespace Core\Contracts {
          * @param int   $status
          *
          * @return \Slim\Http\Response
-         * @throws \Psr\Container\ContainerExceptionInterface
-         * @throws \Psr\Container\NotFoundExceptionInterface
          */
         public function json($data, $status = 200)
         {
             return json($data, $status);
         }
-
+        
         /**
          * Retorna página offline
          *
@@ -202,14 +190,14 @@ namespace Core\Contracts {
         {
             throw new NotFoundException($this->request, $this->response);
         }
-
+        
         /**
          * Inicializa junto com o controller
          */
         public function boot()
         {
         }
-
+        
         /**
          * Get property in container
          *

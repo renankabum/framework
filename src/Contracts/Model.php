@@ -11,7 +11,7 @@
  */
 
 namespace Core\Contracts {
-
+    
     /**
      * Class Model
      *
@@ -43,24 +43,26 @@ namespace Core\Contracts {
          * @var \Slim\Container
          */
         protected $container;
-
+        
         /**
          * Model constructor.
          */
         public function __construct()
         {
             $this->container = app()->getContainer();
-
+            
             $this->boot();
         }
-
+        
         /**
          * Inicializa junto com o Model
          *
          * @return mixed
          */
-        protected function boot(){}
-
+        protected function boot()
+        {
+        }
+        
         /**
          * Pega os provider cadastrados
          *

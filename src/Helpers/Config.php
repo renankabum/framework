@@ -11,7 +11,7 @@
  */
 
 namespace Core\Helpers {
-
+    
     /**
      * Class Config
      *
@@ -24,7 +24,7 @@ namespace Core\Helpers {
          * @var array
          */
         protected static $config = [];
-
+        
         /**
          * @param string $name
          * @param mixed  $default
@@ -34,14 +34,14 @@ namespace Core\Helpers {
         public static function load($name = null, $default = null)
         {
             self::$config = config($name, $default);
-
+            
             if (!is_array(self::$config)) {
                 return self::$config;
             }
-
+            
             return new self();
         }
-
+        
         /**
          * @return object
          */
@@ -49,7 +49,7 @@ namespace Core\Helpers {
         {
             return object_set(self::$config);
         }
-
+        
         /**
          * @return array
          */
@@ -57,7 +57,7 @@ namespace Core\Helpers {
         {
             return self::$config;
         }
-
+        
         /**
          * @return string
          */

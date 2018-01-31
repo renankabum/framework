@@ -11,9 +11,9 @@
  */
 
 namespace Core\Database\Old {
-
+    
     use Core\Database\Database;
-
+    
     /**
      * Class Read
      *
@@ -26,27 +26,27 @@ namespace Core\Database\Old {
          * @var string
          */
         private $select;
-
+        
         /**
          * @var array
          */
         private $places;
-
+        
         /**
          * @var array
          */
         private $result;
-
+        
         /**
          * @var \PDOStatement
          */
         private $statement;
-
+        
         /**
          * @var \PDO
          */
         private $conn;
-
+        
         /**
          * Read constructor.
          *
@@ -56,7 +56,7 @@ namespace Core\Database\Old {
         {
             $this->conn = new Database;
         }
-
+        
         /**
          * Executa a query simplificada
          *
@@ -71,14 +71,14 @@ namespace Core\Database\Old {
             if (!empty($places)) {
                 parse_str($places, $this->places);
             }
-
+            
             $this->select = "SELECT * FROM {$table} {$terms}";
-
+            
             $this->execute();
-
+            
             return $this;
         }
-
+        
         /**
          * Executa a query passando toda ela
          *
@@ -90,16 +90,16 @@ namespace Core\Database\Old {
         public function query($query, $places = null)
         {
             $this->select = (string) $query;
-
+            
             if (!empty($places)) {
                 parse_str($places, $this->places);
             }
-
+            
             $this->execute();
-
+            
             return $this;
         }
-
+        
         /**
          * Muda os place da query para uma nova consulta
          *
@@ -110,12 +110,12 @@ namespace Core\Database\Old {
         public function setPlaces($places)
         {
             parse_str($places, $this->places);
-
+            
             $this->execute();
-
+            
             return $this;
         }
-
+        
         /**
          * Retorna um array com todos os dados obtidos na consulta
          *
@@ -125,7 +125,7 @@ namespace Core\Database\Old {
         {
             return $this->result;
         }
-
+        
         /**
          * Pega o primeiro resultado
          *
@@ -134,14 +134,14 @@ namespace Core\Database\Old {
         public function first()
         {
             $array = [];
-
+            
             if (!empty($this->result)) {
                 $array = $this->result[0];
             }
-
+            
             return $array;
         }
-
+        
         /**
          * Obtém o número de registro encontrados
          *
@@ -152,10 +152,10 @@ namespace Core\Database\Old {
             if ($this->statement->rowCount() == -1) {
                 return count($this->getResult());
             }
-
+            
             return $this->statement->rowCount();
         }
-
+        
         /**
          * Obtém o PDO e Prepara a Query
          */
@@ -163,7 +163,7 @@ namespace Core\Database\Old {
         {
             $this->statement = $this->conn->prepare($this->select);
         }
-
+        
         /**
          * Cria a syntax da query para prepared statement
          */
@@ -173,7 +173,7 @@ namespace Core\Database\Old {
                 Connect::bindValues($this->statement, $this->places);
             }
         }
-
+        
         /**
          * Obtém a conexão a syntax e executa a query
          */
@@ -190,7 +190,7 @@ namespace Core\Database\Old {
             } catch (\PDOException $e) {
                 $this->result = null;
                 $this->conn->rollBack();
-
+                
                 throw new \Exception("Read:: {$e->getMessage()}");
             }
         }

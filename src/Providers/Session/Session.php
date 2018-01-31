@@ -11,9 +11,9 @@
  */
 
 namespace Core\Providers\Session {
-
+    
     use Core\Helpers\Arr;
-
+    
     /**
      * Class Session
      *
@@ -26,17 +26,17 @@ namespace Core\Providers\Session {
          * @var array
          */
         protected $session = [];
-
+        
         /**
          * Session constructor.
          */
         public function __construct()
         {
             //$this->verifySessionExists();
-
+            
             $this->session = &$_SESSION;
         }
-
+        
         /**
          * @return array
          */
@@ -44,7 +44,7 @@ namespace Core\Providers\Session {
         {
             return $this->session;
         }
-
+        
         /**
          * @param string $key
          * @param null   $value
@@ -54,12 +54,12 @@ namespace Core\Providers\Session {
             if (!is_array($key)) {
                 $key = [$key => $value];
             }
-
+            
             foreach ($key as $arrayKey => $arrayValue) {
                 Arr::set($this->session, $arrayKey, $arrayValue);
             }
         }
-
+        
         /**
          * @param string $key
          * @param null   $default
@@ -70,7 +70,7 @@ namespace Core\Providers\Session {
         {
             return Arr::get($this->session, $key, $default);
         }
-
+        
         /**
          * @param string $key
          *
@@ -80,7 +80,7 @@ namespace Core\Providers\Session {
         {
             return Arr::exists($this->session, $key);
         }
-
+        
         /**
          * @param string $key
          *
@@ -90,7 +90,7 @@ namespace Core\Providers\Session {
         {
             return !is_null($this->get($key));
         }
-
+        
         /**
          * @param string $key
          *
@@ -100,7 +100,7 @@ namespace Core\Providers\Session {
         {
             return Arr::pull($this->session, $key);
         }
-
+        
         /**
          * @param string $keys
          */
@@ -108,17 +108,17 @@ namespace Core\Providers\Session {
         {
             Arr::forget($this->session, $keys);
         }
-
+        
         /**
          * Remove todas sessão
          */
         public function destroy()
         {
             session_destroy();
-
+            
             $_SESSION = [];
         }
-
+        
         /**
          * Iniciar a session caso ela não existe
          */
@@ -126,11 +126,11 @@ namespace Core\Providers\Session {
         {
             if (!session_id()) {
                 $current = session_get_cookie_params();
-
+                
                 session_set_cookie_params($current['lifetime'], $current['path'], $current['domain'], $current['secure'], true);
-                session_name(md5(md5('VCWEB_APP' . $_SERVER['SERVER_NAME'] . '/' . $_SERVER['PHP_SELF'])));
+                session_name(md5(md5('VCWEB_APP'.$_SERVER['SERVER_NAME'].'/'.$_SERVER['PHP_SELF'])));
                 session_cache_limiter('nocache');
-
+                
                 session_start();
             }
         }

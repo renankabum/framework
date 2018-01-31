@@ -11,9 +11,9 @@
  */
 
 namespace Core\Providers\View {
-
+    
     use Psr\Http\Message\ResponseInterface as Response;
-
+    
     /**
      * Class TwigProvider
      *
@@ -26,12 +26,12 @@ namespace Core\Providers\View {
          * @var \Twig_Loader_Filesystem
          */
         protected $loader;
-
+        
         /**
          * @var \Twig_Environment
          */
         protected $environment;
-
+        
         /**
          * TwigProvider constructor.
          *
@@ -42,14 +42,14 @@ namespace Core\Providers\View {
         {
             $this->loader = $this->createLoader(is_string($path) ? [$path] : $path);
             $this->environment = new \Twig_Environment($this->loader, $settings);
-
+            
             /**
              * Add default extension debug
              */
             $this->addExtension(new \Twig_Extension_Debug());
             $this->addExtension(new TwigExtension());
         }
-
+        
         /**
          * @param string $template
          * @param array  $data
@@ -60,7 +60,7 @@ namespace Core\Providers\View {
         {
             return $this->environment->render($template, $data);
         }
-
+        
         /**
          * Render template views
          *
@@ -74,10 +74,10 @@ namespace Core\Providers\View {
         {
             $response->getBody()
                 ->write($this->fetch($template, $data));
-
+            
             return $response;
         }
-
+        
         /**
          * Add new extension
          *
@@ -88,10 +88,10 @@ namespace Core\Providers\View {
         public function addExtension(\Twig_ExtensionInterface $extension)
         {
             $this->environment->addExtension($extension);
-
+            
             return $this;
         }
-
+        
         /**
          * Add new function
          *
@@ -104,10 +104,10 @@ namespace Core\Providers\View {
         public function addFunction($name, $callable, array $options = [])
         {
             $this->environment->addFunction(new \Twig_SimpleFunction($name, $callable, $options));
-
+            
             return $this;
         }
-
+        
         /**
          * Add new filter
          *
@@ -120,10 +120,10 @@ namespace Core\Providers\View {
         public function addFilter($name, $callable, array $options = [])
         {
             $this->environment->addFilter(new \Twig_SimpleFilter($name, $callable, $options));
-
+            
             return $this;
         }
-
+        
         /**
          * Add new global
          *
@@ -135,10 +135,10 @@ namespace Core\Providers\View {
         public function addGlobal($name, $value)
         {
             $this->environment->addGlobal($name, $value);
-
+            
             return $this;
         }
-
+        
         /**
          * Get instanceof TwigProvider
          *
@@ -148,7 +148,7 @@ namespace Core\Providers\View {
         {
             return $this->environment;
         }
-
+        
         /**
          * @param array $paths
          *
@@ -157,7 +157,7 @@ namespace Core\Providers\View {
         private function createLoader(array $paths)
         {
             $loader = new \Twig_Loader_Filesystem();
-
+            
             foreach ($paths as $namespace => $path) {
                 if (is_string($namespace)) {
                     $loader->setPaths($path, $namespace);
@@ -165,7 +165,7 @@ namespace Core\Providers\View {
                     $loader->addPath($path);
                 }
             }
-
+            
             return $loader;
         }
     }

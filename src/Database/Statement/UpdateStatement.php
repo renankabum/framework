@@ -11,9 +11,9 @@
  */
 
 namespace Core\Database\Statement {
-
+    
     use Core\Database\Statement;
-
+    
     /**
      * Class UpdateStatement
      *
@@ -26,7 +26,7 @@ namespace Core\Database\Statement {
          * @var array
          */
         protected $columns = [];
-
+        
         /**
          * @param string $table
          * @param array  $columnsOrPairs
@@ -41,24 +41,24 @@ namespace Core\Database\Statement {
             $this->table = (string) $table;
             $this->columns = (array) $columnsOrPairs;
             $this->terms = (string) $terms;
-
+            
             // Recupera o places
             $this->setPlaces($places);
-
+            
             try {
                 // Executa o bind e query
                 $this->execute();
-
+                
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
-
+            
             // Retorna o resultado
             return $this->result;
         }
-
+        
         /**
          * @param $places
          *
@@ -69,21 +69,21 @@ namespace Core\Database\Statement {
         {
             // Recupera o places
             $this->setPlaces($places);
-
+            
             try {
                 // Executa o bind e query
                 $this->execute();
-
+                
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
-
+            
             // Retorna o resultado
             return $this->result;
         }
-
+        
         /**
          * @return bool
          */
@@ -92,10 +92,10 @@ namespace Core\Database\Statement {
             if ($this->result === 0) {
                 return false;
             }
-
+            
             return $this->result;
         }
-
+        
         /**
          * @return string
          */
@@ -107,17 +107,15 @@ namespace Core\Database\Statement {
                 if (!empty($this->places[$key])) {
                     $time = time();
                 }
-
-                $this->places[$key . $time] = ($value == ''
-                    ? null
-                    : $value);
-
+                
+                $this->places[$key.$time] = ($value == '' ? null : $value);
+                
                 $columns[] = "{$key} = :{$key}{$time}";
             }
-
+            
             $this->columns = implode(', ', $columns);
             $sql = "UPDATE {$this->table} SET {$this->columns} {$this->terms}";
-
+            
             return $sql;
         }
     }

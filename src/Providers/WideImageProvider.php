@@ -11,10 +11,10 @@
  */
 
 namespace Core\Providers {
-
+    
     use Core\Contracts\Provider;
     use WideImage\WideImage;
-
+    
     /**
      * Class WideImageProvider
      *

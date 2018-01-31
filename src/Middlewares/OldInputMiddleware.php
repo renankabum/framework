@@ -11,11 +11,11 @@
  */
 
 namespace Core\Middlewares {
-
+    
     use Core\Contracts\Middleware;
     use Slim\Http\Request;
     use Slim\Http\Response;
-
+    
     /**
      * Class OldInputMiddleware
      *
@@ -39,9 +39,9 @@ namespace Core\Middlewares {
                 $this->view->addGlobal('input', $this->session->get('input'));
                 $this->session->set('input', $request->getParams());
             }
-
+            
             $response = $next($request, $response);
-
+            
             return $response;
         }
     }

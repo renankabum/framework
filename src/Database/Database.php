@@ -11,7 +11,7 @@
  */
 
 namespace Core\Database {
-
+    
     /**
      * Class Database
      *
@@ -24,7 +24,7 @@ namespace Core\Database {
          * @var bool
          */
         protected $failed;
-
+        
         /**
          * Database constructor.
          *
@@ -37,38 +37,38 @@ namespace Core\Database {
         {
             // Carrega as configurações
             $database = object_set(config('database'));
-
+            
             if (empty($driver)) {
                 $driver = $database->default;
             }
-
+            
             // Pega a configuração do driver escolhido
             $database = $database->connections->{$driver};
-
+            
             try {
                 // Pega o dns e os options padrões
                 $dsn = sprintf($this->getDns($driver), $database->host, $database->database);
                 $options = $this->getDefaultOptions() + $options;
-
+                
                 // Realiza a conexão
                 parent::__construct($dsn, $database->username, $database->password, $options);
-
+                
                 // Usa o banco configurado
                 if (isset($database->database)) {
                     $this->exec("USE {$database->database};");
                 }
-
+                
                 // Configura o encoding
                 if (isset($database->charset) && isset($database->collation)) {
                     $this->exec("SET NAMES {$database->charset} COLLATE {$database->collation}");
                 }
             } catch (\PDOException $e) {
                 $this->failed = true;
-
+                
                 throw new \Exception("Não foi possível conectar com o banco de dados.");
             }
         }
-
+        
         /**
          * @return bool
          */
@@ -76,7 +76,7 @@ namespace Core\Database {
         {
             return $this->failed;
         }
-
+        
         /**
          * @return array
          */
@@ -84,10 +84,10 @@ namespace Core\Database {
         {
             return [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
             ];
         }
-
+        
         /**
          * @param string $driver
          *
@@ -97,12 +97,12 @@ namespace Core\Database {
         {
             if ($driver == 'sqlsrv') {
                 $dns = "sqlsrv:Server=%s;Database=%s;ConnectionPooling=0";
-            } elseif ($driver == 'dblib') {
+            } else if ($driver == 'dblib') {
                 $dns = "dblib:host=%s;dbname=%s";
             } else {
                 $dns = "mysql:host=%s;dbname=%s";
             }
-
+            
             return $dns;
         }
     }

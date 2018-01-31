@@ -11,7 +11,7 @@
  */
 
 namespace Core\Providers\View {
-
+    
     /**
      * Class TwigExtension
      *
@@ -34,7 +34,7 @@ namespace Core\Providers\View {
         {
             return 'vcweb_twig';
         }
-
+        
         /**
          * Returns a list of functions to add to the existing list.
          *
@@ -52,7 +52,7 @@ namespace Core\Providers\View {
                 new \Twig_SimpleFunction('flash', [$this, 'flash'], ['is_safe' => ['html']]),
             ];
         }
-
+        
         /**
          * Returns a list of globals to add to the existing list.
          *
@@ -61,12 +61,12 @@ namespace Core\Providers\View {
         public function getGlobals()
         {
             return [
-                'session' => app()->resolve('session')
+                'session' => app()->resolve('session'),
             ];
         }
-
+        
         // FUNCTIONS TWIG
-
+        
         /**
          * @param null $key
          *

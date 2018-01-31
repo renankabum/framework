@@ -11,7 +11,7 @@
  */
 
 namespace Core\Providers\Session {
-
+    
     /**
      * Class Flash
      *
@@ -26,21 +26,21 @@ namespace Core\Providers\Session {
          * @var string
          */
         protected $key = '__flash__';
-
+        
         /**
          * Flash data
          *
          * @var array
          */
         protected $data = [];
-
+        
         /**
          * Flash storage
          *
          * @var null|array
          */
         protected $storage;
-
+        
         /**
          * Flash constructor.
          */
@@ -49,16 +49,16 @@ namespace Core\Providers\Session {
             if (!isset($_SESSION)) {
                 throw new \RuntimeException('Session not started.');
             }
-
+            
             $this->storage = &$_SESSION;
-
+            
             if (!empty($this->storage[$this->key]) && is_array($this->storage[$this->key])) {
                 $this->data = $this->storage[$this->key];
             }
-
+            
             $this->storage[$this->key] = [];
         }
-
+        
         /**
          * Adiciona uma nova mensagem
          *
@@ -71,11 +71,11 @@ namespace Core\Providers\Session {
             if (empty($this->storage[$this->key][$key])) {
                 $this->storage[$this->key][$key] = [];
             }
-
+            
             // Adiciona uma nova mensagem
             $this->storage[$this->key][$key] = $message;
         }
-
+        
         /**
          * Seta um novo alerta
          *
@@ -86,7 +86,7 @@ namespace Core\Providers\Session {
         {
             $this->add('alert', ['type' => $type, 'message' => $message]);
         }
-
+        
         /**
          * Recupera a mensagem
          *
@@ -97,15 +97,15 @@ namespace Core\Providers\Session {
         public function get($key = null)
         {
             $messages = $this->data;
-
+            
             if (is_null($key)) {
                 return $messages;
             }
-
+            
             if (array_key_exists($key, $messages)) {
                 return $messages[$key];
             }
-
+            
             foreach (explode('.', $key) as $segment) {
                 if (is_array($messages) && array_key_exists($segment, $messages)) {
                     $messages = $messages[$segment];
@@ -113,10 +113,10 @@ namespace Core\Providers\Session {
                     return null;
                 }
             }
-
+            
             return $messages;
         }
-
+        
         /**
          * Verifica a mensagem
          *
@@ -127,26 +127,26 @@ namespace Core\Providers\Session {
         public function has($key)
         {
             $messages = $this->data;
-
+            
             if (is_null($key)) {
                 return false;
             }
-
+            
             $key = (array) $key;
-
+            
             if (!$messages) {
                 return false;
             }
-
+            
             if ($messages === []) {
                 return false;
             }
-
+            
             foreach ($key as $item) {
                 if (array_key_exists($item, $messages)) {
                     continue;
                 }
-
+                
                 foreach (explode('.', $item) as $segment) {
                     if (is_array($messages) && array_key_exists($messages, $segment)) {
                         $messages = $messages[$segment];
@@ -155,7 +155,7 @@ namespace Core\Providers\Session {
                     }
                 }
             }
-
+            
             return $messages;
         }
     }

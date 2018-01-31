@@ -11,10 +11,10 @@
  */
 
 namespace Core\Providers {
-
+    
     use Core\Contracts\Provider;
     use Intervention\Image\ImageManager;
-
+    
     /**
      * Class InterventionImageProvider
      *
@@ -36,7 +36,6 @@ namespace Core\Providers {
              * @return \Intervention\Image\ImageManager
              */
             $container['image'] = function () {
-
                 return new ImageManager(['driver' => 'gd']);
             };
         }

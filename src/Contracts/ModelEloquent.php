@@ -11,9 +11,9 @@
  */
 
 namespace Core\Contracts {
-
+    
     use Illuminate\Database\Eloquent\Model;
-
+    
     /**
      * Class ModelEloquentAbstract
      *

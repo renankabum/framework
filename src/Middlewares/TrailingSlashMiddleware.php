@@ -11,11 +11,11 @@
  */
 
 namespace Core\Middlewares {
-
+    
     use Core\Contracts\Middleware;
     use Slim\Http\Request;
     use Slim\Http\Response;
-
+    
     /**
      * Class TrailingSlashMiddleware
      *
@@ -37,21 +37,21 @@ namespace Core\Middlewares {
         {
             $uri = $request->getUri();
             $path = $uri->getPath();
-
+            
             if ($path != '/' && substr($path, -1) == '/') {
                 $uri = $uri->withPath(substr($path, 0, -1));
-
+                
                 if ($request->getMethod() == 'GET') {
                     return $response->withRedirect((string) $uri, 301);
                 } else {
                     $response = $next($request->withUri($uri), $response);
-
+                    
                     return $response;
                 }
             }
-
+            
             $response = $next($request, $response);
-
+            
             return $response;
         }
     }

@@ -11,9 +11,9 @@
  */
 
 namespace Core\Providers\Hash {
-
+    
     use Core\Contracts\Provider;
-
+    
     /**
      * Class BcryptProvider
      *
@@ -35,7 +35,7 @@ namespace Core\Providers\Hash {
             $this->container['hash'] = function () {
                 return new BcryptHasher;
             };
-
+            
             // PHP 7.1 >=
             if (PHP_VERSION_ID >= 70200) {
                 /**

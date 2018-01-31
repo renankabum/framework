@@ -11,11 +11,11 @@
  */
 
 namespace Core\Middlewares {
-
+    
     use Core\Contracts\Middleware;
     use Slim\Http\Request;
     use Slim\Http\Response;
-
+    
     /**
      * Class ConfigurationMiddleware
      *
@@ -36,7 +36,7 @@ namespace Core\Middlewares {
         public function __invoke(Request $request, Response $response, callable $next)
         {
             $response = $next($request, $response);
-
+            
             return $response;
         }
     }

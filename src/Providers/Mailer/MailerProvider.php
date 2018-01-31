@@ -11,9 +11,9 @@
  */
 
 namespace Core\Providers\Mailer {
-
+    
     use Core\Contracts\Provider;
-
+    
     /**
      * Class MailerProvider
      *

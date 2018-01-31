@@ -11,7 +11,7 @@
  */
 
 namespace Core\Helpers {
-
+    
     /**
      * Class Base64
      *
@@ -29,13 +29,9 @@ namespace Core\Helpers {
          */
         public static function encode($value)
         {
-            return str_replace(
-                '=', '', strtr(
-                    base64_encode($value), '+/', '-_'
-                )
-            );
+            return str_replace('=', '', strtr(base64_encode($value), '+/', '-_'));
         }
-
+        
         /**
          * Decoda o valor passado como encode
          *
@@ -46,15 +42,13 @@ namespace Core\Helpers {
         public static function decode($value)
         {
             $remainder = strlen($value) % 4;
-
+            
             if ($remainder) {
                 $padlen = 4 - $remainder;
                 $value .= str_repeat('=', $padlen);
             }
-
-            return base64_decode(
-                strtr($value, '-/', '+/')
-            );
+            
+            return base64_decode(strtr($value, '-/', '+/'));
         }
     }
 }

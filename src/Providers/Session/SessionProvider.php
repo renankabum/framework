@@ -11,9 +11,9 @@
  */
 
 namespace Core\Providers\Session {
-
+    
     use Core\Contracts\Provider;
-
+    
     /**
      * Class SessionProvider
      *
@@ -36,10 +36,10 @@ namespace Core\Providers\Session {
                 if (config('app.session')) {
                     return new Session;
                 }
-
+                
                 return false;
             };
-
+            
             /**
              * @return bool|\Core\Providers\Session\Flash
              */
@@ -47,7 +47,7 @@ namespace Core\Providers\Session {
                 if (config('app.session')) {
                     return new Flash;
                 }
-
+                
                 return false;
             };
         }

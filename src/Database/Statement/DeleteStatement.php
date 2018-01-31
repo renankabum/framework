@@ -11,9 +11,9 @@
  */
 
 namespace Core\Database\Statement {
-
+    
     use Core\Database\Statement;
-
+    
     /**
      * Class DeleteStatement
      *
@@ -34,24 +34,24 @@ namespace Core\Database\Statement {
         {
             $this->table = (string) $table;
             $this->terms = (string) $terms;
-
+            
             // Recupera o places
             $this->setPlaces($places);
-
+            
             try {
                 // Executa o bind e query
                 $this->execute();
-
+                
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
-
+            
             // Retorna o resultado
             return $this->result;
         }
-
+        
         /**
          * @param $places
          *
@@ -62,21 +62,21 @@ namespace Core\Database\Statement {
         {
             // Recupera o places
             $this->setPlaces($places);
-
+            
             try {
                 // Executa o bind e query
                 $this->execute();
-
+                
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
-
+            
             // Retorna o resultado
             return $this->result;
         }
-
+        
         /**
          * @return bool|int
          */
@@ -85,17 +85,17 @@ namespace Core\Database\Statement {
             if ($this->result === 0) {
                 return false;
             }
-
+            
             return $this->result;
         }
-
+        
         /**
          * @return string
          */
         public function __toString()
         {
             $sql = "DELETE FROM {$this->table} {$this->terms}";
-
+            
             return $sql;
         }
     }

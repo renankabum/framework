@@ -11,14 +11,14 @@
  */
 
 namespace Core\Providers {
-
+    
     use Core\Contracts\Provider;
     use Core\Database\Database;
     use Core\Database\Statement\CreateStatement;
     use Core\Database\Statement\DeleteStatement;
     use Core\Database\Statement\ReadStatement;
     use Core\Database\Statement\UpdateStatement;
-
+    
     /**
      * Class DatabaseProvider
      *
@@ -36,15 +36,16 @@ namespace Core\Providers {
         {
             /**
              * @return \Core\Database\Database|\PDO
+             * @throws \Exception
              */
             $this->container['db'] = function () {
                 if (empty($dbh)) {
                     $dbh = new Database;
                 }
-
+                
                 return $dbh;
             };
-
+            
             /**
              * @return CreateStatement
              */
@@ -52,10 +53,10 @@ namespace Core\Providers {
                 if (empty($create)) {
                     $create = new CreateStatement($this->container);
                 }
-
+                
                 return $create;
             };
-
+            
             /**
              * @return ReadStatement
              */
@@ -63,10 +64,10 @@ namespace Core\Providers {
                 if (empty($read)) {
                     $read = new ReadStatement($this->container);
                 }
-
+                
                 return $read;
             };
-
+            
             /**
              * @return UpdateStatement
              */
@@ -74,10 +75,10 @@ namespace Core\Providers {
                 if (empty($update)) {
                     $update = new UpdateStatement($this->container);
                 }
-
+                
                 return $update;
             };
-
+            
             /**
              * @return DeleteStatement
              */
@@ -85,7 +86,7 @@ namespace Core\Providers {
                 if (empty($delete)) {
                     $delete = new DeleteStatement($this->container);
                 }
-
+                
                 return $delete;
             };
         }

@@ -11,9 +11,9 @@
  */
 
 namespace Core\Database\Old {
-
+    
     use Core\Database\Database;
-
+    
     /**
      * Class Delete
      *
@@ -26,32 +26,32 @@ namespace Core\Database\Old {
          * @var string
          */
         private $table;
-
+        
         /**
          * @var string
          */
         private $terms;
-
+        
         /**
          * @var array
          */
         private $places;
-
+        
         /**
          * @var bool
          */
         private $result;
-
+        
         /**
          * @var \PDOStatement
          */
         private $statement;
-
+        
         /**
          * @var \PDO
          */
         private $conn;
-
+        
         /**
          * Read constructor.
          *
@@ -61,7 +61,7 @@ namespace Core\Database\Old {
         {
             $this->conn = new Database;
         }
-
+        
         /**
          * Executa a query
          *
@@ -75,16 +75,16 @@ namespace Core\Database\Old {
         {
             $this->table = (string) $table;
             $this->terms = (string) $terms;
-
+            
             if (!empty($places)) {
                 parse_str($places, $this->places);
             }
-
+            
             $this->execute();
-
+            
             return $this;
         }
-
+        
         /**
          * Muda os place da query para uma nova consulta
          *
@@ -95,12 +95,12 @@ namespace Core\Database\Old {
         public function setPlaces($places)
         {
             parse_str($places, $this->places);
-
+            
             $this->execute();
-
+            
             return $this;
         }
-
+        
         /**
          * Retorna true caso tenha deletado ou não dado erro
          *
@@ -110,7 +110,7 @@ namespace Core\Database\Old {
         {
             return $this->result;
         }
-
+        
         /**
          * Obtém a quantidade de linhas afetadas
          * ou retorna true se foi sucesso
@@ -122,17 +122,17 @@ namespace Core\Database\Old {
             if ($this->statement->rowCount() == -1) {
                 return $this->result;
             }
-
+            
             return $this->statement->rowCount();
         }
-
+        
         /**
          * Obtém o PDO e Prepara a Query
          */
         private function connect()
         {
             $this->statement = $this->conn->prepare($this->statement);
-
+            
             /**
              * Percore os dados e places para montar os binds
              */
@@ -140,7 +140,7 @@ namespace Core\Database\Old {
                 Connect::bindValues($this->statement, $this->places);
             }
         }
-
+        
         /**
          * Cria a syntax da query para prepared statement
          */
@@ -148,7 +148,7 @@ namespace Core\Database\Old {
         {
             $this->statement = "DELETE FROM {$this->table} {$this->terms}";
         }
-
+        
         /**
          * Obtém a conexão a syntax e executa a query
          */
@@ -165,7 +165,7 @@ namespace Core\Database\Old {
             } catch (\PDOException $e) {
                 $this->result = null;
                 $this->conn->rollBack();
-
+                
                 throw new \Exception("Delete:: {$e->getMessage()}");
             }
         }

@@ -11,9 +11,9 @@
  */
 
 namespace Core\Database\Old {
-
+    
     use PDO;
-
+    
     /**
      * Class Connect
      *
@@ -26,12 +26,12 @@ namespace Core\Database\Old {
          * @var null|PDO
          */
         private static $conn = null;
-
+        
         /**
          * @var bool
          */
         private static $failed;
-
+        
         /**
          * Get conexão PDO
          *
@@ -41,7 +41,7 @@ namespace Core\Database\Old {
         {
             return static::connect();
         }
-
+        
         /**
          * Connecta com o banco de dados com o pattern singleton
          *
@@ -55,15 +55,15 @@ namespace Core\Database\Old {
              */
             $driver = config('database.default');
             extract(config("database.connections.{$driver}"), EXTR_SKIP);
-
+            
             try {
                 if (static::$conn == null) {
-
+                    
                     /**
                      * Configura o DSN
                      */
                     $dsn = sprintf(static::getDns($driver), $host, $database);
-
+                    
                     /**
                      * Cria a conexão
                      */
@@ -71,14 +71,14 @@ namespace Core\Database\Old {
                     static::$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                     static::$conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
                     //static::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-
+                    
                     /**
                      * Usa o banco configurado
                      */
                     if (!empty($database)) {
                         static::$conn->exec("USE {$database};");
                     }
-
+                    
                     /**
                      * Configura o encoding
                      */
@@ -88,13 +88,13 @@ namespace Core\Database\Old {
                 }
             } catch (\PDOException $e) {
                 static::$failed = true;
-
+                
                 throw new \Exception("Não foi possível conectar com o banco de dados.");
             }
-
+            
             return static::$conn;
         }
-
+        
         /**
          * Bind values to their parameters in the given statement
          *
@@ -109,13 +109,11 @@ namespace Core\Database\Old {
                 if ($index == 'limit' || $index == 'offset') {
                     $place = (int) $place;
                 }
-
-                $statement->bindValue(
-                    is_string($index) ? ":{$index}" : (int) $index + 1, $place, is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR
-                );
+                
+                $statement->bindValue(is_string($index) ? ":{$index}" : (int) $index + 1, $place, is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
             }
         }
-
+        
         /**
          * @param string $driver
          *
@@ -125,15 +123,15 @@ namespace Core\Database\Old {
         {
             if ($driver == 'sqlsrv') {
                 $dns = "sqlsrv:Server=%s;Database=%s;ConnectionPooling=0";
-            } elseif ($driver == 'dblib') {
+            } else if ($driver == 'dblib') {
                 $dns = "dblib:host=%s;dbname=%s";
             } else {
                 $dns = "mysql:host=%s;dbname=%s";
             }
-
+            
             return $dns;
         }
-
+        
         /**
          * Connect constructor.
          *
@@ -142,14 +140,14 @@ namespace Core\Database\Old {
         private function __construct()
         {
         }
-
+        
         /**
          * Previne a clonagem da class
          */
         private function __clone()
         {
         }
-
+        
         /**
          * Previne a desserialização da class
          */

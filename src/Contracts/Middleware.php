@@ -11,11 +11,11 @@
  */
 
 namespace Core\Contracts {
-
+    
     use Slim\Container;
     use Slim\Http\Request;
     use Slim\Http\Response;
-
+    
     /**
      * Class Middleware
      *
@@ -47,7 +47,7 @@ namespace Core\Contracts {
          * @var \Slim\Container
          */
         protected $container;
-
+        
         /**
          * BaseMiddleware constructor.
          *
@@ -56,15 +56,17 @@ namespace Core\Contracts {
         public function __construct(Container $container)
         {
             $this->container = $container;
-
+            
             $this->boot();
         }
-
+        
         /**
          * Inicia junto com a middleware
          */
-        protected function boot(){}
-
+        protected function boot()
+        {
+        }
+        
         /**
          * Register middleware
          *
@@ -75,7 +77,7 @@ namespace Core\Contracts {
          * @return \Slim\Http\Response
          */
         abstract public function __invoke(Request $request, Response $response, callable $next);
-
+        
         /**
          * Get property in container
          *

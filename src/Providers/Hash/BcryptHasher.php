@@ -11,7 +11,7 @@
  */
 
 namespace Core\Providers\Hash {
-
+    
     /**
      * Class BcryptHasher
      *
@@ -24,7 +24,7 @@ namespace Core\Providers\Hash {
          * @var int
          */
         protected $rounds = 10;
-
+        
         /**
          * Retorna a informações sobre o hash fornecido
          *
@@ -36,7 +36,7 @@ namespace Core\Providers\Hash {
         {
             return password_get_info($hash);
         }
-
+        
         /**
          * Cria um novo password hash usando um algoritmo forte de hash de via única
          *
@@ -50,14 +50,14 @@ namespace Core\Providers\Hash {
             $hash = password_hash($password, PASSWORD_BCRYPT, [
                 'cost' => $this->cost($options),
             ]);
-
+            
             if ($hash === false) {
                 return false;
             }
-
+            
             return $hash;
         }
-
+        
         /**
          * Verifica se o hash fornecido corresponde com o password fornecido.
          *
@@ -71,10 +71,10 @@ namespace Core\Providers\Hash {
             if (strlen($hash) === 0) {
                 return false;
             }
-
+            
             return password_verify($password, $hash);
         }
-
+        
         /**
          * Esta função verifica se o hash fornecido implementa o algoritmo e as opções indicadas.
          * Se não, ela assume que o hash precisa ser regenerado.
@@ -90,7 +90,7 @@ namespace Core\Providers\Hash {
                 'cost' => $this->cost($options),
             ]);
         }
-
+        
         /**
          * Defina o fator de trabalho de senha padrão.
          *
@@ -101,10 +101,10 @@ namespace Core\Providers\Hash {
         public function setRounds($rounds)
         {
             $this->rounds = (int) $rounds;
-
+            
             return $this;
         }
-
+        
         /**
          * Extraia o valor de custo da matriz de opções.
          *
@@ -114,9 +114,7 @@ namespace Core\Providers\Hash {
          */
         protected function cost(array $options)
         {
-            return isset($options['rounds'])
-                ? $options['rounds']
-                : $this->rounds;
+            return isset($options['rounds']) ? $options['rounds'] : $this->rounds;
         }
     }
 }

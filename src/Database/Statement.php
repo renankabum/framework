@@ -11,9 +11,9 @@
  */
 
 namespace Core\Database {
-
+    
     use Slim\Container;
-
+    
     /**
      * Class StatementContainer
      *
@@ -26,32 +26,32 @@ namespace Core\Database {
          * @var \Slim\Container
          */
         protected $container;
-
+        
         /**
          * @var string
          */
         protected $table;
-
+        
         /**
          * @var string
          */
         protected $terms;
-
+        
         /**
          * @var mixed
          */
         protected $result;
-
+        
         /**
          * @var array
          */
         protected $places = [];
-
+        
         /**
          * @var \PDOStatement
          */
         protected $stmt;
-
+        
         /**
          * StatementContainer constructor.
          *
@@ -61,7 +61,7 @@ namespace Core\Database {
         {
             $this->container = $container;
         }
-
+        
         /**
          * @param $places
          */
@@ -77,7 +77,7 @@ namespace Core\Database {
                 $this->places = (array) $places;
             }
         }
-
+        
         /**
          * @param array $binds
          */
@@ -87,15 +87,11 @@ namespace Core\Database {
                 if ($key == 'limit' || $key == 'offset') {
                     $bind = (int) $bind;
                 }
-
-                $this->stmt->bindValue(is_string($key)
-                    ? ":{$key}"
-                    : (int) $key + 1, $bind, is_int($bind)
-                    ? \PDO::PARAM_INT
-                    : \PDO::PARAM_STR);
+                
+                $this->stmt->bindValue(is_string($key) ? ":{$key}" : (int) $key + 1, $bind, is_int($bind) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
             }
         }
-
+        
         /**
          * Executa o bind e query
          *
@@ -108,19 +104,19 @@ namespace Core\Database {
             try {
                 // Prepara a query
                 $this->stmt = $this->container['db']->prepare($query ?: $this);
-
+                
                 // Binds values
                 if (is_array($this->places) && !empty($this->places)) {
                     $this->setBinds($this->places);
                 }
-
+                
                 // Executa a query
                 $this->stmt->execute();
             } catch (\PDOException $e) {
                 throw new \Exception($e->getMessage());
             }
         }
-
+        
         /**
          * @return mixed
          */

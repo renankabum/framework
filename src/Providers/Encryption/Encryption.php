@@ -11,9 +11,9 @@
  */
 
 namespace Core\Providers\Encryption {
-
+    
     use RuntimeException;
-
+    
     /**
      * Class Encrypter
      *
@@ -28,14 +28,14 @@ namespace Core\Providers\Encryption {
          * @var string
          */
         protected $key;
-
+        
         /**
          * The algorithm used for encryption.
          *
          * @var string
          */
         protected $cipher;
-
+        
         /**
          * Create a new encrypter instance.
          *
@@ -45,7 +45,7 @@ namespace Core\Providers\Encryption {
         public function __construct($key, $cipher = 'AES-128-CBC')
         {
             $key = (string) $key;
-
+            
             if (static::supported($key, $cipher)) {
                 $this->key = $key;
                 $this->cipher = $cipher;
@@ -53,7 +53,7 @@ namespace Core\Providers\Encryption {
                 throw new RuntimeException('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
             }
         }
-
+        
         /**
          * Determine if the given key and cipher combination is valid.
          *
@@ -65,10 +65,10 @@ namespace Core\Providers\Encryption {
         public static function supported($key, $cipher)
         {
             $length = mb_strlen($key, '8bit');
-
+            
             return ($cipher === 'AES-128-CBC' && $length === 16) || ($cipher === 'AES-256-CBC' && $length === 32);
         }
-
+        
         /**
          * Create a new encryption key for the given cipher.
          *
@@ -80,7 +80,7 @@ namespace Core\Providers\Encryption {
         {
             return random_bytes($cipher == 'AES-128-CBC' ? 16 : 32);
         }
-
+        
         /**
          * Get the encryption key.
          *
@@ -90,7 +90,7 @@ namespace Core\Providers\Encryption {
         {
             return $this->key;
         }
-
+        
         /**
          * Encrypt the given value.
          *
@@ -104,32 +104,30 @@ namespace Core\Providers\Encryption {
         public function encrypt($value, $serialize = true)
         {
             $iv = random_bytes(openssl_cipher_iv_length($this->cipher));
-
+            
             // First we will encrypt the value using OpenSSL. After this is encrypted we
             // will proceed to calculating a MAC for the encrypted value so that this
             // value can be verified later as not having been changed by the users.
-            $value = \openssl_encrypt(
-                $serialize ? serialize($value) : $value, $this->cipher, $this->key, 0, $iv
-            );
-
+            $value = \openssl_encrypt($serialize ? serialize($value) : $value, $this->cipher, $this->key, 0, $iv);
+            
             if ($value === false) {
                 throw new RuntimeException('Could not encrypt the data.');
             }
-
+            
             // Once we have the encrypted value we will go ahead base64_encode the input
             // vector and create the MAC for the encrypted value so we can verify its
             // authenticity. Then, we'll JSON encode the data in a "payload" array.
             $mac = $this->hash($iv = base64_encode($iv), $value);
-
+            
             $json = json_encode(compact('iv', 'value', 'mac'));
-
+            
             if (!is_string($json)) {
                 throw new RuntimeException('Could not encrypt the data.');
             }
-
+            
             return base64_encode($json);
         }
-
+        
         /**
          * Encrypt a string without serialization.
          *
@@ -141,7 +139,7 @@ namespace Core\Providers\Encryption {
         {
             return $this->encrypt($value, false);
         }
-
+        
         /**
          * Decrypt the given value.
          *
@@ -155,23 +153,21 @@ namespace Core\Providers\Encryption {
         public function decrypt($payload, $unserialize = true)
         {
             $payload = $this->getJsonPayload($payload);
-
+            
             $iv = base64_decode($payload['iv']);
-
+            
             // Here we will decrypt the value. If we are able to successfully decrypt it
             // we will then unserialize it and return it out to the caller. If we are
             // unable to decrypt this value we will throw out an exception message.
-            $decrypted = \openssl_decrypt(
-                $payload['value'], $this->cipher, $this->key, 0, $iv
-            );
-
+            $decrypted = \openssl_decrypt($payload['value'], $this->cipher, $this->key, 0, $iv);
+            
             if ($decrypted === false) {
                 return false;
             }
-
+            
             return $unserialize ? unserialize($decrypted) : $decrypted;
         }
-
+        
         /**
          * Decrypt the given string without unserialization.
          *
@@ -183,7 +179,7 @@ namespace Core\Providers\Encryption {
         {
             return $this->decrypt($payload, false);
         }
-
+        
         /**
          * Create a MAC for the given value.
          *
@@ -194,9 +190,9 @@ namespace Core\Providers\Encryption {
          */
         protected function hash($iv, $value)
         {
-            return hash_hmac('sha256', $iv . $value, $this->key);
+            return hash_hmac('sha256', $iv.$value, $this->key);
         }
-
+        
         /**
          * Get the JSON array from the given payload.
          *
@@ -207,21 +203,21 @@ namespace Core\Providers\Encryption {
         protected function getJsonPayload($payload)
         {
             $payload = json_decode(base64_decode($payload), true);
-
+            
             // If the payload is not valid JSON or does not have the proper keys set we will
             // assume it is invalid and bail out of the routine since we will not be able
             // to decrypt the given value. We'll also check the MAC for this encryption.
             if (!$this->validPayload($payload)) {
                 return false;
             }
-
+            
             if (!$this->validMac($payload)) {
                 return false;
             }
-
+            
             return $payload;
         }
-
+        
         /**
          * Verify that the encryption payload is valid.
          *
@@ -231,11 +227,9 @@ namespace Core\Providers\Encryption {
          */
         protected function validPayload($payload)
         {
-            return is_array($payload) && isset(
-                    $payload['iv'], $payload['value'], $payload['mac']
-                );
+            return is_array($payload) && isset($payload['iv'], $payload['value'], $payload['mac']);
         }
-
+        
         /**
          * Determine if the MAC for the given payload is valid.
          *
@@ -246,12 +240,10 @@ namespace Core\Providers\Encryption {
         protected function validMac(array $payload)
         {
             $calculated = $this->calculateMac($payload, $bytes = random_bytes(16));
-
-            return hash_equals(
-                hash_hmac('sha256', $payload['mac'], $bytes, true), $calculated
-            );
+            
+            return hash_equals(hash_hmac('sha256', $payload['mac'], $bytes, true), $calculated);
         }
-
+        
         /**
          * Calculate the hash of the given payload.
          *

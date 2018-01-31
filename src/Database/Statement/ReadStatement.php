@@ -11,9 +11,9 @@
  */
 
 namespace Core\Database\Statement {
-
+    
     use Core\Database\Statement;
-
+    
     /**
      * Class ReadStatement
      *
@@ -35,23 +35,23 @@ namespace Core\Database\Statement {
             // Trata os dados
             $this->table = (string) $table;
             $this->terms = (string) $terms;
-
+            
             // Recupera o places
             $this->setPlaces($places);
-
+            
             // Monta a query
             $sql = "SELECT * FROM {$this->table} {$this->terms}";
-
+            
             try {
                 // Executa o bind e query
                 $this->execute($sql);
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
-
+            
             return $this;
         }
-
+        
         /**
          * @param string $sql
          * @param mixed  $places
@@ -63,20 +63,20 @@ namespace Core\Database\Statement {
         {
             // Trata a query
             $sql = (string) $sql;
-
+            
             // Recupera o places
             $this->setPlaces($places);
-
+            
             try {
                 // Executa o bind e query
                 $this->execute($sql);
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
-
+            
             return $this;
         }
-
+        
         /**
          * @param $places
          *
@@ -87,17 +87,17 @@ namespace Core\Database\Statement {
         {
             // Recupera o places
             $this->setPlaces($places);
-
+            
             try {
                 // Executa o bind e query
                 $this->execute();
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
-
+            
             return $this;
         }
-
+        
         /**
          * @return mixed
          */
@@ -105,10 +105,10 @@ namespace Core\Database\Statement {
         {
             $this->result = $this->stmt->fetch();
             $this->stmt->closeCursor();
-
+            
             return $this->result;
         }
-
+        
         /**
          * @return array
          */
@@ -116,7 +116,7 @@ namespace Core\Database\Statement {
         {
             return $this->fetchAll();
         }
-
+        
         /**
          * @return array
          */
@@ -124,10 +124,10 @@ namespace Core\Database\Statement {
         {
             $this->result = $this->stmt->fetchAll();
             $this->stmt->closeCursor();
-
+            
             return $this->result;
         }
-
+        
         /**
          * @return int
          */
@@ -135,7 +135,7 @@ namespace Core\Database\Statement {
         {
             return $this->rowCount();
         }
-
+        
         /**
          * @return int
          */
@@ -143,7 +143,7 @@ namespace Core\Database\Statement {
         {
             return count($this->result);
         }
-
+        
         /**
          * @return string
          */

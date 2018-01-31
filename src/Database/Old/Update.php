@@ -11,9 +11,9 @@
  */
 
 namespace Core\Database\Old {
-
+    
     use Core\Database\Database;
-
+    
     /**
      * Class Update
      *
@@ -26,37 +26,37 @@ namespace Core\Database\Old {
          * @var string
          */
         private $table;
-
+        
         /**
          * @var array
          */
         private $data;
-
+        
         /**
          * @var string
          */
         private $terms;
-
+        
         /**
          * @var string
          */
         private $places;
-
+        
         /**
          * @var bool
          */
         private $result;
-
+        
         /**
          * @var \PDOStatement
          */
         private $statement;
-
+        
         /**
          * @var \PDO
          */
         private $conn;
-
+        
         /**
          * Read constructor.
          *
@@ -66,7 +66,7 @@ namespace Core\Database\Old {
         {
             $this->conn = new Database;
         }
-
+        
         /**
          * Executa o update no banco de dados simplificado
          *
@@ -82,16 +82,16 @@ namespace Core\Database\Old {
             $this->table = (string) $table;
             $this->data = (array) $data;
             $this->terms = (string) $terms;
-
+            
             if (!empty($places)) {
                 parse_str($places, $this->places);
             }
-
+            
             $this->execute();
-
+            
             return $this;
         }
-
+        
         /**
          * Muda os place da query para uma nova query
          *
@@ -102,12 +102,12 @@ namespace Core\Database\Old {
         public function setPlaces($places)
         {
             parse_str($places, $this->places);
-
+            
             $this->execute();
-
+            
             return $this;
         }
-
+        
         /**
          * Retorna true se não ocorrer erros, ou false.
          *
@@ -117,7 +117,7 @@ namespace Core\Database\Old {
         {
             return $this->result;
         }
-
+        
         /**
          * Retorna o número de linhas alteradas no banco
          * ou retorna true
@@ -129,36 +129,36 @@ namespace Core\Database\Old {
             if ($this->statement->rowCount() == -1) {
                 return $this->getResult();
             }
-
+            
             return $this->statement->rowCount();
         }
-
+        
         /**
          * Obtém o PDO e Prepara a Query
          */
         private function connect()
         {
             $this->statement = $this->conn->prepare($this->statement);
-
+            
             /**
              * Verifica se os dados passados estão NULL e se estiver seta como vázio
              */
             foreach ($this->data as $index => $place) {
                 $this->data[$index] = ($place == '' ? null : $place);
             }
-
+            
             /**
              * Percore os dados e places para montar os binds
              */
             $bindings = $this->data;
-
+            
             if ($this->places) {
                 $bindings = array_merge($this->data, $this->places);
             }
-
+            
             Connect::bindValues($this->statement, $bindings);
         }
-
+        
         /**
          * Cria a syntax da query para prepared statement
          */
@@ -168,11 +168,11 @@ namespace Core\Database\Old {
             foreach ($this->data as $index => $value) {
                 $places[] = "{$index} = :{$index}";
             }
-
+            
             $places = implode(', ', $places);
             $this->statement = "UPDATE {$this->table} SET {$places} {$this->terms}";
         }
-
+        
         /**
          * Obtém a conexão a syntax e executa a query
          */
@@ -189,7 +189,7 @@ namespace Core\Database\Old {
             } catch (\PDOException $e) {
                 $this->result = null;
                 $this->conn->rollBack();
-
+                
                 throw new \Exception("Update:: {$e->getMessage()}");
             }
         }

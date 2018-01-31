@@ -11,9 +11,9 @@
  */
 
 namespace Core\Contracts {
-
+    
     use Slim\Container;
-
+    
     /**
      * Class Provider
      *
@@ -45,7 +45,7 @@ namespace Core\Contracts {
          * @var Container
          */
         protected $container;
-
+        
         /**
          * Provider constructor.
          *
@@ -55,14 +55,14 @@ namespace Core\Contracts {
         {
             $this->container = $container;
         }
-
+        
         /**
          * Registers services on the given container.
          *
          * @return void
          */
         abstract public function register();
-
+        
         /**
          * Register other services, such as middleware etc.
          *
@@ -71,7 +71,7 @@ namespace Core\Contracts {
         public function boot()
         {
         }
-
+        
         /**
          * @param $name
          *

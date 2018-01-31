@@ -11,7 +11,7 @@
  */
 
 namespace Core\Providers\Hash {
-
+    
     /**
      * Class ArgonHasher
      *
@@ -24,17 +24,17 @@ namespace Core\Providers\Hash {
          * @var int
          */
         protected $threads = 2;
-
+        
         /**
          * @var int
          */
         protected $memory = 1024;
-
+        
         /**
          * @var int
          */
         protected $time = 2;
-
+        
         /**
          * Retorna a informações sobre o hash fornecido
          *
@@ -46,7 +46,7 @@ namespace Core\Providers\Hash {
         {
             return password_get_info($hash);
         }
-
+        
         /**
          * Cria um novo password hash usando um algoritmo forte de hash de via única
          *
@@ -62,14 +62,14 @@ namespace Core\Providers\Hash {
                 'time_cost' => $this->time($options),
                 'threads' => $this->threads($options),
             ]);
-
+            
             if ($hash === false) {
                 return false;
             }
-
+            
             return $hash;
         }
-
+        
         /**
          * Verifica se o hash fornecido corresponde com o password fornecido.
          *
@@ -83,10 +83,10 @@ namespace Core\Providers\Hash {
             if (strlen($hash) === 0) {
                 return false;
             }
-
+            
             return password_verify($password, $hash);
         }
-
+        
         /**
          * Esta função verifica se o hash fornecido implementa o algoritmo e as opções indicadas.
          * Se não, ela assume que o hash precisa ser regenerado.
@@ -104,7 +104,7 @@ namespace Core\Providers\Hash {
                 'threads' => $this->threads($options),
             ]);
         }
-
+        
         /**
          * @param int $threads
          *
@@ -113,10 +113,10 @@ namespace Core\Providers\Hash {
         public function setThreads($threads)
         {
             $this->threads = $threads;
-
+            
             return $this;
         }
-
+        
         /**
          * @param int $memory
          *
@@ -125,10 +125,10 @@ namespace Core\Providers\Hash {
         public function setMemory($memory)
         {
             $this->memory = $memory;
-
+            
             return $this;
         }
-
+        
         /**
          * @param int $time
          *
@@ -137,10 +137,10 @@ namespace Core\Providers\Hash {
         public function setTime($time)
         {
             $this->time = $time;
-
+            
             return $this;
         }
-
+        
         /**
          * @param array $options
          *
@@ -148,11 +148,9 @@ namespace Core\Providers\Hash {
          */
         protected function memory(array $options)
         {
-            return isset($options['memory'])
-                ? $options['memory']
-                : $this->memory;
+            return isset($options['memory']) ? $options['memory'] : $this->memory;
         }
-
+        
         /**
          * @param array $options
          *
@@ -160,11 +158,9 @@ namespace Core\Providers\Hash {
          */
         protected function time(array $options)
         {
-            return isset($options['time'])
-                ? $options['time']
-                : $this->time;
+            return isset($options['time']) ? $options['time'] : $this->time;
         }
-
+        
         /**
          * @param array $options
          *
@@ -172,9 +168,7 @@ namespace Core\Providers\Hash {
          */
         protected function threads(array $options)
         {
-            return isset($options['threads'])
-                ? $options['threads']
-                : $this->threads;
+            return isset($options['threads']) ? $options['threads'] : $this->threads;
         }
     }
 }
