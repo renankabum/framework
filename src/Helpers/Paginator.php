@@ -11,55 +11,55 @@
  */
 
 namespace Core\Helpers {
-
+    
     /**
      * Class Paginator
      *
      * @package App\Helpers
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class Paginator
+    class Paginator
     {
         /**
          * @var int
          */
         protected $total;
-
+        
         /**
          * @var int
          */
         protected $limit;
-
+        
         /**
          * @var int
          */
         protected $maxLinks;
-
+        
         /**
          * @var string
          */
         protected $link;
-
+        
         /**
          * @var string
          */
         protected $page;
-
+        
         /**
          * @var int
          */
         protected $number;
-
+        
         /**
          * @var string
          */
         protected $firts;
-
+        
         /**
          * @var string
          */
         protected $last;
-
+        
         /**
          * Paginator constructor.
          *
@@ -75,7 +75,7 @@ namespace Core\Helpers {
              * Filtra o page
              */
             $filter = filter_input(INPUT_GET, $page, FILTER_DEFAULT);
-
+            
             /**
              * Inicia os atributos
              */
@@ -86,7 +86,7 @@ namespace Core\Helpers {
             $this->page = (string) $page;
             $this->number = (isset($filter) ? $filter : 1);
         }
-
+        
         /**
          * Get offset
          *
@@ -96,7 +96,7 @@ namespace Core\Helpers {
         {
             return ($this->number * $this->limit) - $this->limit;
         }
-
+        
         /**
          * Ger limit
          *
@@ -106,7 +106,7 @@ namespace Core\Helpers {
         {
             return $this->limit;
         }
-
+        
         /**
          * Next page
          *
@@ -114,9 +114,9 @@ namespace Core\Helpers {
          */
         public function next()
         {
-            return  ceil($this->total / $this->limit) > $this->number;
+            return ceil($this->total / $this->limit) > $this->number;
         }
-
+        
         /**
          * Seta primeira página e ultima página
          *
@@ -129,10 +129,10 @@ namespace Core\Helpers {
         {
             $this->firts = (string) $first;
             $this->last = (string) $last;
-
+            
             return $this;
         }
-
+        
         /**
          * Gera o html da paginação
          *
@@ -142,37 +142,37 @@ namespace Core\Helpers {
         {
             $links = '';
             $pages = ceil($this->total / $this->limit);
-            $link = $this->link . '?' . $this->page . '=';
+            $link = $this->link.'?'.$this->page.'=';
             $maxLinks = $this->maxLinks;
-
+            
             if ($this->total > $this->limit) {
                 $links .= "<ul class='pagination'>";
-
+                
                 if ($this->firts) {
                     $links .= "<li><a href='{$link}1'>{$this->firts}</a></li>";
                 }
-
+                
                 for ($i = $this->number - $maxLinks; $i <= $this->number - 1; $i++) {
                     if ($i >= 1) {
                         $links .= "<li><a href='{$link}{$i}'>{$i}</a></li>";
                     }
                 }
-
+                
                 $links .= "<li class='active'><a href='javascript:;'>{$this->number}</a></li>";
-
+                
                 for ($i = $this->number + 1; $i <= $this->number + $maxLinks; $i++) {
                     if ($i <= $pages) {
                         $links .= "<li><a href='{$link}{$i}'>{$i}</a></li>";
                     }
                 }
-
+                
                 if ($this->last) {
                     $links .= "<li><a href='{$link}{$pages}'>{$this->last}</a></li>";
                 }
-
+                
                 $links .= "</ul>";
             }
-
+            
             return $links;
         }
     }

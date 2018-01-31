@@ -11,14 +11,14 @@
  */
 
 namespace Core\Helpers {
-
+    
     /**
      * Class Str
      *
      * @package Core\Helpers
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class Str extends \Illuminate\Support\Str
+    class Str extends \Illuminate\Support\Str
     {
         /**
          * @param string $string
@@ -32,8 +32,8 @@ namespace Core\Helpers {
             if (strlen($string) <= $limit) {
                 return $string;
             }
-
-            return self::substr($string, 0, strrpos(self::substr($string, 0, $limit), ' ')) . $end;
+            
+            return self::substr($string, 0, strrpos(self::substr($string, 0, $limit), ' ')).$end;
         }
     }
 }
