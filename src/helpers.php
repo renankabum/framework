@@ -197,9 +197,7 @@ if (!function_exists('object_set')) {
             if (is_array($value)) {
                 $object->{$key} = object_set($value);
             } else {
-                if (isset($key)) {
-                    $object->{$key} = $value;
-                }
+                $object->{$key} = isset($value) ? $value : false;
             }
         }
         
