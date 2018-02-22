@@ -142,7 +142,6 @@ namespace Core\Helpers {
         {
             $links = '';
             $pages = ceil($this->total / $this->limit);
-            $this->link = $this->link.'?'.$this->page.'=';
             
             if (strpos($this->link, '?') !== false) {
                 $this->link = "{$this->link}&{$this->page}=";
