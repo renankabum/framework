@@ -142,32 +142,37 @@ namespace Core\Helpers {
         {
             $links = '';
             $pages = ceil($this->total / $this->limit);
-            $link = $this->link.'?'.$this->page.'=';
-            $maxLinks = $this->maxLinks;
+            $this->link = $this->link.'?'.$this->page.'=';
+            
+            if (strpos($this->link, '?') !== false) {
+                $this->link = "{$this->link}&{$this->page}=";
+            } else {
+                $this->link = "{$this->link}?{$this->page}=";
+            }
             
             if ($this->total > $this->limit) {
                 $links .= "<ul class='pagination'>";
                 
                 if ($this->firts) {
-                    $links .= "<li><a href='{$link}1'>{$this->firts}</a></li>";
+                    $links .= "<li><a href='{$this->link}1'>{$this->firts}</a></li>";
                 }
                 
-                for ($i = $this->number - $maxLinks; $i <= $this->number - 1; $i++) {
+                for ($i = $this->number - $this->maxLinks; $i <= $this->number - 1; $i++) {
                     if ($i >= 1) {
-                        $links .= "<li><a href='{$link}{$i}'>{$i}</a></li>";
+                        $links .= "<li><a href='{$this->link}{$i}'>{$i}</a></li>";
                     }
                 }
                 
                 $links .= "<li class='active'><a href='javascript:;'>{$this->number}</a></li>";
                 
-                for ($i = $this->number + 1; $i <= $this->number + $maxLinks; $i++) {
+                for ($i = $this->number + 1; $i <= $this->number + $this->maxLinks; $i++) {
                     if ($i <= $pages) {
-                        $links .= "<li><a href='{$link}{$i}'>{$i}</a></li>";
+                        $links .= "<li><a href='{$this->link}{$i}'>{$i}</a></li>";
                     }
                 }
                 
                 if ($this->last) {
-                    $links .= "<li><a href='{$link}{$pages}'>{$this->last}</a></li>";
+                    $links .= "<li><a href='{$this->link}{$pages}'>{$this->last}</a></li>";
                 }
                 
                 $links .= "</ul>";
