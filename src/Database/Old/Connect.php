@@ -58,7 +58,6 @@ namespace Core\Database\Old {
             
             try {
                 if (static::$conn == null) {
-                    
                     /**
                      * Configura o DSN
                      */
@@ -105,12 +104,12 @@ namespace Core\Database\Old {
          */
         public static function bindValues(\PDOStatement $statement, $bindings)
         {
-            foreach ((array) $bindings as $index => $place) {
+            foreach ((array)$bindings as $index => $place) {
                 if ($index == 'limit' || $index == 'offset') {
-                    $place = (int) $place;
+                    $place = (int)$place;
                 }
                 
-                $statement->bindValue(is_string($index) ? ":{$index}" : (int) $index + 1, $place, is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
+                $statement->bindValue(is_string($index) ? ":{$index}" : (int)$index + 1, $place, is_int($place) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
             }
         }
         

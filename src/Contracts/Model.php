@@ -64,9 +64,7 @@ namespace Core\Contracts {
         }
         
         /**
-         * Pega os provider cadastrados
-         *
-         * @param $name
+         * @param string $name
          *
          * @return mixed
          * @throws \Interop\Container\Exception\ContainerException

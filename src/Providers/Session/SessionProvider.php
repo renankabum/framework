@@ -34,7 +34,7 @@ namespace Core\Providers\Session {
              */
             $this->container['session'] = function () {
                 if (config('app.session')) {
-                    return new Session;
+                    return new Session();
                 }
                 
                 return false;
@@ -45,7 +45,7 @@ namespace Core\Providers\Session {
              */
             $this->container['flash'] = function () {
                 if (config('app.session')) {
-                    return new Flash;
+                    return new Flash();
                 }
                 
                 return false;

@@ -79,11 +79,11 @@ namespace Core\Helpers {
             /**
              * Inicia os atributos
              */
-            $this->total = (int) $total;
-            $this->link = (string) $link;
-            $this->limit = ((int) $limit ? $limit : 10);
-            $this->maxLinks = ((int) $maxLinks ? $maxLinks : 4);
-            $this->page = (string) $page;
+            $this->total = (int)$total;
+            $this->link = (string)$link;
+            $this->limit = ((int)$limit ? $limit : 10);
+            $this->maxLinks = ((int)$maxLinks ? $maxLinks : 4);
+            $this->page = (string)$page;
             $this->number = (isset($filter) ? $filter : 1);
         }
         
@@ -127,8 +127,8 @@ namespace Core\Helpers {
          */
         public function setFirstAndLast($first, $last)
         {
-            $this->firts = (string) $first;
-            $this->last = (string) $last;
+            $this->firts = (string)$first;
+            $this->last = (string)$last;
             
             return $this;
         }

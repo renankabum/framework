@@ -38,9 +38,9 @@ namespace Core\Database\Statement {
          */
         public function exec($table, array $columnsOrPairs, $terms = null, $places = null)
         {
-            $this->table = (string) $table;
-            $this->columns = (array) $columnsOrPairs;
-            $this->terms = (string) $terms;
+            $this->table = (string)$table;
+            $this->columns = (array)$columnsOrPairs;
+            $this->terms = (string)$terms;
             
             // Recupera o places
             $this->setPlaces($places);
@@ -51,8 +51,8 @@ namespace Core\Database\Statement {
                 
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
-            } catch (\Exception $e) {
-                throw new \Exception($e->getMessage());
+            } catch (\PDOException $e) {
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
             
             // Retorna o resultado
@@ -76,8 +76,8 @@ namespace Core\Database\Statement {
                 
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
-            } catch (\Exception $e) {
-                throw new \Exception($e->getMessage());
+            } catch (\PDOException $e) {
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
             
             // Retorna o resultado
@@ -85,9 +85,9 @@ namespace Core\Database\Statement {
         }
         
         /**
-         * @return bool
+         * @return int
          */
-        public function getResult()
+        public function rowCount()
         {
             if ($this->result === 0) {
                 return false;
@@ -97,12 +97,20 @@ namespace Core\Database\Statement {
         }
         
         /**
+         * @return int|boolean
+         */
+        public function getResult()
+        {
+            return $this->rowCount();
+        }
+        
+        /**
          * @return string
          */
         public function __toString()
         {
             $columns = [];
-            foreach ((array) $this->columns as $key => $value) {
+            foreach ((array)$this->columns as $key => $value) {
                 $time = '';
                 if (!empty($this->places[$key])) {
                     $time = time();

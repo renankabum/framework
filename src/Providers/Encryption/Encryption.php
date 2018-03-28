@@ -44,13 +44,13 @@ namespace Core\Providers\Encryption {
          */
         public function __construct($key, $cipher = 'AES-128-CBC')
         {
-            $key = (string) $key;
+            $key = (string)$key;
             
             if (static::supported($key, $cipher)) {
                 $this->key = $key;
                 $this->cipher = $cipher;
             } else {
-                throw new RuntimeException('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
+                throw new RuntimeException('As únicas cifras suportadas são AES-128-CBC e AES-256-CBC com os comprimentos de chave corretos.');
             }
         }
         
@@ -111,7 +111,7 @@ namespace Core\Providers\Encryption {
             $value = \openssl_encrypt($serialize ? serialize($value) : $value, $this->cipher, $this->key, 0, $iv);
             
             if ($value === false) {
-                throw new RuntimeException('Could not encrypt the data.');
+                throw new RuntimeException('Não foi possível criptografar os dados.');
             }
             
             // Once we have the encrypted value we will go ahead base64_encode the input
@@ -122,7 +122,7 @@ namespace Core\Providers\Encryption {
             $json = json_encode(compact('iv', 'value', 'mac'));
             
             if (!is_string($json)) {
-                throw new RuntimeException('Could not encrypt the data.');
+                throw new RuntimeException('Não foi possível criptografar os dados.');
             }
             
             return base64_encode($json);

@@ -50,7 +50,7 @@ namespace Core\Providers\View {
         public function __construct($path)
         {
             $this->path = rtrim($path, '/\\');
-            $this->pathPhp = $this->path.'/app.php';
+            $this->pathPhp = $this->path.'/layout/app.php';
         }
         
         /**
@@ -65,7 +65,16 @@ namespace Core\Providers\View {
          */
         public function fetch($template, array $context = [])
         {
-            if (!is_file($this->path.'/'.$template)) {
+            // Remove extension if passed.
+            if (substr($template, -4) === '.php') {
+                $template = substr($template, 0, -4);
+            }
+            
+            // Replace `dot` in `bar`
+            $template = str_replace('.', '/', $template);
+            
+            // Verify if exists file
+            if (!is_file("{$this->path}/{$template}.php")) {
                 throw new \Exception("O template `{$template}` não existe.");
             }
             
@@ -76,7 +85,7 @@ namespace Core\Providers\View {
                 
                 extract($this->context);
                 
-                $this->content = "{$this->path}/{$template}";
+                $this->content = "{$this->path}/{$template}.php";
                 
                 if (file_exists($this->pathPhp)) {
                     include "{$this->pathPhp}";
@@ -112,17 +121,15 @@ namespace Core\Providers\View {
         public function render(Response $response, $template, array $context = [])
         {
             try {
-                $output = $this->fetch($template, $context);
-                
                 $response->getBody()
-                    ->write($output);
+                    ->write($this->fetch($template, $context));
+                
+                return $response;
             } catch (\Exception $e) {
                 throw $e;
             } catch (\Throwable $e) {
                 throw $e;
             }
-            
-            return $response;
         }
         
         /**

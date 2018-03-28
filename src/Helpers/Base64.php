@@ -29,7 +29,9 @@ namespace Core\Helpers {
          */
         public static function encode($value)
         {
-            return str_replace('=', '', strtr(base64_encode($value), '+/', '-_'));
+            return str_replace('=', '', strtr(
+                base64_encode($value), '+/', '-_')
+            );
         }
         
         /**
@@ -48,7 +50,9 @@ namespace Core\Helpers {
                 $value .= str_repeat('=', $padlen);
             }
             
-            return base64_decode(strtr($value, '-/', '+/'));
+            return base64_decode(strtr(
+                $value, '-/', '+/')
+            );
         }
     }
 }

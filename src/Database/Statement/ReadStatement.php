@@ -33,8 +33,8 @@ namespace Core\Database\Statement {
         public function exec($table, $terms = null, $places = null)
         {
             // Trata os dados
-            $this->table = (string) $table;
-            $this->terms = (string) $terms;
+            $this->table = (string)$table;
+            $this->terms = (string)$terms;
             
             // Recupera o places
             $this->setPlaces($places);
@@ -45,8 +45,8 @@ namespace Core\Database\Statement {
             try {
                 // Executa o bind e query
                 $this->execute($sql);
-            } catch (\Exception $e) {
-                throw new \Exception($e->getMessage());
+            } catch (\PDOException $e) {
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
             
             return $this;
@@ -62,7 +62,7 @@ namespace Core\Database\Statement {
         public function query($sql, $places = null)
         {
             // Trata a query
-            $sql = (string) $sql;
+            $sql = (string)$sql;
             
             // Recupera o places
             $this->setPlaces($places);
@@ -70,8 +70,8 @@ namespace Core\Database\Statement {
             try {
                 // Executa o bind e query
                 $this->execute($sql);
-            } catch (\Exception $e) {
-                throw new \Exception($e->getMessage());
+            } catch (\PDOException $e) {
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
             
             return $this;
@@ -91,8 +91,8 @@ namespace Core\Database\Statement {
             try {
                 // Executa o bind e query
                 $this->execute();
-            } catch (\Exception $e) {
-                throw new \Exception($e->getMessage());
+            } catch (\PDOException $e) {
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
             
             return $this;
@@ -104,9 +104,30 @@ namespace Core\Database\Statement {
         public function fetch()
         {
             $this->result = $this->stmt->fetch();
-            $this->stmt->closeCursor();
+            
+            //$this->stmt->closeCursor();
             
             return $this->result;
+        }
+        
+        /**
+         * @return array
+         */
+        public function fetchAll()
+        {
+            $this->result = $this->stmt->fetchAll();
+            
+            //$this->stmt->closeCursor();
+            
+            return $this->result;
+        }
+        
+        /**
+         * @return int
+         */
+        public function rowCount()
+        {
+            return $this->stmt->rowCount();
         }
         
         /**
@@ -118,30 +139,11 @@ namespace Core\Database\Statement {
         }
         
         /**
-         * @return array
-         */
-        public function fetchAll()
-        {
-            $this->result = $this->stmt->fetchAll();
-            $this->stmt->closeCursor();
-            
-            return $this->result;
-        }
-        
-        /**
          * @return int
          */
         public function getRowCount()
         {
             return $this->rowCount();
-        }
-        
-        /**
-         * @return int
-         */
-        public function rowCount()
-        {
-            return count($this->result);
         }
         
         /**

@@ -21,28 +21,18 @@ namespace Core\Helpers {
     final class Check
     {
         /**
-         * @var mixed
-         */
-        private static $data;
-        
-        /**
-         * @var mixed
-         */
-        private static $format;
-        
-        /**
-         * Checks if e-Mail is in a valid format!
+         * <b>Checa email:</b> Válida se o e-mail é válido ou inválido
          *
          * @param string $email
          *
-         * @return bool
+         * @return boolean
          */
         public static function email($email)
         {
-            static::$data = (string) $email;
-            static::$format = '/[a-z0-9_\.\-]+@[a-z0-9_\.\-]*[a-z0-9_\.\-]+\.[a-z]{2,4}$/';
+            $email = (string)$email;
+            $regex = '/[a-z0-9_\.\-]+@[a-z0-9_\.\-]*[a-z0-9_\.\-]+\.[a-z]{2,4}$/';
             
-            if (!filter_var(static::$data, FILTER_VALIDATE_EMAIL) === false && preg_match(static::$format, static::$data)) {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL) === false && preg_match($regex, $email)) {
                 return true;
             }
             
@@ -54,13 +44,13 @@ namespace Core\Helpers {
          *
          * @param string $cpf = CPF com ou sem pontuação
          *
-         * @return bool = True se for um CPF válido
+         * @return boolean
          */
         public static function cpf($cpf)
         {
-            self::$data = preg_replace('/[^0-9]/', '', $cpf);
+            $cpf = preg_replace('/[^0-9]/', '', $cpf);
             
-            if (strlen(self::$data) != 11) {
+            if (strlen($cpf) != 11) {
                 return false;
             }
             
@@ -68,20 +58,20 @@ namespace Core\Helpers {
             $digitoB = 0;
             
             for ($i = 0, $x = 10; $i <= 8; $i++, $x--) {
-                $digitoA += self::$data[$i] * $x;
+                $digitoA += $cpf[$i] * $x;
             }
             
             for ($i = 0, $x = 11; $i <= 9; $i++, $x--) {
-                if (str_repeat($i, 11) == self::$data) {
+                if (str_repeat($i, 11) == $cpf) {
                     return false;
                 }
-                $digitoB += self::$data[$i] * $x;
+                $digitoB += $cpf[$i] * $x;
             }
             
             $somaA = (($digitoA % 11) < 2) ? 0 : 11 - ($digitoA % 11);
             $somaB = (($digitoB % 11) < 2) ? 0 : 11 - ($digitoB % 11);
             
-            if ($somaA != self::$data[9] || $somaB != self::$data[10]) {
+            if ($somaA != $cpf[9] || $somaB != $cpf[10]) {
                 return false;
             } else {
                 return true;
@@ -93,14 +83,14 @@ namespace Core\Helpers {
          *
          * @param string $cnpj = CNPJ com ou sem pontuação
          *
-         * @return boolean = True se for um CNJP válido
+         * @return boolean
          */
         public static function cnpj($cnpj)
         {
-            self::$data = (string) $cnpj;
-            self::$data = preg_replace('/[^0-9]/', '', self::$data);
+            $cnpj = (string)$cnpj;
+            $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
             
-            if (strlen(self::$data) != 14) {
+            if (strlen($cnpj) != 14) {
                 return false;
             }
             
@@ -109,24 +99,24 @@ namespace Core\Helpers {
             
             for ($i = 0, $c = 5; $i <= 11; $i++, $c--) {
                 $c = ($c == 1 ? 9 : $c);
-                $A += self::$data[$i] * $c;
+                $A += $cnpj[$i] * $c;
             }
             
             for ($i = 0, $c = 6; $i <= 12; $i++, $c--) {
-                if (str_repeat($i, 14) == self::$data) {
+                if (str_repeat($i, 14) == $cnpj) {
                     return false;
                 }
                 
                 $c = ($c == 1 ? 9 : $c);
-                $B += self::$data[$i] * $c;
+                $B += $cnpj[$i] * $c;
             }
             
             $somaA = (($A % 11) < 2) ? 0 : 11 - ($A % 11);
             $somaB = (($B % 11) < 2) ? 0 : 11 - ($B % 11);
             
-            if (strlen(self::$data) != 14) {
+            if (strlen($cnpj) != 14) {
                 return false;
-            } else if ($somaA != self::$data[12] || $somaB != self::$data[13]) {
+            } else if ($somaA != $cnpj[12] || $somaB != $cnpj[13]) {
                 return false;
             } else {
                 return true;
@@ -134,24 +124,24 @@ namespace Core\Helpers {
         }
         
         /**
-         * Checks if the title is in a valid format!
+         * <b>Checa Titulo Eleitor:</b> Válida se o TITULO do ELEITOR é válido
          *
-         * @param string $te
+         * @param string $titulo = Titulo com ou sem .
          *
-         * @return bool
+         * @return boolean
          */
-        public static function tituloEleitor($te)
+        public static function tituloEleitor($titulo)
         {
-            $te = str_pad(preg_replace('[^0-9]', '', $te), 12, '0', STR_PAD_LEFT);
-            $uf = intval(substr($te, 8, 2));
+            $titulo = str_pad(preg_replace('[^0-9]', '', $titulo), 12, '0', STR_PAD_LEFT);
+            $uf = intval(substr($titulo, 8, 2));
             
-            if (strlen($te) != 12 || $uf < 1 || $uf > 28) {
+            if (strlen($titulo) != 12 || $uf < 1 || $uf > 28) {
                 return false;
             } else {
                 $d = 0;
                 
                 for ($i = 0; $i < 8; $i++) {
-                    $d += $te{$i} * (9 - $i);
+                    $d += $titulo{$i} * (9 - $i);
                 }
                 
                 $d %= 11;
@@ -166,14 +156,14 @@ namespace Core\Helpers {
                     $d = 11 - $d;
                 }
                 
-                if ($te{10} != $d) {
+                if ($titulo{10} != $d) {
                     return false;
                 }
                 
                 $d *= 2;
                 
                 for ($i = 8; $i < 10; $i++) {
-                    $d += $te{$i} * (12 - $i);
+                    $d += $titulo{$i} * (12 - $i);
                 }
                 
                 $d %= 11;
@@ -188,7 +178,7 @@ namespace Core\Helpers {
                     $d = 11 - $d;
                 }
                 
-                if ($te{11} != $d) {
+                if ($titulo{11} != $d) {
                     return false;
                 }
                 
@@ -197,36 +187,84 @@ namespace Core\Helpers {
         }
         
         /**
-         * Get real ip user
+         * <b>Checa IP:</b> Recupera o IP Real do usuário
          *
-         * @return mixed
+         * @return string
          */
         public static function ip()
         {
-            static::$data = '';
             if (getenv('HTTP_CLIENT_IP')) {
-                static::$data = getenv('HTTP_CLIENT_IP');
+                $realIp = getenv('HTTP_CLIENT_IP');
             } else if (getenv('HTTP_X_FORWARDED_FOR')) {
-                static::$data = getenv('HTTP_X_FORWARDED_FOR');
+                $realIp = getenv('HTTP_X_FORWARDED_FOR');
             } else if (getenv('HTTP_X_FORWARDED')) {
-                static::$data = getenv('HTTP_X_FORWARDED');
+                $realIp = getenv('HTTP_X_FORWARDED');
             } else if (getenv('HTTP_FORWARDED_FOR')) {
-                static::$data = getenv('HTTP_FORWARDED_FOR');
+                $realIp = getenv('HTTP_FORWARDED_FOR');
             } else if (getenv('HTTP_FORWARDED')) {
-                static::$data = getenv('HTTP_FORWARDED');
+                $realIp = getenv('HTTP_FORWARDED');
             } else if (getenv('REMOTE_ADDR')) {
-                static::$data = getenv('REMOTE_ADDR');
+                $realIp = getenv('REMOTE_ADDR');
             } else {
-                static::$data = $_SERVER['REMOTE_ADDR'];
+                $realIp = $_SERVER['REMOTE_ADDR'];
             }
             
-            if (mb_strpos(static::$data, ',') !== false) {
-                $ip = explode(',', static::$data);
+            if (mb_strpos($realIp, ',') !== false) {
+                $ip = explode(',', $realIp);
                 
-                static::$data = $ip[0];
+                $realIp = $ip[0];
             }
             
-            return static::$data;
+            return $realIp;
+        }
+        
+        /**
+         * <b>Checa User Agent:</b> Metodo que pega as informacoes do navegador e sistema operacional do cliente
+         *
+         * @return array Matriz com as informacoes
+         */
+        public static function getUserAgentInfo()
+        {
+            $useragent = $_SERVER['HTTP_USER_AGENT'];
+            
+            // Pegando informacoes do navegador
+            if (preg_match('|MSIE ([0-9].[0-9]{1,2})|', $useragent, $matched)) {
+                $browser_version = $matched[1];
+                $browser = 'IE';
+            } else if (preg_match('|Opera/([0-9].[0-9]{1,2})|', $useragent, $matched)) {
+                $browser_version = $matched[1];
+                $browser = 'Opera';
+            } else if (preg_match('|Firefox/([0-9\.]+)|', $useragent, $matched)) {
+                $browser_version = $matched[1];
+                $browser = 'Firefox';
+            } else if (preg_match('|Chrome/([0-9\.]+)|', $useragent, $matched)) {
+                $browser_version = $matched[1];
+                $browser = 'Chrome';
+            } else if (preg_match('|Safari/([0-9\.]+)|', $useragent, $matched)) {
+                $browser_version = $matched[1];
+                $browser = 'Safari';
+            } else {
+                $browser_version = 0;
+                $browser = 'Outro';
+            }
+            
+            // Pegando informacoes do OS
+            if (preg_match('|Mac|', $useragent, $matched)) {
+                $so = 'MAC';
+            } else if (preg_match('|Windows|', $useragent, $matched) || preg_match('|WinNT|', $useragent, $matched) || preg_match('|Win95|', $useragent, $matched)) {
+                $so = 'Windows';
+            } else if (preg_match('|Linux|', $useragent, $matched)) {
+                $so = 'Linux';
+            } else {
+                $so = 'Outro';
+            }
+            
+            return array(
+                'browser' => $browser,
+                'version' => $browser_version,
+                'so' => $so,
+                'user_agent' => $useragent,
+            );
         }
     }
 }

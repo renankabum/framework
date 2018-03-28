@@ -79,16 +79,15 @@ namespace Core\Contracts {
         abstract public function __invoke(Request $request, Response $response, callable $next);
         
         /**
-         * Get property in container
-         *
-         * @param $name
+         * @param string $name
          *
          * @return mixed
+         * @throws \Interop\Container\Exception\ContainerException
          */
         public function __get($name)
         {
-            if ($this->container->{$name}) {
-                return $this->container->{$name};
+            if ($this->container->has($name)) {
+                return $this->container->get($name);
             }
         }
     }

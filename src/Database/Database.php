@@ -65,7 +65,7 @@ namespace Core\Database {
             } catch (\PDOException $e) {
                 $this->failed = true;
                 
-                throw new \Exception("Não foi possível conectar com o banco de dados.");
+                throw new \Exception("Não foi possível conectar com o banco de dados.<br/><small>{$e->getMessage()}</small>", $e->getCode());
             }
         }
         

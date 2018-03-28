@@ -42,7 +42,7 @@ namespace Core\Middlewares {
                 $uri = $uri->withPath(substr($path, 0, -1));
                 
                 if ($request->getMethod() == 'GET') {
-                    return $response->withRedirect((string) $uri, 301);
+                    return $response->withRedirect((string)$uri, 301);
                 } else {
                     $response = $next($request->withUri($uri), $response);
                     

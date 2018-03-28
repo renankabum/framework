@@ -100,7 +100,7 @@ namespace Core\Providers\Hash {
          */
         public function setRounds($rounds)
         {
-            $this->rounds = (int) $rounds;
+            $this->rounds = (int)$rounds;
             
             return $this;
         }
@@ -114,7 +114,9 @@ namespace Core\Providers\Hash {
          */
         protected function cost(array $options)
         {
-            return isset($options['rounds']) ? $options['rounds'] : $this->rounds;
+            return isset($options['rounds'])
+                ? $options['rounds']
+                : $this->rounds;
         }
     }
 }

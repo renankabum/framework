@@ -71,7 +71,7 @@ namespace Core\Providers {
             $currentPage = $request->getParam('page');
             
             Paginator::currentPageResolver(function () use ($currentPage) {
-                if (filter_var($currentPage, FILTER_VALIDATE_INT) !== false && (int) $currentPage >= 1) {
+                if (filter_var($currentPage, FILTER_VALIDATE_INT) !== false && (int)$currentPage >= 1) {
                     return $currentPage;
                 }
                 

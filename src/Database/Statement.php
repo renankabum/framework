@@ -74,7 +74,7 @@ namespace Core\Database {
                     parse_str($places, $this->places);
                 }
             } else {
-                $this->places = (array) $places;
+                $this->places = (array)$places;
             }
         }
         
@@ -83,12 +83,12 @@ namespace Core\Database {
          */
         protected function setBinds($binds)
         {
-            foreach ((array) $binds as $key => $bind) {
+            foreach ((array)$binds as $key => $bind) {
                 if ($key == 'limit' || $key == 'offset') {
-                    $bind = (int) $bind;
+                    $bind = (int)$bind;
                 }
                 
-                $this->stmt->bindValue(is_string($key) ? ":{$key}" : (int) $key + 1, $bind, is_int($bind) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
+                $this->stmt->bindValue(is_string($key) ? ":{$key}" : (int)$key + 1, $bind, is_int($bind) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
             }
         }
         
@@ -113,7 +113,7 @@ namespace Core\Database {
                 // Executa a query
                 $this->stmt->execute();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage());
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
         }
         

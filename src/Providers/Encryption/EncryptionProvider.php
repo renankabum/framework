@@ -35,7 +35,7 @@ namespace Core\Providers\Encryption {
                 $config = config('app.encryption');
                 
                 if (empty($config['key'])) {
-                    throw new \RuntimeException('No application encryption key has been specified.');
+                    throw new \RuntimeException('Não foi possível identificar sua `APP_KEY`.');
                 }
                 
                 if (Str::startsWith($config['key'], 'base64:')) {

@@ -65,41 +65,27 @@ if (!function_exists('env')) {
     }
 }
 
-if (!function_exists('mix')) {
+if (!function_exists('uuid')) {
     /**
-     * Usage laravel-mix
+     * Gera uma string no padrão uuid
      *
-     * @param string $path
-     *
-     * @return mixed
-     * @throws \Exception
+     * @return string
      */
-    function mix($path)
+    function uuid()
     {
-        static $manifest;
-        
-        if (!Str::startsWith($path, '/')) {
-            $path = "/{$path}";
-        }
-        
-        if (!$manifest) {
-            if (!file_exists($manifestPath = PUBLIC_FOLDER."/mix-manifest.json")) {
-                throw new Exception('The mix manifest does not exists.');
-            }
-            
-            $manifest = json_decode(file_get_contents($manifestPath), true);
-        }
-        
-        if (!array_key_exists($path, $manifest)) {
-            throw new \Exception("Unable to locate Mix file: {$path}. Please check your webpack.mix.js output paths and try again.");
-        }
-        
-        return $manifest[$path];
+        return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff), mt_rand(0, 0x0C2f) | 0x4000,
+            mt_rand(0, 0x3fff) | 0x8000,
+            mt_rand(0, 0x2Aff), mt_rand(0, 0xffD3), mt_rand(0, 0xff4B)
+        );
     }
 }
 
 if (!function_exists('asset')) {
     /**
+     * Retorna o path dos assets e versiona
+     *
      * @param string $path
      * @param bool   $url
      *
@@ -193,7 +179,7 @@ if (!function_exists('object_set')) {
             return $object;
         }
         
-        foreach ((array) $array as $key => $value) {
+        foreach ((array)$array as $key => $value) {
             if (is_array($value)) {
                 $object->{$key} = object_set($value);
             } else {
@@ -245,7 +231,7 @@ if (!function_exists('object_to_array')) {
     {
         $array = [];
         
-        foreach ((object) $object as $key => $value) {
+        foreach ((object)$object as $key => $value) {
             if (!isset($value) && trim($value) == '') {
                 return $array;
             }
@@ -356,6 +342,7 @@ if (!function_exists('view')) {
             } else if ($extension === 'blade') {
                 $extension = '.blade.php';
             }
+            
             // replace '.' em '/'
             $view = str_replace('.', '/', $view);
             
@@ -370,7 +357,7 @@ if (!function_exists('view')) {
 
 if (!function_exists('imagem')) {
     /**
-     * Cria imagem
+     * Cria imagem e redimensina a mesma
      *
      * @param $src
      * @param $dest
@@ -386,12 +373,14 @@ if (!function_exists('imagem')) {
         if (file_exists($src) && isset($dest)) {
             // Retorna informação sobre o path do um arquivo
             $destInfo = pathinfo($dest);
+            
             // Retorna o tamanho da imagem
             $srcSize = getimagesize($src);
             
             // tamanho de destino $destSize[0] = width, $destSize[1] = height
             $srcRatio = $srcSize[0] / $srcSize[1]; // width/height média
             $destRatio = $maxWidth / $maxHeight;
+            
             if ($destRatio > $srcRatio) {
                 $destSize[1] = $maxHeight;
                 $destSize[0] = $maxHeight * $srcRatio;
@@ -399,6 +388,7 @@ if (!function_exists('imagem')) {
                 $destSize[0] = $maxWidth;
                 $destSize[1] = $maxWidth / $srcRatio;
             }
+            
             // retifica o arquivo
             if ($destInfo['extension'] == "gif") {
                 $dest = substr_replace($dest, 'jpg', -3);
@@ -509,7 +499,7 @@ if (!function_exists('imagemTamExato')) {
             
             $ratio_orig = $width_orig / $height_orig;
             
-            if ($thumbnail_width / $thumbnail_height > $ratio_orig) {
+            if (($thumbnail_width / $thumbnail_height) > $ratio_orig) {
                 $new_height = $thumbnail_width / $ratio_orig;
                 $new_width = $thumbnail_width;
             } else {
@@ -557,6 +547,8 @@ if (!function_exists('imagemTamExato')) {
 
 if (!function_exists('json')) {
     /**
+     * Retorna a o resultado em JSON
+     *
      * @param mixed $data
      * @param int   $status
      *
@@ -570,6 +562,8 @@ if (!function_exists('json')) {
 
 if (!function_exists('path_for')) {
     /**
+     * Cria a URL do Slim3
+     *
      * @param string $name
      * @param array  $data
      * @param array  $queryParams
@@ -589,10 +583,12 @@ if (!function_exists('path_for')) {
 
 if (!function_exists('location')) {
     /**
+     * Redireciona para determinada rota
+     *
      * @param string $route
      * @param int    $status
      */
-    function location($route, $status = 200)
+    function location($route, $status = 302)
     {
         header("Location: {$route}", true, $status);
         
@@ -602,6 +598,8 @@ if (!function_exists('location')) {
 
 if (!function_exists('redirect')) {
     /**
+     * Redireciona para determinada rota padrão Slim3
+     *
      * @param string $name
      * @param array  $data
      * @param array  $queryParams
@@ -628,6 +626,8 @@ if (!function_exists('redirect')) {
 
 if (!function_exists('__')) {
     /**
+     *  Converte todas as entidades HTML para os seus caracteres
+     *
      * @param string $value
      *
      * @return string
@@ -648,7 +648,7 @@ if (!function_exists('entities')) {
     {
         $params = [];
         
-        foreach ((array) $values as $key => $value) {
+        foreach ((array)$values as $key => $value) {
             if (is_array($value)) {
                 $params[$key] = entities($value);
             } else {
@@ -676,11 +676,11 @@ if (!function_exists('empty_filter')) {
             return true;
         }
         
-        foreach ((array) $data as $key => $value) {
+        foreach ((array)$data as $key => $value) {
             if (is_array($value)) {
                 return empty_filter($value);
             } else {
-                if (!isset($value) || empty($value)) {
+                if (empty($value)) {
                     return true;
                 }
             }
@@ -700,7 +700,7 @@ if (!function_exists('input_filter')) {
     {
         $request = [];
         
-        foreach ((array) $data as $key => $value) {
+        foreach ((array)$data as $key => $value) {
             if (is_array($value)) {
                 $request[$key] = input_filter($value);
             } else {
@@ -783,6 +783,8 @@ if (!function_exists('router')) {
 
 if (!function_exists('is_route')) {
     /**
+     * Verifica se está em determinada rota
+     *
      * @param string $route
      * @param string $active
      *
@@ -812,6 +814,8 @@ if (!function_exists('is_route')) {
 
 if (!function_exists('has_route')) {
     /**
+     * Verifica se está entre as rotas passadas
+     *
      * @param mixed $routes
      *
      * @return bool
@@ -822,7 +826,7 @@ if (!function_exists('has_route')) {
             ->getUri()
             ->getPath();
         
-        foreach ((array) $routes as $name) {
+        foreach ((array)$routes as $name) {
             if ($name !== '' && mb_strpos($current, $name) !== false) {
                 return true;
             }

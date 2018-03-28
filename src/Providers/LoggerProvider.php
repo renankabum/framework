@@ -37,7 +37,7 @@ namespace Core\Providers {
              */
             $this->container['logger'] = function () {
                 /**
-                 * @param string|null $file
+                 * @param string $file
                  *
                  * @return \Monolog\Logger
                  * @throws \Exception

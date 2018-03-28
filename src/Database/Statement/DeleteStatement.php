@@ -32,8 +32,8 @@ namespace Core\Database\Statement {
          */
         public function exec($table, $terms = null, $places = null)
         {
-            $this->table = (string) $table;
-            $this->terms = (string) $terms;
+            $this->table = (string)$table;
+            $this->terms = (string)$terms;
             
             // Recupera o places
             $this->setPlaces($places);
@@ -44,8 +44,8 @@ namespace Core\Database\Statement {
                 
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
-            } catch (\Exception $e) {
-                throw new \Exception($e->getMessage());
+            } catch (\PDOException $e) {
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
             
             // Retorna o resultado
@@ -69,8 +69,8 @@ namespace Core\Database\Statement {
                 
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
-            } catch (\Exception $e) {
-                throw new \Exception($e->getMessage());
+            } catch (\PDOException $e) {
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
             
             // Retorna o resultado
@@ -78,15 +78,23 @@ namespace Core\Database\Statement {
         }
         
         /**
-         * @return bool|int
+         * @return int|boolean
          */
-        public function getResult()
+        public function rowCount()
         {
             if ($this->result === 0) {
                 return false;
             }
             
             return $this->result;
+        }
+        
+        /**
+         * @return int|boolean
+         */
+        public function getResult()
+        {
+            return $this->rowCount();
         }
         
         /**

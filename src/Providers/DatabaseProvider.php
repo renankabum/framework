@@ -40,7 +40,7 @@ namespace Core\Providers {
              */
             $this->container['db'] = function () {
                 if (empty($dbh)) {
-                    $dbh = new Database;
+                    $dbh = new Database();
                 }
                 
                 return $dbh;

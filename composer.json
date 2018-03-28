@@ -1,6 +1,6 @@
 {
   "name": "navegarte/core",
-  "description": "Core do framework",
+  "description": "Framework para criação de novos projetos.",
   "type": "project",
   "license": "MIT",
   "support": {
@@ -9,9 +9,9 @@
   },
   "authors": [
     {
-      "name": "Vagner Cardoso",
+      "name": "VCWeb Networks",
       "email": "vagnercardosoweb@gmail.com",
-      "homepage": "https://www.navegarte.com.br/",
+      "homepage": "https://www.vagnercardosoweb.com.br/",
       "role": "Developer"
     }
   ],

@@ -51,18 +51,28 @@ namespace Core\Providers\View {
         }
         
         /**
+         * Render template view
+         *
          * @param string $template
          * @param array  $data
          *
          * @return string
          */
-        public function fetch($template, array $data)
+        public function fetch($template, array $data = [])
         {
-            return $this->environment->render($template, $data);
+            // Remove extension if passed.
+            if (substr($template, -5) === '.twig') {
+                $template = substr($template, 0, -5);
+            }
+            
+            // Replace `dot` in `bar`
+            $template = str_replace('.', '/', $template);
+            
+            return $this->environment->render("{$template}.twig", $data);
         }
         
         /**
-         * Render template views
+         * Render the template with the slim3 response
          *
          * @param Response $response
          * @param string   $template

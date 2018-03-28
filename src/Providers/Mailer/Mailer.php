@@ -69,15 +69,21 @@ namespace Core\Providers\Mailer {
             /**
              * Remetente e retorno do email
              */
-            $this->mail->From = $mail->from->mail;
-            $this->mail->FromName = $mail->from->name;
-            $this->mail->addReplyTo($mail->reply->mail, $mail->reply->name);
+            if ($mail->from->mail && $mail->from->name) {
+                $this->mail->setFrom($mail->from->mail, $mail->from->name);
+            }
+            
+            if ($mail->reply->mail && $mail->reply->name) {
+                $this->mail->addReplyTo($mail->reply->mail, $mail->reply->name);
+            }
         }
         
         /**
-         * @param $view
-         * @param $data
-         * @param $callback
+         * Envia o e-mail
+         *
+         * @param string   $view
+         * @param mixed    $data
+         * @param \Closure $callback
          *
          * @return $this
          */
@@ -85,9 +91,11 @@ namespace Core\Providers\Mailer {
         {
             $message = new MailerMessage($this->mail);
             
-            $message->body($this->container['mailView']->render("{$view}.twig", ['data' => $data]));
+            $message->body($this->container['mailView']->render("{$view}.twig", [
+                'data' => $data,
+            ]));
             
-            call_user_func($callback, $message);
+            call_user_func_array($callback, [$message, $data]);
             
             if (!$this->mail->send()) {
                 $this->error = $this->mail->ErrorInfo;
@@ -95,7 +103,7 @@ namespace Core\Providers\Mailer {
                 return $this;
             }
             
-            $this->error = null;
+            $this->error = false;
             
             $this->mail->clearAddresses();
             $this->mail->clearReplyTos();

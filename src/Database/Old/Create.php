@@ -54,7 +54,7 @@ namespace Core\Database\Old {
          */
         public function __construct()
         {
-            $this->conn = new Database;
+            $this->conn = new Database();
         }
         
         /**
@@ -67,8 +67,8 @@ namespace Core\Database\Old {
          */
         public function exec($table, array $data)
         {
-            $this->table = (string) $table;
-            $this->data = (array) $data;
+            $this->table = (string)$table;
+            $this->data = (array)$data;
             
             $this->execute();
             
@@ -86,8 +86,8 @@ namespace Core\Database\Old {
         public function execMulti($table, array $data)
         {
             // INSERT INTO table (colunas) VALUES (?), (?), (?), (?)
-            $this->table = (string) $table;
-            $this->data = (array) $data;
+            $this->table = (string)$table;
+            $this->data = (array)$data;
             
             $fields = implode(', ', array_keys($this->data[0]));
             $places = null;

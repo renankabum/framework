@@ -68,7 +68,7 @@ namespace Core\Providers\View {
         // FUNCTIONS TWIG
         
         /**
-         * @param null $key
+         * @param string $key
          *
          * @return mixed
          */

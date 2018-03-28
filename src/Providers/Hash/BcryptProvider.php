@@ -33,7 +33,7 @@ namespace Core\Providers\Hash {
              * @return \Core\Providers\Hash\BcryptHasher
              */
             $this->container['hash'] = function () {
-                return new BcryptHasher;
+                return new BcryptHasher();
             };
             
             // PHP 7.1 >=
@@ -42,7 +42,7 @@ namespace Core\Providers\Hash {
                  * @return \Core\Providers\Hash\ArgonHasher
                  */
                 $this->container['hashArgon'] = function () {
-                    return new ArgonHasher;
+                    return new ArgonHasher();
                 };
             }
         }

@@ -32,8 +32,8 @@ namespace Core\Database\Statement {
         public function exec($table, array $columnsOrPairs)
         {
             // Trata os dados
-            $this->table = (string) $table;
-            $this->places = (array) $columnsOrPairs;
+            $this->table = (string)$table;
+            $this->places = (array)$columnsOrPairs;
             
             try {
                 // Executa o bind e query
@@ -41,8 +41,8 @@ namespace Core\Database\Statement {
                 
                 // Recupera o resultado
                 $this->result = $this->container['db']->lastInsertId();
-            } catch (\Exception $e) {
-                throw new \Exception($e->getMessage());
+            } catch (\PDOException $e) {
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
             
             // Retorna os resultado
@@ -58,8 +58,8 @@ namespace Core\Database\Statement {
          */
         public function execMultiple($table, array $columnsOrPairs)
         {
-            $this->table = (string) $table;
-            $this->places = (array) $columnsOrPairs;
+            $this->table = (string)$table;
+            $this->places = (array)$columnsOrPairs;
             
             // Verifica se o places está no formato correto
             if (empty($this->places[0])) {
@@ -102,7 +102,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage());
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
             
             // Retorna o resultado
@@ -110,15 +110,31 @@ namespace Core\Database\Statement {
         }
         
         /**
-         * @return int|bool
+         * @return int|boolean
          */
         public function getResult()
+        {
+            return $this->lastInsertId();
+        }
+        
+        /**
+         * @return bool|boolean
+         */
+        public function lastInsertId()
         {
             if ($this->result === 0) {
                 return false;
             }
             
             return $this->result;
+        }
+        
+        /**
+         * @return int
+         */
+        public function rowCount()
+        {
+            return $this->stmt->rowCount();
         }
         
         /**

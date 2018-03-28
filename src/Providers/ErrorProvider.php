@@ -43,37 +43,23 @@ namespace Core\Providers {
                  * @return mixed
                  */
                 return function (Request $request, Response $response, $exception) {
-                    $array = [];
+                    $errors = [
+                        'debug' => $this->container->settings['displayErrorDetails'],
+                        'error' => [
+                            'type' => get_class($exception),
+                            'code' => $exception->getCode(),
+                            'message' => $exception->getMessage(),
+                            'file' => $exception->getFile(),
+                            'line' => $exception->getLine(),
+                            'trace' => explode("\n", $exception->getTraceAsString()),
+                        ],
+                    ];
                     
                     if ($request->isXhr()) {
-                        $array = [
-                            'error' => [
-                                'status' => 500,
-                                #'message' => htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8', false),
-                                'message' => $exception->getMessage(),
-                                'file' => $exception->getFile(),
-                                'line' => $exception->getLine(),
-                            ],
-                        ];
-                        
-                        return $response->withJson($array, 500);
+                        return $response->withJson($errors, 500);
                     }
                     
-                    $array['debug'] = null;
-                    
-                    if ($this->container['settings']['displayErrorDetails']) {
-                        $array = [
-                            'debug' => true,
-                            'error' => [
-                                'message' => $exception->getMessage(),
-                                'file' => $exception->getFile(),
-                                'line' => $exception->getLine(),
-                                'code' => $exception->getCode(),
-                            ],
-                        ];
-                    }
-                    
-                    return view('error/500', $array, 500);
+                    return view('error.500', $errors, 500);
                 };
             };
             
@@ -88,11 +74,9 @@ namespace Core\Providers {
                  * @return mixed
                  */
                 return function (Request $request, Response $response) {
-                    $array = [
+                    return view('error.404', [
                         'url' => urldecode($request->getUri()),
-                    ];
-                    
-                    return view('error/404', $array, 404);
+                    ], 404);
                 };
             };
             
@@ -103,18 +87,16 @@ namespace Core\Providers {
                 /**
                  * @param \Slim\Http\Request  $request
                  * @param \Slim\Http\Response $response
-                 * @param                     $methods
+                 * @param string[]            $methods
                  *
                  * @return mixed
                  */
                 return function (Request $request, Response $response, $methods) {
-                    $array = [
+                    return view('error.405', [
                         'url' => urldecode($request->getUri()),
                         'method' => $request->getMethod(),
                         'methods' => implode(', ', $methods),
-                    ];
-                    
-                    return view('error/405', $array, 405);
+                    ], 405);
                 };
             };
         }

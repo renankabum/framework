@@ -25,7 +25,7 @@ namespace Core\Providers\Session {
          *
          * @var string
          */
-        protected $key = '__flash__';
+        protected $key = '__vcFlash';
         
         /**
          * Flash data
@@ -90,9 +90,9 @@ namespace Core\Providers\Session {
         /**
          * Recupera a mensagem
          *
-         * @param null $key
+         * @param string $key
          *
-         * @return array|mixed|null
+         * @return mixed
          */
         public function get($key = null)
         {
@@ -120,9 +120,9 @@ namespace Core\Providers\Session {
         /**
          * Verifica a mensagem
          *
-         * @param $key
+         * @param string $key
          *
-         * @return array|bool|mixed
+         * @return mixed
          */
         public function has($key)
         {
@@ -132,7 +132,7 @@ namespace Core\Providers\Session {
                 return false;
             }
             
-            $key = (array) $key;
+            $key = (array)$key;
             
             if (!$messages) {
                 return false;

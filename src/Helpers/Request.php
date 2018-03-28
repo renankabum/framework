@@ -38,6 +38,7 @@ namespace Core\Helpers {
          * @param array  $params
          *
          * @return array
+         * @throws \Exception
          */
         public function create($method, $endPoint, array $params = array())
         {
@@ -49,20 +50,20 @@ namespace Core\Helpers {
                 $result = json_decode($response, true);
                 
                 if (json_last_error() != JSON_ERROR_NONE) {
-                    
                     // Se não conseguir converte o json ele converte o xml
-                    $xml = simplexml_load_string($response);
-                    $result = json_decode(json_encode($xml), true);
+                    $xml = simplexml_load_string($response, 'SimpleXMLElement');
+                    
+                    if (!empty($xml) && $xml instanceof \SimpleXMLElement) {
+                        $result = json_decode(json_encode($xml), true);
+                    } else {
+                        $result = $response;
+                    }
                 }
                 
                 return $result;
             } catch (\Exception $e) {
-                $result = [
-                    'error' => $e->getMessage(),
-                ];
+                throw new \Exception($e->getMessage(), $e->getCode());
             }
-            
-            return $result;
         }
         
         /**
@@ -72,6 +73,7 @@ namespace Core\Helpers {
          * @param array  $params
          *
          * @return array
+         * @throws \Exception
          */
         public function get($endPoint, array $params = array())
         {
@@ -85,6 +87,7 @@ namespace Core\Helpers {
          * @param array  $params
          *
          * @return array
+         * @throws \Exception
          */
         public function post($endPoint, array $params = array())
         {
@@ -98,6 +101,7 @@ namespace Core\Helpers {
          * @param array  $params
          *
          * @return array
+         * @throws \Exception
          */
         public function put($endPoint, array $params = array())
         {
@@ -111,6 +115,7 @@ namespace Core\Helpers {
          * @param array  $params
          *
          * @return array
+         * @throws \Exception
          */
         public function delete($endPoint, array $params = array())
         {
@@ -124,7 +129,7 @@ namespace Core\Helpers {
          */
         public function setHeaders($headers)
         {
-            foreach ((array) $headers as $header) {
+            foreach ((array)$headers as $header) {
                 $this->headers[] = $header;
             }
             
@@ -156,7 +161,7 @@ namespace Core\Helpers {
          */
         public function setOptions($options)
         {
-            foreach ((array) $options as $key => $option) {
+            foreach ((array)$options as $key => $option) {
                 $this->options[$key] = $option;
             }
             

@@ -64,7 +64,7 @@ namespace Core\Database\Old {
          */
         public function __construct()
         {
-            $this->conn = new Database;
+            $this->conn = new Database();
         }
         
         /**
@@ -79,9 +79,9 @@ namespace Core\Database\Old {
          */
         public function exec($table, array $data, $terms, $places = null)
         {
-            $this->table = (string) $table;
-            $this->data = (array) $data;
-            $this->terms = (string) $terms;
+            $this->table = (string)$table;
+            $this->data = (array)$data;
+            $this->terms = (string)$terms;
             
             if (!empty($places)) {
                 parse_str($places, $this->places);

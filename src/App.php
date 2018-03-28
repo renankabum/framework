@@ -69,7 +69,7 @@ namespace Core {
              * Locale language
              */
             setlocale(LC_ALL, config('app.locale'), config('app.locale').'.utf-8');
-            Carbon::setLocale('pt_BR');
+            Carbon::setLocale(config('app.locale'));
             
             /**
              * ConfigurationMiddleware default charset app
@@ -172,7 +172,6 @@ namespace Core {
             
             // Mapping routers
             $map = $this->map($methods, $pattern, function (Request $request, Response $response, $params) use ($controller) {
-                
                 if (strpos($controller, '@') === false) {
                     $method = null;
                 } else {
@@ -262,7 +261,7 @@ namespace Core {
             $registers = $this->getRegisters();
             
             if (!empty($registers['middleware']['app'])) {
-                foreach ((array) $registers['middleware']['app'] as $key => $class) {
+                foreach ((array)$registers['middleware']['app'] as $key => $class) {
                     if (class_exists($class)) {
                         $this->add(new $class($this->getContainer()));
                     }
@@ -280,7 +279,7 @@ namespace Core {
             $registers = $this->getRegisters();
             
             if (!empty($registers['functions'])) {
-                foreach ((array) $registers['functions'] as $function) {
+                foreach ((array)$registers['functions'] as $function) {
                     include "{$function}";
                 }
             }
@@ -296,14 +295,14 @@ namespace Core {
             $registers = $this->getRegisters();
             
             $providers = [];
-            foreach ((array) $registers['providers'] as $key => $items) {
+            foreach ((array)$registers['providers'] as $key => $items) {
                 if (is_array($items)) {
                     foreach ($items as $class) {
                         if (class_exists($class)) {
-                            
                             /** @var \Core\Contracts\Provider $provider */
                             $provider = new $class($this->getContainer());
                             $provider->register();
+                            
                             array_push($providers, $provider);
                         }
                     }
@@ -322,19 +321,16 @@ namespace Core {
          */
         public function registerRouter()
         {
-            /** @var \Core\App $app */
-            $app = $this;
-            
             // Router for web
             if (file_exists(APP_FOLDER.'/routes/web.php')) {
-                $this->group('', function () use ($app) {
+                $this->group('', function ($app) {
                     include APP_FOLDER.'/routes/web.php';
                 });
             }
             
             // Router for api
             if (file_exists(APP_FOLDER.'/routes/api.php')) {
-                $this->group('/api', function () use ($app) {
+                $this->group('/api', function ($app) {
                     include APP_FOLDER.'/routes/api.php';
                 });
             }
@@ -365,22 +361,13 @@ namespace Core {
          */
         private function generateKey()
         {
-            file_put_contents(
-                APP_FOLDER . '/.env',
-                preg_replace(
-                    $this->keyReplacementPattern(), 'APP_KEY=base64:' . base64_encode(
-                        random_bytes(
-                            config('app.encryption.cipher') === 'AES-128-CBC'
-                                ? 16
-                                : 32
-                        )
-                    ), file_get_contents(APP_FOLDER . '/.env')
-                )
-            );
-    
-            header('Location: ' . BASE_URL);
-    
-            exit;
+            file_put_contents(APP_FOLDER.'/.env', preg_replace(
+                $this->keyReplacementPattern(), 'APP_KEY=base64:'.base64_encode(
+                    random_bytes(config('app.encryption.cipher') === 'AES-128-CBC' ? 16 : 32)
+                ), file_get_contents(APP_FOLDER.'/.env')
+            ));
+            
+            location(BASE_URL, 302);
         }
         
         /**
@@ -391,6 +378,18 @@ namespace Core {
             $escaped = preg_quote('='.config('app.encryption.key'), '/');
             
             return "/^APP_KEY".$escaped."/m";
+        }
+        
+        /**
+         * @param string $name
+         *
+         * @return mixed
+         */
+        public function __get($name)
+        {
+            if (is_object($this->resolve($name))) {
+                return $this->resolve($name);
+            }
         }
     }
 }

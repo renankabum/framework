@@ -54,7 +54,7 @@ namespace Core\Database\Old {
          */
         public function __construct()
         {
-            $this->conn = new Database;
+            $this->conn = new Database();
         }
         
         /**
@@ -89,7 +89,7 @@ namespace Core\Database\Old {
          */
         public function query($query, $places = null)
         {
-            $this->select = (string) $query;
+            $this->select = (string)$query;
             
             if (!empty($places)) {
                 parse_str($places, $this->places);
