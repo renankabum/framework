@@ -113,7 +113,15 @@ namespace Core\Database {
                 // Executa a query
                 $this->stmt->execute();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                // Caso o código do erro seja uma `string` ele assume
+                // por padrão o código 500
+                $errorCode = $e->getCode();
+                
+                if (is_string($errorCode)) {
+                    $errorCode = 500;
+                }
+                
+                throw new \Exception($e->getMessage(), $errorCode);
             }
         }
         

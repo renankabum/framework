@@ -745,6 +745,31 @@ if (!function_exists('input')) {
     }
 }
 
+if (!function_exists('bytes_convert')) {
+    /**
+     * Converte para o formato humano o tamanho dos arquivos
+     *
+     * @param int $bytes
+     * @param int $precision
+     *
+     * @return string
+     */
+    function bytes_convert($bytes, $precision = 2)
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        
+        for ($i = 1; $i <= $pow; $i++) {
+            $bytes /= 1000;
+        }
+        
+        return number_format(round($bytes, $precision), 2, ',', '').' '.$units[$pow];
+    }
+}
+
 if (!function_exists('request')) {
     /**
      * Get instance request

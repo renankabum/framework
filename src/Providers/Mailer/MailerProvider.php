@@ -31,7 +31,6 @@ namespace Core\Providers\Mailer {
         {
             /**
              * @return \Core\Providers\Mailer\Mailer
-             * @throws \phpmailerException
              */
             $this->container['mailer'] = function () {
                 return new Mailer($this->container);
