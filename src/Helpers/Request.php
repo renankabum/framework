@@ -51,18 +51,28 @@ namespace Core\Helpers {
                 
                 if (json_last_error() != JSON_ERROR_NONE) {
                     // Se não conseguir converte o json ele converte o xml
-                    $xml = simplexml_load_string($response, 'SimpleXMLElement');
+                    /*$xml = simplexml_load_string($response, 'SimpleXMLElement');
                     
                     if (!empty($xml) && $xml instanceof \SimpleXMLElement) {
                         $result = json_decode(json_encode($xml), true);
                     } else {
                         $result = $response;
-                    }
+                    }*/
+                    
+                    // Caso não seja o retorno em `json`
+                    // será retornado a resposta completa
+                    $result = $response;
                 }
                 
                 return $result;
             } catch (\Exception $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                $errorCode = $e->getCode();
+                
+                if (is_string($errorCode)) {
+                    $errorCode = 500;
+                }
+                
+                throw new \Exception($e->getMessage(), $errorCode);
             }
         }
         
