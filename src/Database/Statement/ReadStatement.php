@@ -143,7 +143,13 @@ namespace Core\Database\Statement {
          */
         public function getRowCount()
         {
-            return $this->rowCount();
+            $rowCount = $this->stmt->rowCount();
+            
+            if ($rowCount === -1) {
+                $rowCount = count($this->fetchAll());
+            }
+            
+            return $rowCount;
         }
         
         /**
