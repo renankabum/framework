@@ -21,7 +21,8 @@ namespace Core\Helpers {
     final class Check
     {
         /**
-         * <b>Checa email:</b> Válida se o e-mail é válido ou inválido
+         * <b>email:</b>
+         * Verifica se o EMAIL é válido.
          *
          * @param string $email
          *
@@ -29,10 +30,10 @@ namespace Core\Helpers {
          */
         public static function email($email)
         {
-            $email = (string)$email;
+            $email = filter_var((string)$email, FILTER_SANITIZE_EMAIL);
             $regex = '/[a-z0-9_\.\-]+@[a-z0-9_\.\-]*[a-z0-9_\.\-]+\.[a-z]{2,4}$/';
             
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL) === false && preg_match($regex, $email)) {
+            if (filter_var($email, FILTER_VALIDATE_EMAIL) && preg_match($regex, $email)) {
                 return true;
             }
             
@@ -40,11 +41,12 @@ namespace Core\Helpers {
         }
         
         /**
-         * <b>Checa CPF:</b> Informe um CPF para checar sua validade via algoritmo!
+         * <b>cpf:</b>
+         * Verifica se o CPF é válido.
          *
-         * @param string $cpf = CPF com ou sem pontuação
+         * @param string $cpf
          *
-         * @return boolean
+         * @return bool
          */
         public static function cpf($cpf)
         {
@@ -65,6 +67,7 @@ namespace Core\Helpers {
                 if (str_repeat($i, 11) == $cpf) {
                     return false;
                 }
+                
                 $digitoB += $cpf[$i] * $x;
             }
             
@@ -79,11 +82,12 @@ namespace Core\Helpers {
         }
         
         /**
-         * <b>Checa CNPJ:</b> Informe um CNPJ para checar sua validade via algoritmo!
+         * <b>cnpj:</b>
+         * Verifica se o CNPJ é válido.
          *
-         * @param string $cnpj = CNPJ com ou sem pontuação
+         * @param string $cnpj
          *
-         * @return boolean
+         * @return bool
          */
         public static function cnpj($cnpj)
         {
@@ -124,11 +128,12 @@ namespace Core\Helpers {
         }
         
         /**
-         * <b>Checa Titulo Eleitor:</b> Válida se o TITULO do ELEITOR é válido
+         * <b>tituloEleitor:</b>
+         * Verifica se o TITULO do ELEITOR é válido.
          *
-         * @param string $titulo = Titulo com ou sem .
+         * @param string $titulo
          *
-         * @return boolean
+         * @return bool
          */
         public static function tituloEleitor($titulo)
         {
@@ -187,7 +192,8 @@ namespace Core\Helpers {
         }
         
         /**
-         * <b>Checa IP:</b> Recupera o IP Real do usuário
+         * <b>ip:</b>
+         * Recupera o IP Address do acesso ao sistema
          *
          * @return string
          */
@@ -219,11 +225,12 @@ namespace Core\Helpers {
         }
         
         /**
-         * <b>Checa User Agent:</b> Metodo que pega as informacoes do navegador e sistema operacional do cliente
+         * <b>userAgent:</b>
+         * Recupera as informações do dispositivo que está acessando o sistema.
          *
-         * @return array Matriz com as informacoes
+         * @return array
          */
-        public static function getUserAgentInfo()
+        public static function userAgent()
         {
             $useragent = $_SERVER['HTTP_USER_AGENT'];
             
@@ -265,6 +272,24 @@ namespace Core\Helpers {
                 'so' => $so,
                 'user_agent' => $useragent,
             );
+        }
+        
+        /**
+         * <b>isMobile:</b>
+         * Verifica se o dispositivo acessando o sistema é um celular/tablet.
+         *
+         * @return bool
+         */
+        public static function isMobile()
+        {
+            $useragent = $_SERVER['HTTP_USER_AGENT'];
+            
+            // Detecta se está em CELULAR
+            if (!empty($useragent) && preg_match('/(Mobile|Android|Tablet|GoBrowser|[0-9]x[0-9]*|uZardWeb\/|Mini|Doris\/|Skyfire\/|iPhone|Fennec\/|Maemo|Iris\/|CLDC\-|Mobi\/)/uis', $useragent)) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 }
