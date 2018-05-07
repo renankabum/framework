@@ -87,7 +87,7 @@ namespace Core\Providers\Mailer {
          *
          * @return $this
          */
-        public function send($view, $data, $callback)
+        public function send($view, $data, callable $callback)
         {
             $message = new MailerMessage($this->mail);
             
