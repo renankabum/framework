@@ -37,7 +37,7 @@ namespace Core\Middlewares {
         {
             if (!$request->isXhr() && $this->session) {
                 $this->view->addGlobal('input', $this->session->get('input'));
-                $this->session->set('input', $request->getParams());
+                $this->session->set('input', input());
             }
             
             $response = $next($request, $response);
