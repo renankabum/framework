@@ -12,6 +12,7 @@
 
 namespace Core\Database\Statement {
     
+    use Core\Database\DatabaseException;
     use Core\Database\Statement;
     
     /**
@@ -24,16 +25,16 @@ namespace Core\Database\Statement {
     {
         /**
          * @param string $table
-         * @param array  $columnsOrPairs
+         * @param array  $columns
          *
          * @return string|int
-         * @throws \Exception
+         * @throws \Core\Database\DatabaseException
          */
-        public function exec($table, array $columnsOrPairs)
+        public function exec($table, array $columns)
         {
             // Trata os dados
             $this->table = (string)$table;
-            $this->places = (array)$columnsOrPairs;
+            $this->places = (array)$columns;
             
             try {
                 // Executa o bind e query
@@ -42,7 +43,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->container['db']->lastInsertId();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                throw new DatabaseException($e->getMessage(), $e->getCode());
             }
             
             // Retorna os resultado
@@ -51,19 +52,19 @@ namespace Core\Database\Statement {
         
         /**
          * @param string $table
-         * @param array  $columnsOrPairs
+         * @param array  $columns
          *
          * @return int
-         * @throws \Exception
+         * @throws \Core\Database\DatabaseException
          */
-        public function execMultiple($table, array $columnsOrPairs)
+        public function execMultiple($table, array $columns)
         {
             $this->table = (string)$table;
-            $this->places = (array)$columnsOrPairs;
+            $this->places = (array)$columns;
             
             // Verifica se o places está no formato correto
             if (empty($this->places[0])) {
-                throw new \Exception("Para usar esse método e preciso passar um array multidimensional com os dados.");
+                throw new DatabaseException("Para usar esse método e preciso passar um array multidimensional com os dados para inserir no banco.", E_USER_WARNING);
             }
             
             // Monta o binds e query
@@ -102,19 +103,11 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                throw new DatabaseException($e->getMessage(), $e->getCode());
             }
             
             // Retorna o resultado
             return $this->result;
-        }
-        
-        /**
-         * @return int|boolean
-         */
-        public function getResult()
-        {
-            return $this->lastInsertId();
         }
         
         /**

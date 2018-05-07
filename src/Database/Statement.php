@@ -88,22 +88,22 @@ namespace Core\Database {
                     $bind = (int)$bind;
                 }
                 
-                $this->stmt->bindValue(is_string($key) ? ":{$key}" : (int)$key + 1, $bind, is_int($bind) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
+                $this->stmt->bindValue(is_string($key) ? ":{$key}" : ((int)$key + 1), $bind, is_int($bind) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
             }
         }
         
         /**
          * Executa o bind e query
          *
-         * @param string $query
+         * @param string $sql
          *
-         * @throws \Exception
+         * @throws \Core\Database\DatabaseException
          */
-        protected function execute($query = null)
+        protected function execute($sql = null)
         {
             try {
                 // Prepara a query
-                $this->stmt = $this->container['db']->prepare($query ?: $this);
+                $this->stmt = $this->container['db']->prepare($sql ?: $this);
                 
                 // Binds values
                 if (is_array($this->places) && !empty($this->places)) {
@@ -113,15 +113,7 @@ namespace Core\Database {
                 // Executa a query
                 $this->stmt->execute();
             } catch (\PDOException $e) {
-                // Caso o código do erro seja uma `string` ele assume
-                // por padrão o código 500
-                $errorCode = $e->getCode();
-                
-                if (is_string($errorCode)) {
-                    $errorCode = 500;
-                }
-                
-                throw new \Exception($e->getMessage(), $errorCode);
+                throw new DatabaseException($e->getMessage(), $e->getCode());
             }
         }
         

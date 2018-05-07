@@ -12,6 +12,7 @@
 
 namespace Core\Database\Statement {
     
+    use Core\Database\DatabaseException;
     use Core\Database\Statement;
     
     /**
@@ -28,7 +29,7 @@ namespace Core\Database\Statement {
          * @param mixed  $places
          *
          * @return bool
-         * @throws \Exception
+         * @throws \Core\Database\DatabaseException
          */
         public function exec($table, $terms = null, $places = null)
         {
@@ -45,7 +46,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                throw new DatabaseException($e->getMessage(), $e->getCode());
             }
             
             // Retorna o resultado
@@ -56,7 +57,7 @@ namespace Core\Database\Statement {
          * @param $places
          *
          * @return bool
-         * @throws \Exception
+         * @throws \Core\Database\DatabaseException
          */
         public function execPlaces($places)
         {
@@ -70,7 +71,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                throw new DatabaseException($e->getMessage(), $e->getCode());
             }
             
             // Retorna o resultado
@@ -87,14 +88,6 @@ namespace Core\Database\Statement {
             }
             
             return $this->result;
-        }
-        
-        /**
-         * @return int|boolean
-         */
-        public function getResult()
-        {
-            return $this->rowCount();
         }
         
         /**

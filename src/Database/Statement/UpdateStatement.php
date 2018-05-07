@@ -12,6 +12,7 @@
 
 namespace Core\Database\Statement {
     
+    use Core\Database\DatabaseException;
     use Core\Database\Statement;
     
     /**
@@ -29,17 +30,17 @@ namespace Core\Database\Statement {
         
         /**
          * @param string $table
-         * @param array  $columnsOrPairs
+         * @param array  $columns
          * @param string $terms
          * @param mixed  $places
          *
          * @return bool
-         * @throws \Exception
+         * @throws \Core\Database\DatabaseException
          */
-        public function exec($table, array $columnsOrPairs, $terms = null, $places = null)
+        public function exec($table, array $columns, $terms = null, $places = null)
         {
             $this->table = (string)$table;
-            $this->columns = (array)$columnsOrPairs;
+            $this->columns = (array)$columns;
             $this->terms = (string)$terms;
             
             // Recupera o places
@@ -52,7 +53,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                throw new DatabaseException($e->getMessage(), $e->getCode());
             }
             
             // Retorna o resultado
@@ -60,10 +61,10 @@ namespace Core\Database\Statement {
         }
         
         /**
-         * @param $places
+         * @param mixed $places
          *
          * @return bool
-         * @throws \Exception
+         * @throws \Core\Database\DatabaseException
          */
         public function execPlaces($places)
         {
@@ -77,7 +78,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                throw new DatabaseException($e->getMessage(), $e->getCode());
             }
             
             // Retorna o resultado
@@ -97,31 +98,26 @@ namespace Core\Database\Statement {
         }
         
         /**
-         * @return int|boolean
-         */
-        public function getResult()
-        {
-            return $this->rowCount();
-        }
-        
-        /**
          * @return string
          */
         public function __toString()
         {
             $columns = [];
+            
             foreach ((array)$this->columns as $key => $value) {
                 $time = '';
+                
                 if (!empty($this->places[$key])) {
                     $time = time();
                 }
                 
-                $this->places[$key.$time] = ($value == '' ? null : $value);
-                
                 $columns[] = "{$key} = :{$key}{$time}";
+                
+                $this->places[$key.$time] = (!is_int($value) && empty($value)) ? null : $value;
             }
             
             $this->columns = implode(', ', $columns);
+            
             $sql = "UPDATE {$this->table} SET {$this->columns} {$this->terms}";
             
             return $sql;

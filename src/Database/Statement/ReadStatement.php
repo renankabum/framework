@@ -12,6 +12,7 @@
 
 namespace Core\Database\Statement {
     
+    use Core\Database\DatabaseException;
     use Core\Database\Statement;
     
     /**
@@ -28,7 +29,7 @@ namespace Core\Database\Statement {
          * @param mixed  $places
          *
          * @return \Core\Database\Statement\ReadStatement
-         * @throws \Exception
+         * @throws \Core\Database\DatabaseException
          */
         public function exec($table, $terms = null, $places = null)
         {
@@ -46,7 +47,7 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute($sql);
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                throw new DatabaseException($e->getMessage(), $e->getCode());
             }
             
             return $this;
@@ -57,7 +58,7 @@ namespace Core\Database\Statement {
          * @param mixed  $places
          *
          * @return \Core\Database\Statement\ReadStatement
-         * @throws \Exception
+         * @throws \Core\Database\DatabaseException
          */
         public function query($sql, $places = null)
         {
@@ -71,7 +72,7 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute($sql);
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                throw new DatabaseException($e->getMessage(), $e->getCode());
             }
             
             return $this;
@@ -81,7 +82,7 @@ namespace Core\Database\Statement {
          * @param $places
          *
          * @return \Core\Database\Statement\ReadStatement
-         * @throws \Exception
+         * @throws \Core\Database\DatabaseException
          */
         public function execPlaces($places)
         {
@@ -92,7 +93,7 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), $e->getCode());
+                throw new DatabaseException($e->getMessage(), $e->getCode());
             }
             
             return $this;
@@ -105,8 +106,6 @@ namespace Core\Database\Statement {
         {
             $this->result = $this->stmt->fetch();
             
-            //$this->stmt->closeCursor();
-            
             return $this->result;
         }
         
@@ -117,8 +116,6 @@ namespace Core\Database\Statement {
         {
             $this->result = $this->stmt->fetchAll();
             
-            //$this->stmt->closeCursor();
-            
             return $this->result;
         }
         
@@ -126,22 +123,6 @@ namespace Core\Database\Statement {
          * @return int
          */
         public function rowCount()
-        {
-            return $this->stmt->rowCount();
-        }
-        
-        /**
-         * @return array
-         */
-        public function getResult()
-        {
-            return $this->fetchAll();
-        }
-        
-        /**
-         * @return int
-         */
-        public function getRowCount()
         {
             $rowCount = $this->stmt->rowCount();
             
