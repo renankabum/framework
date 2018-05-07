@@ -44,35 +44,30 @@ namespace Core\Helpers {
         {
             try {
                 // Cria a requisição
-                $response = $this->createRequest($method, $endPoint, $params);
+                $response = $this->createCurlRequest($method, $endPoint, $params);
                 
                 // Trata o retorno
                 $result = json_decode($response, true);
                 
                 if (json_last_error() != JSON_ERROR_NONE) {
-                    // Se não conseguir converte o json ele converte o xml
-                    /*$xml = simplexml_load_string($response, 'SimpleXMLElement');
-                    
-                    if (!empty($xml) && $xml instanceof \SimpleXMLElement) {
+                    if ($xml = $this->isValidXML($response)) {
                         $result = json_decode(json_encode($xml), true);
                     } else {
+                        // Caso não seja o retorno em `json` e em `xml`
+                        // será retornado a resposta completa
                         $result = $response;
-                    }*/
-                    
-                    // Caso não seja o retorno em `json`
-                    // será retornado a resposta completa
-                    $result = $response;
+                    }
                 }
                 
                 return $result;
             } catch (\Exception $e) {
-                $errorCode = $e->getCode();
+                $code = $e->getCode();
                 
-                if (is_string($errorCode)) {
-                    $errorCode = 500;
+                if (is_string($code)) {
+                    $code = 500;
                 }
                 
-                throw new \Exception($e->getMessage(), $errorCode);
+                throw new \Exception($e->getMessage(), $code);
             }
         }
         
@@ -133,13 +128,19 @@ namespace Core\Helpers {
         }
         
         /**
-         * @param array $headers
+         * Adiciona as headers (cabeçalhos) para a requisição
+         *
+         * @param string|array $headers
          *
          * @return \Core\Helpers\Request
          */
         public function setHeaders($headers)
         {
-            foreach ((array)$headers as $header) {
+            if (!is_array($headers)) {
+                $headers = [$headers];
+            }
+            
+            foreach ($headers as $header) {
                 $this->headers[] = $header;
             }
             
@@ -147,8 +148,7 @@ namespace Core\Helpers {
         }
         
         /**
-         * Cria as headers (cabeçalhos) padrões
-         * para a requisição e recupera
+         * Recupera as headers (cabeçalhos)
          *
          * @return array
          */
@@ -158,13 +158,14 @@ namespace Core\Helpers {
             $this->headers[] = "User-Agent: VCWeb Create cURL";
             $this->headers[] = "Accept-Charset: utf-8";
             $this->headers[] = "Accept-Language: pt-br;q=0.9,pt-BR";
-            /* $this->headers[] = "Accept: application/json";*/
             $this->headers[] = "Content-Type: application/x-www-form-urlencoded";
             
             return $this->headers;
         }
         
         /**
+         * Adiciona as opções para a criação do cURL
+         *
          * @param array $options
          *
          * @return \Core\Helpers\Request
@@ -179,6 +180,8 @@ namespace Core\Helpers {
         }
         
         /**
+         * Recupera as opções
+         *
          * @return array
          */
         public function getOptions()
@@ -187,15 +190,47 @@ namespace Core\Helpers {
         }
         
         /**
-         * Cria os fields das requisições
-         * simulando o http_build_query()
+         * Verifica se o XML é válido
+         *
+         * @param $context
+         *
+         * @return bool|\SimpleXMLElement|string
+         */
+        protected function isValidXML($context)
+        {
+            $context = trim($context);
+            
+            if (empty($context)) {
+                return false;
+            }
+            
+            // Verifica se o documento é em HTML
+            if (stripos($context, '<!DOCTYPE html>') !== false) {
+                return false;
+            }
+            
+            // Lib XML
+            libxml_use_internal_errors(true);
+            $context = simplexml_load_string($context);
+            $errors = libxml_get_errors();
+            libxml_clear_errors();
+            
+            if (!empty($errors)) {
+                return false;
+            }
+            
+            return $context;
+        }
+        
+        /**
+         * Cria os fields das requisições simulando o http_build_query()
          *
          * @param array $array
          * @param null  $prefix
          *
          * @return string|array
          */
-        private function http_build_curl(array $array, $prefix = null)
+        protected function httpBuildCurl(array $array, $prefix = null)
         {
             if (!is_array($array)) {
                 return $array;
@@ -215,7 +250,7 @@ namespace Core\Helpers {
                 }
                 
                 if (is_array($value)) {
-                    $params[] = $this->http_build_curl($value, $key);
+                    $params[] = $this->httpBuildCurl($value, $key);
                 } else {
                     $params[] = $key.'='.urlencode($value);
                 }
@@ -225,7 +260,7 @@ namespace Core\Helpers {
         }
         
         /**
-         * Metodo privado da classe para a inicialização do cURL
+         * Inicializa e cria as requisições passadas
          *
          * @param string $method
          * @param string $endPoint
@@ -234,13 +269,15 @@ namespace Core\Helpers {
          * @return mixed
          * @throws \Exception()
          */
-        private function createRequest($method, $endPoint, array $params)
+        protected function createCurlRequest($method, $endPoint, array $params)
         {
             $method = mb_strtoupper($method, 'UTF-8');
             
             // Verifica se a data e array e está passada
             if (is_array($params) && !empty($params)) {
-                $params = $this->http_build_curl($params);
+                $params = $this->httpBuildCurl($params);
+            } else {
+                $params = null;
             }
             
             // Trata a URL se for GET
