@@ -31,7 +31,7 @@ namespace Core\Database {
          * @param string $driver
          * @param array  $options
          *
-         * @throws \Core\Database\DatabaseException
+         * @throws \Exception
          */
         public function __construct($driver = null, array $options = [])
         {
@@ -65,7 +65,13 @@ namespace Core\Database {
             } catch (\PDOException $e) {
                 $this->failed = true;
                 
-                throw new DatabaseException("Não foi possível conectar com o banco de dados.<br/><small>{$e->getMessage()}</small>", $e->getCode());
+                $code = $e->getCode();
+                
+                if (is_string($code)) {
+                    $code = 500;
+                }
+                
+                throw new \Exception("Não foi possível conectar com o banco de dados.<br/><small>{$e->getMessage()}</small>", $code);
             }
         }
         

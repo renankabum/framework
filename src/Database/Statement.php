@@ -97,7 +97,7 @@ namespace Core\Database {
          *
          * @param string $sql
          *
-         * @throws \Core\Database\DatabaseException
+         * @throws \Exception
          */
         protected function execute($sql = null)
         {
@@ -113,7 +113,13 @@ namespace Core\Database {
                 // Executa a query
                 $this->stmt->execute();
             } catch (\PDOException $e) {
-                throw new DatabaseException($e->getMessage(), $e->getCode());
+                $code = $e->getCode();
+                
+                if (is_string($code)) {
+                    $code = 500;
+                }
+                
+                throw new \Exception($e->getMessage(), $code);
             }
         }
         

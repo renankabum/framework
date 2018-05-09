@@ -12,7 +12,6 @@
 
 namespace Core\Database\Statement {
     
-    use Core\Database\DatabaseException;
     use Core\Database\Statement;
     
     /**
@@ -28,7 +27,7 @@ namespace Core\Database\Statement {
          * @param array  $columns
          *
          * @return string|int
-         * @throws \Core\Database\DatabaseException
+         * @throws \Exception
          */
         public function exec($table, array $columns)
         {
@@ -43,7 +42,13 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->container['db']->lastInsertId();
             } catch (\PDOException $e) {
-                throw new DatabaseException($e->getMessage(), $e->getCode());
+                $code = $e->getCode();
+                
+                if (is_string($code)) {
+                    $code = 500;
+                }
+                
+                throw new \Exception($e->getMessage(), $code);
             }
             
             // Retorna os resultado
@@ -55,7 +60,7 @@ namespace Core\Database\Statement {
          * @param array  $columns
          *
          * @return int
-         * @throws \Core\Database\DatabaseException
+         * @throws \Exception
          */
         public function execMultiple($table, array $columns)
         {
@@ -64,7 +69,7 @@ namespace Core\Database\Statement {
             
             // Verifica se o places está no formato correto
             if (empty($this->places[0])) {
-                throw new DatabaseException("Para usar esse método e preciso passar um array multidimensional com os dados para inserir no banco.", E_USER_WARNING);
+                throw new \Exception("Para usar esse método e preciso passar um array multidimensional com os dados para inserir no banco.", E_USER_WARNING);
             }
             
             // Monta o binds e query
@@ -103,7 +108,13 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new DatabaseException($e->getMessage(), $e->getCode());
+                $code = $e->getCode();
+                
+                if (is_string($code)) {
+                    $code = 500;
+                }
+                
+                throw new \Exception($e->getMessage(), $code);
             }
             
             // Retorna o resultado

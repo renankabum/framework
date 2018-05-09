@@ -12,7 +12,6 @@
 
 namespace Core\Database\Statement {
     
-    use Core\Database\DatabaseException;
     use Core\Database\Statement;
     
     /**
@@ -35,7 +34,7 @@ namespace Core\Database\Statement {
          * @param mixed  $places
          *
          * @return bool
-         * @throws \Core\Database\DatabaseException
+         * @throws \Exception
          */
         public function exec($table, array $columns, $terms = null, $places = null)
         {
@@ -53,7 +52,13 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new DatabaseException($e->getMessage(), $e->getCode());
+                $code = $e->getCode();
+                
+                if (is_string($code)) {
+                    $code = 500;
+                }
+                
+                throw new \Exception($e->getMessage(), $code);
             }
             
             // Retorna o resultado
@@ -64,7 +69,7 @@ namespace Core\Database\Statement {
          * @param mixed $places
          *
          * @return bool
-         * @throws \Core\Database\DatabaseException
+         * @throws \Exception
          */
         public function execPlaces($places)
         {
@@ -78,7 +83,13 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new DatabaseException($e->getMessage(), $e->getCode());
+                $code = $e->getCode();
+                
+                if (is_string($code)) {
+                    $code = 500;
+                }
+                
+                throw new \Exception($e->getMessage(), $code);
             }
             
             // Retorna o resultado
@@ -113,7 +124,7 @@ namespace Core\Database\Statement {
                 
                 $columns[] = "{$key} = :{$key}{$time}";
                 
-                $this->places[$key.$time] = (!is_int($value) && empty($value)) ? null : $value;
+                $this->places[$key.$time] = (!isset($value)) ? null : $value;
             }
             
             $this->columns = implode(', ', $columns);

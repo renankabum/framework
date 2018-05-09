@@ -12,7 +12,6 @@
 
 namespace Core\Database\Statement {
     
-    use Core\Database\DatabaseException;
     use Core\Database\Statement;
     
     /**
@@ -28,8 +27,8 @@ namespace Core\Database\Statement {
          * @param string $terms
          * @param mixed  $places
          *
-         * @return \Core\Database\Statement\ReadStatement
-         * @throws \Core\Database\DatabaseException
+         * @return ReadStatement
+         * @throws \Exception
          */
         public function exec($table, $terms = null, $places = null)
         {
@@ -47,7 +46,13 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute($sql);
             } catch (\PDOException $e) {
-                throw new DatabaseException($e->getMessage(), $e->getCode());
+                $code = $e->getCode();
+                
+                if (is_string($code)) {
+                    $code = 500;
+                }
+                
+                throw new \Exception($e->getMessage(), $code);
             }
             
             return $this;
@@ -57,8 +62,8 @@ namespace Core\Database\Statement {
          * @param string $sql
          * @param mixed  $places
          *
-         * @return \Core\Database\Statement\ReadStatement
-         * @throws \Core\Database\DatabaseException
+         * @return ReadStatement
+         * @throws \Exception
          */
         public function query($sql, $places = null)
         {
@@ -72,7 +77,13 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute($sql);
             } catch (\PDOException $e) {
-                throw new DatabaseException($e->getMessage(), $e->getCode());
+                $code = $e->getCode();
+                
+                if (is_string($code)) {
+                    $code = 500;
+                }
+                
+                throw new \Exception($e->getMessage(), $code);
             }
             
             return $this;
@@ -81,8 +92,8 @@ namespace Core\Database\Statement {
         /**
          * @param $places
          *
-         * @return \Core\Database\Statement\ReadStatement
-         * @throws \Core\Database\DatabaseException
+         * @return ReadStatement
+         * @throws \Exception
          */
         public function execPlaces($places)
         {
@@ -93,7 +104,13 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute();
             } catch (\PDOException $e) {
-                throw new DatabaseException($e->getMessage(), $e->getCode());
+                $code = $e->getCode();
+                
+                if (is_string($code)) {
+                    $code = 500;
+                }
+                
+                throw new \Exception($e->getMessage(), $code);
             }
             
             return $this;
