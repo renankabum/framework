@@ -32,8 +32,6 @@ namespace Core\Providers\Session {
          */
         public function __construct()
         {
-            //$this->verifySessionExists();
-            
             $this->session = &$_SESSION;
         }
         
@@ -110,28 +108,38 @@ namespace Core\Providers\Session {
         }
         
         /**
-         * Remove todas sessão
+         * Atualiza o id da sessão atual com um novo id gerado
          */
-        public function destroy()
+        public function regenerate()
         {
-            session_destroy();
-            
-            $_SESSION = [];
+            if (session_status() == PHP_SESSION_ACTIVE) {
+                session_regenerate_id(true);
+            }
         }
         
         /**
-         * Iniciar a session caso ela não existe
+         * Destrói todos os dados registrados em uma sessão
          */
-        public function verifySessionExists()
+        public function destroy()
         {
-            if (!session_id()) {
-                $current = session_get_cookie_params();
+            $_SESSION = [];
+            
+            if (ini_get('session.use_cookies')) {
+                $params = session_get_cookie_params();
                 
-                session_set_cookie_params($current['lifetime'], $current['path'], $current['domain'], $current['secure'], true);
-                session_name(md5(md5('VCWEB_APP'.$_SERVER['SERVER_NAME'].'/'.$_SERVER['PHP_SELF'])));
-                session_cache_limiter('nocache');
-                
-                session_start();
+                setcookie(
+                    session_name(),
+                    '',
+                    (time() - 42000),
+                    $params["path"],
+                    $params["domain"],
+                    $params["secure"],
+                    $params["httponly"]
+                );
+            }
+            
+            if (session_status() == PHP_SESSION_ACTIVE) {
+                session_destroy();
             }
         }
     }
