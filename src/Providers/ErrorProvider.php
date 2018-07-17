@@ -74,8 +74,19 @@ namespace Core\Providers {
                  * @return mixed
                  */
                 return function (Request $request, Response $response) {
+                    $uri = urldecode($request->getUri());
+                    
+                    if ($request->isXhr()) {
+                        return $response->withJson([
+                            'error' => [
+                                'message' => 'Error 404 (Not Found)',
+                                'url' => $uri,
+                            ],
+                        ], 404);
+                    }
+                    
                     return view('error.404', [
-                        'url' => urldecode($request->getUri()),
+                        'url' => $uri,
                     ], 404);
                 };
             };
@@ -92,9 +103,23 @@ namespace Core\Providers {
                  * @return mixed
                  */
                 return function (Request $request, Response $response, $methods) {
+                    $uri = urldecode($request->getUri());
+                    $method = $request->getMethod();
+                    
+                    if ($request->isXhr()) {
+                        return $response->withJson([
+                            'error' => [
+                                'message' => 'Error 405 (Method not Allowed)',
+                                'url' => $uri,
+                                'method' => $method,
+                                'methods' => implode(', ', $methods),
+                            ],
+                        ], 405);
+                    }
+                    
                     return view('error.405', [
-                        'url' => urldecode($request->getUri()),
-                        'method' => $request->getMethod(),
+                        'url' => $uri,
+                        'method' => $method,
                         'methods' => implode(', ', $methods),
                     ], 405);
                 };
