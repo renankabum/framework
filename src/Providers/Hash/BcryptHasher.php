@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2017 Vagner Cardoso
+ * @copyright 2017-2018 Vagner Cardoso
  */
 
 namespace Core\Providers\Hash {
@@ -18,7 +18,7 @@ namespace Core\Providers\Hash {
      * @package Core\Providers\Hash
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class BcryptHasher
+    class BcryptHasher extends AbstractHasher
     {
         /**
          * @var int
@@ -26,67 +26,38 @@ namespace Core\Providers\Hash {
         protected $rounds = 10;
         
         /**
-         * Retorna a informações sobre o hash fornecido
-         *
-         * @param string $hash
-         *
-         * @return array
-         */
-        public function info($hash)
-        {
-            return password_get_info($hash);
-        }
-        
-        /**
          * Cria um novo password hash usando um algoritmo forte de hash de via única
          *
-         * @param string $password
+         * @param string $value
          * @param array  $options
          *
          * @return bool|string
          */
-        public function make($password, array $options = [])
+        public function make($value, array $options = [])
         {
-            $hash = password_hash($password, PASSWORD_BCRYPT, [
+            $hashedValue = password_hash($value, PASSWORD_BCRYPT, [
                 'cost' => $this->cost($options),
             ]);
             
-            if ($hash === false) {
+            if ($hashedValue === false) {
                 return false;
             }
             
-            return $hash;
-        }
-        
-        /**
-         * Verifica se o hash fornecido corresponde com o password fornecido.
-         *
-         * @param string $password
-         * @param string $hash
-         *
-         * @return boolean
-         */
-        public function check($password, $hash)
-        {
-            if (strlen($hash) === 0) {
-                return false;
-            }
-            
-            return password_verify($password, $hash);
+            return $hashedValue;
         }
         
         /**
          * Esta função verifica se o hash fornecido implementa o algoritmo e as opções indicadas.
          * Se não, ela assume que o hash precisa ser regenerado.
          *
-         * @param string $hash
+         * @param string $hashedValue
          * @param array  $options
          *
          * @return boolean
          */
-        public function needsRehash($hash, array $options = [])
+        public function needsRehash($hashedValue, array $options = [])
         {
-            return password_needs_rehash($hash, PASSWORD_BCRYPT, [
+            return password_needs_rehash($hashedValue, PASSWORD_BCRYPT, [
                 'cost' => $this->cost($options),
             ]);
         }
@@ -100,7 +71,7 @@ namespace Core\Providers\Hash {
          */
         public function setRounds($rounds)
         {
-            $this->rounds = (int)$rounds;
+            $this->rounds = (int) $rounds;
             
             return $this;
         }
