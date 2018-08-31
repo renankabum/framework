@@ -99,19 +99,14 @@ namespace Core\Providers\Mailer {
          * Se existir arquivo, adiciona o arquivo.
          * os path dos arquivos devem ser passado como array ou o path direto
          *
-         * @param array $pathFile
+         * @param string $path
+         * @param string $name
          *
          * @return $this
          */
-        public function addFile($pathFile)
+        public function addFile($path, $name = '')
         {
-            if (!is_array($pathFile)) {
-                $pathFile = [$pathFile];
-            }
-            
-            foreach ($pathFile as $file) {
-                $this->mail->addAttachment($file);
-            }
+            $this->mail->addAttachment($path, $name);
             
             return $this;
         }
