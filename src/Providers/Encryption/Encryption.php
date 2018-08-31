@@ -66,7 +66,8 @@ namespace Core\Providers\Encryption {
         {
             $length = mb_strlen($key, '8bit');
             
-            return ($cipher === 'AES-128-CBC' && $length === 16) || ($cipher === 'AES-256-CBC' && $length === 32);
+            return ($cipher === 'AES-128-CBC' && $length === 16) ||
+                   ($cipher === 'AES-256-CBC' && $length === 32);
         }
         
         /**
@@ -75,20 +76,11 @@ namespace Core\Providers\Encryption {
          * @param  string $cipher
          *
          * @return string
+         * @throws \Exception
          */
         public static function generateKey($cipher)
         {
             return random_bytes($cipher == 'AES-128-CBC' ? 16 : 32);
-        }
-        
-        /**
-         * Get the encryption key.
-         *
-         * @return string
-         */
-        public function getKey()
-        {
-            return $this->key;
         }
         
         /**
@@ -100,28 +92,21 @@ namespace Core\Providers\Encryption {
          * @return string
          *
          * @throws RuntimeException
+         * @throws \Exception
          */
         public function encrypt($value, $serialize = true)
         {
             $iv = random_bytes(openssl_cipher_iv_length($this->cipher));
-            
-            // First we will encrypt the value using OpenSSL. After this is encrypted we
-            // will proceed to calculating a MAC for the encrypted value so that this
-            // value can be verified later as not having been changed by the users.
             $value = \openssl_encrypt($serialize ? serialize($value) : $value, $this->cipher, $this->key, 0, $iv);
             
             if ($value === false) {
                 throw new RuntimeException('Não foi possível criptografar os dados.');
             }
             
-            // Once we have the encrypted value we will go ahead base64_encode the input
-            // vector and create the MAC for the encrypted value so we can verify its
-            // authenticity. Then, we'll JSON encode the data in a "payload" array.
             $mac = $this->hash($iv = base64_encode($iv), $value);
-            
             $json = json_encode(compact('iv', 'value', 'mac'));
             
-            if (!is_string($json)) {
+            if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new RuntimeException('Não foi possível criptografar os dados.');
             }
             
@@ -134,6 +119,7 @@ namespace Core\Providers\Encryption {
          * @param  string $value
          *
          * @return string
+         * @throws \Exception
          */
         public function encryptString($value)
         {
@@ -149,16 +135,12 @@ namespace Core\Providers\Encryption {
          * @return string|bool
          *
          * @throws \RuntimeException
+         * @throws \Exception
          */
         public function decrypt($payload, $unserialize = true)
         {
             $payload = $this->getJsonPayload($payload);
-            
             $iv = base64_decode($payload['iv']);
-            
-            // Here we will decrypt the value. If we are able to successfully decrypt it
-            // we will then unserialize it and return it out to the caller. If we are
-            // unable to decrypt this value we will throw out an exception message.
             $decrypted = \openssl_decrypt($payload['value'], $this->cipher, $this->key, 0, $iv);
             
             if ($decrypted === false) {
@@ -174,6 +156,7 @@ namespace Core\Providers\Encryption {
          * @param  string $payload
          *
          * @return string
+         * @throws \Exception
          */
         public function decryptString($payload)
         {
@@ -199,14 +182,12 @@ namespace Core\Providers\Encryption {
          * @param  string $payload
          *
          * @return array|bool
+         * @throws \Exception
          */
         protected function getJsonPayload($payload)
         {
             $payload = json_decode(base64_decode($payload), true);
             
-            // If the payload is not valid JSON or does not have the proper keys set we will
-            // assume it is invalid and bail out of the routine since we will not be able
-            // to decrypt the given value. We'll also check the MAC for this encryption.
             if (!$this->validPayload($payload)) {
                 return false;
             }
@@ -227,7 +208,8 @@ namespace Core\Providers\Encryption {
          */
         protected function validPayload($payload)
         {
-            return is_array($payload) && isset($payload['iv'], $payload['value'], $payload['mac']);
+            return is_array($payload) && isset($payload['iv'], $payload['value'], $payload['mac']) &&
+                   strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length($this->cipher);
         }
         
         /**
@@ -236,12 +218,15 @@ namespace Core\Providers\Encryption {
          * @param  array $payload
          *
          * @return bool
+         * @throws \Exception
          */
         protected function validMac(array $payload)
         {
             $calculated = $this->calculateMac($payload, $bytes = random_bytes(16));
             
-            return hash_equals(hash_hmac('sha256', $payload['mac'], $bytes, true), $calculated);
+            return hash_equals(
+                hash_hmac('sha256', $payload['mac'], $bytes, true), $calculated
+            );
         }
         
         /**
@@ -254,7 +239,19 @@ namespace Core\Providers\Encryption {
          */
         protected function calculateMac($payload, $bytes)
         {
-            return hash_hmac('sha256', $this->hash($payload['iv'], $payload['value']), $bytes, true);
+            return hash_hmac(
+                'sha256', $this->hash($payload['iv'], $payload['value']), $bytes, true
+            );
+        }
+        
+        /**
+         * Get the encryption key.
+         *
+         * @return string
+         */
+        public function getKey()
+        {
+            return $this->key;
         }
     }
 }
