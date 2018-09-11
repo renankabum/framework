@@ -12,13 +12,15 @@
 
 namespace Core\Database {
     
+    use Core\Helpers\Obj;
+    
     /**
-     * Class Database
+     * Class Connect
      *
-     * @package Core\Database
+     * @package Core\Connect
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class Database extends \PDO
+    class Connect extends \PDO
     {
         /**
          * @var bool
@@ -26,7 +28,7 @@ namespace Core\Database {
         protected $failed;
         
         /**
-         * Database constructor.
+         * Connect constructor.
          *
          * @param string $driver
          * @param array  $options
@@ -36,7 +38,7 @@ namespace Core\Database {
         public function __construct($driver = null, array $options = [])
         {
             // Carrega as configurações
-            $database = object_set(config('database'));
+            $database = Obj::set(config('database'));
             
             if (empty($driver)) {
                 $driver = $database->default;
@@ -65,22 +67,30 @@ namespace Core\Database {
             } catch (\PDOException $e) {
                 $this->failed = true;
                 
-                $code = $e->getCode();
-                
-                if (is_string($code)) {
-                    $code = 500;
-                }
-                
-                throw new \Exception("Não foi possível conectar com o banco de dados.<br/><small>{$e->getMessage()}</small>", $code);
+                throw new \Exception("[DB] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
         }
         
         /**
-         * @return bool
+         * @param string $driver
+         *
+         * @return string
          */
-        public function isFailed()
+        private function getDns($driver)
         {
-            return $this->failed;
+            switch ($driver) {
+                case 'sqlsrv':
+                    $dns = "sqlsrv:Server=%s;Connect=%s;ConnectionPooling=0";
+                    break;
+                case 'dblib':
+                    $dns = "dblib:host=%s;dbname=%s";
+                    break;
+                default:
+                    $dns = "mysql:host=%s;dbname=%s";
+                    break;
+            }
+            
+            return $dns;
         }
         
         /**
@@ -91,25 +101,16 @@ namespace Core\Database {
             return [
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                \PDO::ATTR_CASE => \PDO::CASE_NATURAL,
             ];
         }
         
         /**
-         * @param string $driver
-         *
-         * @return string
+         * @return bool
          */
-        private function getDns($driver)
+        public function isFailed()
         {
-            if ($driver == 'sqlsrv') {
-                $dns = "sqlsrv:Server=%s;Database=%s;ConnectionPooling=0";
-            } else if ($driver == 'dblib') {
-                $dns = "dblib:host=%s;dbname=%s";
-            } else {
-                $dns = "mysql:host=%s;dbname=%s";
-            }
-            
-            return $dns;
+            return $this->failed;
         }
     }
 }

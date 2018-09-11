@@ -20,7 +20,7 @@ namespace Core\Providers\Session {
      * @package Core\Providers\Session
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class Session
+    class Session
     {
         /**
          * @var array
@@ -60,17 +60,6 @@ namespace Core\Providers\Session {
         
         /**
          * @param string $key
-         * @param null   $default
-         *
-         * @return mixed
-         */
-        public function get($key, $default = null)
-        {
-            return Arr::get($this->session, $key, $default);
-        }
-        
-        /**
-         * @param string $key
          *
          * @return bool
          */
@@ -87,6 +76,17 @@ namespace Core\Providers\Session {
         public function has($key)
         {
             return !is_null($this->get($key));
+        }
+        
+        /**
+         * @param string $key
+         * @param null   $default
+         *
+         * @return mixed
+         */
+        public function get($key, $default = null)
+        {
+            return Arr::get($this->session, $key, $default);
         }
         
         /**
@@ -127,15 +127,7 @@ namespace Core\Providers\Session {
             if (ini_get('session.use_cookies')) {
                 $params = session_get_cookie_params();
                 
-                setcookie(
-                    session_name(),
-                    '',
-                    (time() - 42000),
-                    $params["path"],
-                    $params["domain"],
-                    $params["secure"],
-                    $params["httponly"]
-                );
+                setcookie(session_name(), '', (time() - 42000), $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
             }
             
             if (session_status() == PHP_SESSION_ACTIVE) {

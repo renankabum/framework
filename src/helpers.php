@@ -1,6 +1,9 @@
 <?php
 
+use Core\App;
 use Core\Helpers\Debug;
+use Core\Helpers\Helper;
+use Core\Helpers\Obj;
 use Core\Helpers\Str;
 
 if (!function_exists('dd')) {
@@ -23,89 +26,53 @@ if (!function_exists('dd')) {
 
 if (!function_exists('env')) {
     /**
-     * Get '.env' configuration
+     * Recupera a configuração setada no .env
      *
-     * @param string          $name
-     * @param string|int|null $default
+     * @param string $name
+     * @param string $default
      *
      * @return mixed
      */
     function env($name, $default = null)
     {
-        $value = getenv($name);
-        
-        if ($value === false) {
-            return $default;
-        }
-        
-        switch (strtolower($value)) {
-            case 'true':
-            case '(true)':
-                return true;
-                break;
-            case 'false':
-            case '(false)':
-                return false;
-                break;
-            case 'empty':
-            case '(empty)':
-                return '';
-                break;
-            case 'null':
-            case '(null)':
-                return null;
-                break;
-        }
-        
-        if (strlen($value) > 1 && Str::startsWith($value, '"') && Str::endsWith($value, '"')) {
-            return substr($value, 1, -1);
-        }
-        
-        return $value;
+        return Helper::env($name, $default);
     }
 }
 
 if (!function_exists('uuid')) {
     /**
-     * Gera uma string no padrão uuid
+     * Gera uma string no formato UUID()
      *
      * @return string
      */
     function uuid()
     {
-        return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff), mt_rand(0, 0x0C2f) | 0x4000,
-            mt_rand(0, 0x3fff) | 0x8000,
-            mt_rand(0, 0x2Aff), mt_rand(0, 0xffD3), mt_rand(0, 0xff4B)
-        );
+        return Helper::uuid();
     }
 }
 
 if (!function_exists('asset')) {
     /**
-     * Retorna o path dos assets e versiona
+     * Retorna o caminho completo do asset
      *
-     * @param string $path
+     * @param string $file
      * @param bool   $url
      *
      * @return bool|string
      */
-    function asset($path, $url = false)
+    function asset($file, $url = false)
     {
-        if (!Str::startsWith($path, '/')) {
-            $path = "/{$path}";
+        if (!Str::startsWith($file, '/')) {
+            $file = "/{$file}";
         }
         
-        $baseUrl = rtrim(str_ireplace('index.php', '', request()
-            ->getUri()
-            ->getBasePath()), '/');
+        $basePath = rtrim(str_ireplace('index.php', '', App::getInstance()->resolve('request')->getUri()->getBasePath()), '/');
         
-        if (file_exists(PUBLIC_FOLDER."{$path}")) {
-            $version = substr(md5_file(PUBLIC_FOLDER."{$path}"), 0, 15);
-            $fullUrl = ($url === true) ? BASE_URL : '';
+        if (file_exists(PUBLIC_FOLDER."{$file}")) {
+            $baseUrl = ($url === true) ? BASE_URL : '';
+            $md5Hash = substr(md5_file(PUBLIC_FOLDER."{$file}"), 0, 15);
             
-            return "{$fullUrl}{$baseUrl}{$path}?v={$version}";
+            return "{$baseUrl}{$basePath}{$file}?v={$md5Hash}";
         }
         
         return false;
@@ -114,30 +81,31 @@ if (!function_exists('asset')) {
 
 if (!function_exists('asset_source')) {
     /**
-     * @param string|array $path
+     * Printa o conteúdo do asset
+     *
+     * @param string|array $files
      *
      * @return bool|string
      */
-    function asset_source($path)
+    function asset_source($files)
     {
-        $paths = [];
+        $contents = [];
         
-        if (!is_array($path)) {
-            $paths = [$path];
+        if (!is_array($files)) {
+            $files = [$files];
         }
         
-        $sources = [];
-        foreach ($paths as $path) {
-            if (!Str::startsWith($path, '/')) {
-                $path = "/{$path}";
+        foreach ($files as $file) {
+            if (!Str::startsWith($file, '/')) {
+                $file = "/{$file}";
             }
             
-            if (file_exists(PUBLIC_FOLDER."{$path}")) {
-                $sources[] = file_get_contents(PUBLIC_FOLDER."{$path}");
+            if (file_exists(PUBLIC_FOLDER."{$file}")) {
+                $contents[] = file_get_contents(PUBLIC_FOLDER."{$file}");
             }
         }
         
-        return implode('', $sources);
+        return implode('', $contents);
     }
 }
 
@@ -169,25 +137,11 @@ if (!function_exists('object_set')) {
      *
      * @param array $array
      *
-     * @return object
+     * @return \stdClass
      */
-    function object_set($array)
+    function object_set(array $array)
     {
-        $object = new stdClass();
-        
-        if (empty($array)) {
-            return $object;
-        }
-        
-        foreach ((array)$array as $key => $value) {
-            if (is_array($value)) {
-                $object->{$key} = object_set($value);
-            } else {
-                $object->{$key} = isset($value) ? $value : false;
-            }
-        }
-        
-        return $object;
+        return Obj::set($array);
     }
 }
 
@@ -199,53 +153,39 @@ if (!function_exists('object_get')) {
      * @param string $name
      * @param string $default
      *
-     * @return mixed
+     * @return mixed|\stdClass
      */
-    function object_get($object, $name, $default = null)
+    function object_get($object, $name = null, $default = null)
     {
-        if (is_null($name) && trim($name) == '') {
-            return $object;
-        }
-        
-        foreach (explode('.', $name) as $segment) {
-            if (is_object($object) || isset($object->{$segment})) {
-                $object = $object->{$segment};
-            } else {
-                return $default;
-            }
-        }
-        
-        return $object;
+        return Obj::get($object, $name, $default);
     }
 }
 
 if (!function_exists('object_to_array')) {
     /**
-     * Converte o objecto em array
+     * Converte um objeto em um array
      *
-     * @param $object
+     * @param object $object
      *
      * @return array
      */
     function object_to_array($object)
     {
-        $array = [];
-        
-        foreach ((object)$object as $key => $value) {
-            if (!isset($value) && trim($value) == '') {
-                return $array;
-            }
-            
-            if (is_object($value)) {
-                $array[$key] = object_to_array($value);
-            } else {
-                if (isset($key)) {
-                    $array[$key] = $value;
-                }
-            }
-        }
-        
-        return $array;
+        return Obj::toArray($object);
+    }
+}
+
+if (!function_exists('object_to_json')) {
+    /**
+     * Converte um objeto em um json
+     *
+     * @param object $object
+     *
+     * @return string
+     */
+    function object_to_json($object)
+    {
+        return Obj::toJson($object);
     }
 }
 
@@ -263,9 +203,8 @@ if (!function_exists('config')) {
         $config = [];
         
         foreach (glob_recursive(APP_FOLDER.'/config/**') as $path) {
-            if (mb_strpos($path, '.php') !== false) {
+            if (is_file($path) && !is_dir($path)) {
                 $file = basename($path, '.php');
-                
                 $config[$file] = include "{$path}";
             }
         }
@@ -292,7 +231,7 @@ if (!function_exists('config')) {
 
 if (!function_exists('logger')) {
     /**
-     * Logger do sistemas
+     * LoggerProvider do sistemas
      *
      * @param string $message
      * @param array  $context
@@ -303,16 +242,14 @@ if (!function_exists('logger')) {
      */
     function logger($message, array $context = array(), $type = 'info', $file = null)
     {
-        if (!is_object(app()->resolve('logger'))) {
+        if (!is_object(App::getInstance()->resolve('logger'))) {
             return false;
         }
         
         $type = strtolower($type);
         $type = strtoupper(substr($type, 0, 1)).substr($type, 1);
         
-        return app()
-            ->resolve('logger', [$file])
-            ->{"add{$type}"}($message, $context);
+        return App::getInstance()->resolve('logger', [$file])->{"add{$type}"}($message, $context);
     }
 }
 
@@ -320,38 +257,21 @@ if (!function_exists('view')) {
     /**
      * Renderiza a view
      *
-     * @param string $view
+     * @param string $template
      * @param array  $array
      * @param int    $code
      *
      * @return mixed
      */
-    function view($view, array $array = [], $code = null)
+    function view($template, array $array = [], $code = null)
     {
-        if (is_object(app()->resolve('view'))) {
-            $response = response();
-            
-            if (!is_null($code)) {
-                $response = $response->withStatus($code);
-            }
-            
-            $extension = '.php';
-            
-            if (config('view.engine') === 'twig') {
-                $extension = '.twig';
-            } else if ($extension === 'blade') {
-                $extension = '.blade.php';
-            }
-            
-            // replace '.' em '/'
-            $view = str_replace('.', '/', $view);
-            
-            return app()
-                ->resolve('view')
-                ->render($response, $view.$extension, $array);
+        $response = App::getInstance()->resolve('response');
+        
+        if (!empty($code) && is_int($code)) {
+            $response = $response->withStatus($code);
         }
         
-        return false;
+        return App::getInstance()->resolve('view')->render($response, $template, $array);
     }
 }
 
@@ -556,7 +476,7 @@ if (!function_exists('json')) {
      */
     function json($data, $status = 200)
     {
-        return response()->withJson($data, $status, JSON_PRETTY_PRINT);
+        return App::getInstance()->resolve('response')->withJson($data, $status, JSON_PRETTY_PRINT);
     }
 }
 
@@ -577,7 +497,7 @@ if (!function_exists('path_for')) {
             $hash = "#{$hash}";
         }
         
-        return router()->pathFor(strtolower($name), $data, $queryParams).$hash;
+        return App::getInstance()->resolve('router')->pathFor(strtolower($name), $data, $queryParams).$hash;
     }
 }
 
@@ -613,14 +533,14 @@ if (!function_exists('redirect')) {
         
         // Verify ajax
         // Return location ajax
-        if (request()->isXhr()) {
+        if (App::getInstance()->resolve('request')->isXhr()) {
             return json([
                 'location' => $uri,
             ]);
         }
         
         // Return redirect
-        return response()->withRedirect($uri);
+        return App::getInstance()->resolve('response')->withRedirect($uri);
     }
 }
 
@@ -648,7 +568,7 @@ if (!function_exists('entities')) {
     {
         $params = [];
         
-        foreach ((array)$values as $key => $value) {
+        foreach ((array) $values as $key => $value) {
             if (is_array($value)) {
                 $params[$key] = entities($value);
             } else {
@@ -676,7 +596,7 @@ if (!function_exists('empty_filter')) {
             return true;
         }
         
-        foreach ((array)$data as $key => $value) {
+        foreach ((array) $data as $key => $value) {
             if (is_array($value)) {
                 return empty_filter($value);
             } else {
@@ -700,7 +620,7 @@ if (!function_exists('input_filter')) {
     {
         $request = [];
         
-        foreach ((array)$data as $key => $value) {
+        foreach ((array) $data as $key => $value) {
             if (is_array($value)) {
                 $request[$key] = input_filter($value);
             } else {
@@ -730,15 +650,15 @@ if (!function_exists('input')) {
      */
     function input($name = null)
     {
-        $data = request()->getParams();
-        $data = input_filter($data);
+        $params = App::getInstance()->resolve('request')->getParams();
+        $params = input_filter($params);
         
         if (empty($name)) {
-            return $data;
+            return $params;
         }
         
-        if (array_key_exists($name, $data)) {
-            return $data[$name];
+        if (array_key_exists($name, $params)) {
+            return $params[$name];
         }
         
         return null;
@@ -747,7 +667,7 @@ if (!function_exists('input')) {
 
 if (!function_exists('bytes_convert')) {
     /**
-     * Converte para o formato humano o tamanho dos arquivos
+     * Converte os bytes para um formato melhorado
      *
      * @param int $bytes
      * @param int $precision
@@ -756,17 +676,70 @@ if (!function_exists('bytes_convert')) {
      */
     function bytes_convert($bytes, $precision = 2)
     {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        return Helper::convertBytes($bytes, $precision);
+    }
+}
+
+if (!function_exists('is_route')) {
+    /**
+     * Verifica se está em determinada rota
+     *
+     * @param string $route
+     * @param string $active
+     *
+     * @return bool|string
+     */
+    function is_route($route, $active = null)
+    {
+        $current = App::getInstance()->resolve('request')->getUri()->getPath();
         
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-        
-        for ($i = 1; $i <= $pow; $i++) {
-            $bytes /= 1000;
+        if (substr($current, 0, 1) !== '/') {
+            $current = "/{$current}";
         }
         
-        return number_format(round($bytes, $precision), 2, ',', '').' '.$units[$pow];
+        if (path_for($route) === $current) {
+            if (!empty($active)) {
+                return 'active';
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }
+}
+
+if (!function_exists('has_route')) {
+    /**
+     * Verifica se está entre as rotas passadas
+     *
+     * @param mixed $routes
+     *
+     * @return bool
+     */
+    function has_route($routes)
+    {
+        $current = App::getInstance()->resolve('request')->getUri()->getPath();
+        
+        foreach ((array) $routes as $name) {
+            if ($name !== '' && mb_strpos($current, $name) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+}
+
+if (!function_exists('app')) {
+    /**
+     * Get instance app
+     *
+     * @return App
+     */
+    function app()
+    {
+        return App::getInstance();
     }
 }
 
@@ -803,72 +776,5 @@ if (!function_exists('router')) {
     function router()
     {
         return app()->resolve('router');
-    }
-}
-
-if (!function_exists('is_route')) {
-    /**
-     * Verifica se está em determinada rota
-     *
-     * @param string $route
-     * @param string $active
-     *
-     * @return bool|string
-     */
-    function is_route($route, $active = null)
-    {
-        $current = request()
-            ->getUri()
-            ->getPath();
-        
-        if (substr($current, 0, 1) !== '/') {
-            $current = "/{$current}";
-        }
-        
-        if (path_for($route) === $current) {
-            if (!empty($active)) {
-                return 'active';
-            }
-            
-            return true;
-        }
-        
-        return false;
-    }
-}
-
-if (!function_exists('has_route')) {
-    /**
-     * Verifica se está entre as rotas passadas
-     *
-     * @param mixed $routes
-     *
-     * @return bool
-     */
-    function has_route($routes)
-    {
-        $current = request()
-            ->getUri()
-            ->getPath();
-        
-        foreach ((array)$routes as $name) {
-            if ($name !== '' && mb_strpos($current, $name) !== false) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-}
-
-if (!function_exists('app')) {
-    /**
-     * Get instance app
-     *
-     * @return \Core\App
-     */
-    function app()
-    {
-        return \Core\App::getInstance();
     }
 }

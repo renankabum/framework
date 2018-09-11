@@ -21,7 +21,7 @@ namespace Core\Helpers {
      *
      * @package Core\Helpers
      */
-    final class Debug
+    class Debug
     {
         /**
          * Symfony customize dump

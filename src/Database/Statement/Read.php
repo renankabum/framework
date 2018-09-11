@@ -15,26 +15,26 @@ namespace Core\Database\Statement {
     use Core\Database\Statement;
     
     /**
-     * Class ReadStatement
+     * Class Read
      *
-     * @package Core\Database\Statement
+     * @package Core\Connect\Statement
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class ReadStatement extends Statement
+    class Read extends Statement
     {
         /**
          * @param string $table
          * @param string $terms
          * @param mixed  $places
          *
-         * @return ReadStatement
+         * @return Read
          * @throws \Exception
          */
         public function exec($table, $terms = null, $places = null)
         {
             // Trata os dados
-            $this->table = (string)$table;
-            $this->terms = (string)$terms;
+            $this->table = (string) $table;
+            $this->terms = (string) $terms;
             
             // Recupera o places
             $this->setPlaces($places);
@@ -46,13 +46,7 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute($sql);
             } catch (\PDOException $e) {
-                $code = $e->getCode();
-                
-                if (is_string($code)) {
-                    $code = 500;
-                }
-                
-                throw new \Exception($e->getMessage(), $code);
+                throw new \Exception("[READ] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             return $this;
@@ -62,13 +56,13 @@ namespace Core\Database\Statement {
          * @param string $sql
          * @param mixed  $places
          *
-         * @return ReadStatement
+         * @return Read
          * @throws \Exception
          */
         public function query($sql, $places = null)
         {
             // Trata a query
-            $sql = (string)$sql;
+            $sql = (string) $sql;
             
             // Recupera o places
             $this->setPlaces($places);
@@ -77,13 +71,7 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute($sql);
             } catch (\PDOException $e) {
-                $code = $e->getCode();
-                
-                if (is_string($code)) {
-                    $code = 500;
-                }
-                
-                throw new \Exception($e->getMessage(), $code);
+                throw new \Exception("[READ] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             return $this;
@@ -92,7 +80,7 @@ namespace Core\Database\Statement {
         /**
          * @param $places
          *
-         * @return ReadStatement
+         * @return Read
          * @throws \Exception
          */
         public function execPlaces($places)
@@ -104,13 +92,7 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute();
             } catch (\PDOException $e) {
-                $code = $e->getCode();
-                
-                if (is_string($code)) {
-                    $code = 500;
-                }
-                
-                throw new \Exception($e->getMessage(), $code);
+                throw new \Exception("[READ] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             return $this;
@@ -127,16 +109,6 @@ namespace Core\Database\Statement {
         }
         
         /**
-         * @return array
-         */
-        public function fetchAll()
-        {
-            $this->result = $this->stmt->fetchAll();
-            
-            return $this->result;
-        }
-        
-        /**
          * @return int
          */
         public function rowCount()
@@ -148,6 +120,16 @@ namespace Core\Database\Statement {
             }
             
             return $rowCount;
+        }
+        
+        /**
+         * @return array
+         */
+        public function fetchAll()
+        {
+            $this->result = $this->stmt->fetchAll();
+            
+            return $this->result;
         }
         
         /**

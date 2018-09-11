@@ -15,12 +15,12 @@ namespace Core\Database\Statement {
     use Core\Database\Statement;
     
     /**
-     * Class CreateStatement
+     * Class Create
      *
-     * @package Core\Database\Statement
+     * @package Core\Connect\Statement
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class CreateStatement extends Statement
+    class Create extends Statement
     {
         /**
          * @param string $table
@@ -32,23 +32,17 @@ namespace Core\Database\Statement {
         public function exec($table, array $columns)
         {
             // Trata os dados
-            $this->table = (string)$table;
-            $this->places = (array)$columns;
+            $this->table = (string) $table;
+            $this->places = (array) $columns;
             
             try {
                 // Executa o bind e query
                 $this->execute();
                 
                 // Recupera o resultado
-                $this->result = $this->container['db']->lastInsertId();
+                $this->result = $this->db->lastInsertId();
             } catch (\PDOException $e) {
-                $code = $e->getCode();
-                
-                if (is_string($code)) {
-                    $code = 500;
-                }
-                
-                throw new \Exception($e->getMessage(), $code);
+                throw new \Exception("[CREATE] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             // Retorna os resultado
@@ -64,8 +58,8 @@ namespace Core\Database\Statement {
          */
         public function execMultiple($table, array $columns)
         {
-            $this->table = (string)$table;
-            $this->places = (array)$columns;
+            $this->table = (string) $table;
+            $this->places = (array) $columns;
             
             // Verifica se o places está no formato correto
             if (empty($this->places[0])) {
@@ -95,7 +89,7 @@ namespace Core\Database\Statement {
             
             try {
                 // Prepara a query
-                $this->stmt = $this->container['db']->prepare($sql);
+                $this->stmt = $this->db->prepare($sql);
                 
                 // Binds values
                 if (is_array($this->places) && !empty($this->places)) {
@@ -108,13 +102,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                $code = $e->getCode();
-                
-                if (is_string($code)) {
-                    $code = 500;
-                }
-                
-                throw new \Exception($e->getMessage(), $code);
+                throw new \Exception("[CREATE] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             // Retorna o resultado

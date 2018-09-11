@@ -12,21 +12,18 @@
 
 namespace Core\Database {
     
-    use Slim\Container;
+    use Core\App;
     
     /**
      * Class StatementContainer
      *
-     * @package Core\Database
+     * @property \Core\Database\Connect db
+     *
+     * @package Core\Connect
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
     abstract class Statement
     {
-        /**
-         * @var \Slim\Container
-         */
-        protected $container;
-        
         /**
          * @var string
          */
@@ -53,13 +50,20 @@ namespace Core\Database {
         protected $stmt;
         
         /**
-         * StatementContainer constructor.
-         *
-         * @param \Slim\Container $container
+         * @return mixed
          */
-        public function __construct(Container $container)
+        abstract public function __toString();
+        
+        /**
+         * @param string $name
+         *
+         * @return mixed
+         */
+        public function __get($name)
         {
-            $this->container = $container;
+            if (App::getInstance()->resolve($name)) {
+                return App::getInstance()->resolve($name);
+            }
         }
         
         /**
@@ -74,21 +78,7 @@ namespace Core\Database {
                     parse_str($places, $this->places);
                 }
             } else {
-                $this->places = (array)$places;
-            }
-        }
-        
-        /**
-         * @param array $binds
-         */
-        protected function setBinds($binds)
-        {
-            foreach ((array)$binds as $key => $bind) {
-                if ($key == 'limit' || $key == 'offset') {
-                    $bind = (int)$bind;
-                }
-                
-                $this->stmt->bindValue(is_string($key) ? ":{$key}" : ((int)$key + 1), $bind, is_int($bind) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
+                $this->places = (array) $places;
             }
         }
         
@@ -103,7 +93,7 @@ namespace Core\Database {
         {
             try {
                 // Prepara a query
-                $this->stmt = $this->container['db']->prepare($sql ?: $this);
+                $this->stmt = $this->db->prepare($sql ?: $this);
                 
                 // Binds values
                 if (is_array($this->places) && !empty($this->places)) {
@@ -113,19 +103,22 @@ namespace Core\Database {
                 // Executa a query
                 $this->stmt->execute();
             } catch (\PDOException $e) {
-                $code = $e->getCode();
-                
-                if (is_string($code)) {
-                    $code = 500;
-                }
-                
-                throw new \Exception($e->getMessage(), $code);
+                throw new \Exception($e->getMessage(), (is_int($e->getCode()) ? $e->getCode() : 500));
             }
         }
         
         /**
-         * @return mixed
+         * @param array $binds
          */
-        abstract public function __toString();
+        protected function setBinds($binds)
+        {
+            foreach ((array) $binds as $key => $bind) {
+                if ($key == 'limit' || $key == 'offset') {
+                    $bind = (int) $bind;
+                }
+                
+                $this->stmt->bindValue(is_string($key) ? ":{$key}" : ((int) $key + 1), $bind, is_int($bind) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
+            }
+        }
     }
 }

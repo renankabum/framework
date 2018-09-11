@@ -22,10 +22,10 @@ namespace Core\Middlewares {
      * @package Core\Middlewares
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class OldInputMiddleware extends Middleware
+    class OldInputMiddleware extends Middleware
     {
         /**
-         * Register OldInputMiddleware middleware
+         * Registra middleware para guardar o parsedBody na view
          *
          * @param \Slim\Http\Request  $request  PSR7 request
          * @param \Slim\Http\Response $response PSR7 response
@@ -35,9 +35,8 @@ namespace Core\Middlewares {
          */
         public function __invoke(Request $request, Response $response, callable $next)
         {
-            if (!$request->isXhr() && $this->session) {
-                $this->view->addGlobal('input', $this->session->get('input'));
-                $this->session->set('input', input());
+            if (!$request->isXhr()) {
+                $this->view->addGlobal('oldInput', (!empty(input())) ? input() : '');
             }
             
             $response = $next($request, $response);

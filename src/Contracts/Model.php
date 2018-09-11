@@ -12,67 +12,45 @@
 
 namespace Core\Contracts {
     
+    use Core\App;
+    
     /**
      * Class Model
      *
+     * @property \Slim\Collection                      settings
+     * @property \Slim\Http\Environment                environment
+     * @property \Slim\Http\Request                    request
+     * @property \Slim\Http\Response                   response
+     * @property \Slim\Router                          router
+     *
+     * @property \Core\Providers\View\Twig             view
+     * @property \Core\Providers\Session\Session       session
+     * @property \Core\Providers\Session\Flash         flash
+     * @property \Core\Providers\Mailer\Mailer         mailer
+     * @property \Core\Providers\Hash\Bcrypt           hash
+     * @property \Core\Providers\Hash\Argon            argon
+     * @property \Core\Providers\Encryption\Encryption encryption
+     *
+     * @property \Core\Database\Connect                db
+     * @property \Core\Database\Statement\Create       create
+     * @property \Core\Database\Statement\Read         read
+     * @property \Core\Database\Statement\Update       update
+     * @property \Core\Database\Statement\Delete       delete
+     *
      * @package Core\Contracts
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
-     *
-     * @property \Core\Providers\Hash\BcryptHasher        hash
-     * @property \Core\Providers\Hash\ArgonHasher         hashArgon
-     * @property \Core\Providers\Session\Session          session
-     * @property \Core\Providers\Mailer\Mailer            mailer
-     * @property \Core\Providers\Encryption\Encryption    encryption
-     * @property \Core\Providers\View\Twig                view
-     * @property \Core\Providers\Session\Flash            flash
-     *
-     * @property \Core\Database\Database|\PDO             db
-     * @property \Core\Database\Statement\CreateStatement create
-     * @property \Core\Database\Statement\ReadStatement   read
-     * @property \Core\Database\Statement\UpdateStatement update
-     * @property \Core\Database\Statement\DeleteStatement delete
-     *
-     * @property \Slim\Container                          container
-     * @property \Slim\Http\Response                      response
-     * @property \Slim\Http\Request                       request
-     * @property \Slim\Router                             router
      */
     abstract class Model
     {
         /**
-         * @var \Slim\Container
-         */
-        protected $container;
-        
-        /**
-         * Model constructor.
-         */
-        public function __construct()
-        {
-            $this->container = app()->getContainer();
-            
-            $this->boot();
-        }
-        
-        /**
-         * Inicializa junto com o Model
-         *
-         * @return mixed
-         */
-        protected function boot()
-        {
-        }
-        
-        /**
          * @param string $name
          *
          * @return mixed
-         * @throws \Interop\Container\Exception\ContainerException
          */
         public function __get($name)
         {
-            if ($this->container->has($name)) {
-                return $this->container->get($name);
+            if (App::getInstance()->resolve($name)) {
+                return App::getInstance()->resolve($name);
             }
         }
     }

@@ -12,6 +12,7 @@
 
 namespace Core\Contracts {
     
+    use Core\App;
     use Slim\Container;
     use Slim\Exception\NotFoundException;
     use Slim\Http\Request;
@@ -20,27 +21,28 @@ namespace Core\Contracts {
     /**
      * Class Controller
      *
+     * @property \Slim\Collection                      settings
+     * @property \Slim\Http\Environment                environment
+     * @property \Slim\Http\Request                    request
+     * @property \Slim\Http\Response                   response
+     * @property \Slim\Router                          router
+     *
+     * @property \Core\Providers\View\Twig             view
+     * @property \Core\Providers\Session\Session       session
+     * @property \Core\Providers\Session\Flash         flash
+     * @property \Core\Providers\Mailer\Mailer         mailer
+     * @property \Core\Providers\Hash\Bcrypt           hash
+     * @property \Core\Providers\Hash\Argon            argon
+     * @property \Core\Providers\Encryption\Encryption encryption
+     *
+     * @property \Core\Database\Connect                db
+     * @property \Core\Database\Statement\Create       create
+     * @property \Core\Database\Statement\Read         read
+     * @property \Core\Database\Statement\Update       update
+     * @property \Core\Database\Statement\Delete       delete
+     *
      * @package Core\Contracts
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
-     *
-     * @property \Core\Providers\Hash\BcryptHasher        hash
-     * @property \Core\Providers\Hash\ArgonHasher         hashArgon
-     * @property \Core\Providers\Session\Session          session
-     * @property \Core\Providers\Mailer\Mailer            mailer
-     * @property \Core\Providers\Encryption\Encryption    encryption
-     * @property \Core\Providers\View\Twig                view
-     * @property \Core\Providers\Session\Flash            flash
-     *
-     * @property \Core\Database\Database|\PDO             db
-     * @property \Core\Database\Statement\CreateStatement create
-     * @property \Core\Database\Statement\ReadStatement   read
-     * @property \Core\Database\Statement\UpdateStatement update
-     * @property \Core\Database\Statement\DeleteStatement delete
-     *
-     * @property \Slim\Container                          container
-     * @property \Slim\Http\Response                      response
-     * @property \Slim\Http\Request                       request
-     * @property \Slim\Router                             router
      */
     abstract class Controller
     {
@@ -55,37 +57,37 @@ namespace Core\Contracts {
         protected $response;
         
         /**
-         * @var string|array
-         */
-        private $params;
-        
-        /**
          * @var \Slim\Container
          */
         protected $container;
         
         /**
-         * BaseController constructor.
+         * Controller constructor.
          *
          * @param \Slim\Http\Request  $request
          * @param \Slim\Http\Response $response
-         * @param string|array        $params
          * @param \Slim\Container     $container
          */
-        public function __construct(Request $request, Response $response, $params, Container $container)
+        public function __construct(Request $request, Response $response, Container $container)
         {
             $this->request = $request;
             $this->response = $response;
-            $this->params = $params;
             $this->container = $container;
             
             $this->boot();
         }
         
         /**
+         * Inicializa junto com o controller
+         */
+        protected function boot()
+        {
+        }
+        
+        /**
          * Pega os parametros get, post etc.
          *
-         * @param null|string $name
+         * @param string $name
          *
          * @return array|mixed
          */
@@ -103,7 +105,7 @@ namespace Core\Contracts {
          *
          * @return Response
          */
-        public function view($view, array $array = array(), $code = null)
+        public function view($view, array $array = [], $code = null)
         {
             return view($view, $array, $code);
         }
@@ -126,12 +128,12 @@ namespace Core\Contracts {
          *
          * @param string $message
          * @param array  $context
-         * @param string $type
          * @param string $file
+         * @param string $type
          *
          * @return mixed
          */
-        public function logger($message, array $context = array(), $type = 'info', $file = null)
+        public function logger($message, array $context = [], $file = null, $type = 'info')
         {
             return logger($message, $context, $type, $file);
         }
@@ -140,12 +142,12 @@ namespace Core\Contracts {
          * Redireciona passando o nome da rota
          * e seus parametros e querys
          *
-         * @param null|string $name
-         * @param array       $data
-         * @param array       $queryParams
-         * @param string      $hash
+         * @param string $name
+         * @param array  $data
+         * @param array  $queryParams
+         * @param string $hash
          *
-         * @return \Slim\Http\Response
+         * @return Response
          */
         public function redirect($name = null, array $data = [], array $queryParams = [], $hash = null)
         {
@@ -156,7 +158,7 @@ namespace Core\Contracts {
          * Retorna a URL da rota passando o name
          * dado na rota
          *
-         * @param null   $name
+         * @param string $name
          * @param array  $data
          * @param array  $queryParams
          * @param string $hash
@@ -174,7 +176,7 @@ namespace Core\Contracts {
          * @param mixed $data
          * @param int   $status
          *
-         * @return \Slim\Http\Response
+         * @return Response
          */
         public function json($data, $status = 200)
         {
@@ -192,22 +194,14 @@ namespace Core\Contracts {
         }
         
         /**
-         * Inicializa junto com o controller
-         */
-        public function boot()
-        {
-        }
-        
-        /**
          * @param string $name
          *
          * @return mixed
-         * @throws \Interop\Container\Exception\ContainerException
          */
         public function __get($name)
         {
-            if ($this->container->has($name)) {
-                return $this->container->get($name);
+            if (App::getInstance()->resolve($name)) {
+                return App::getInstance()->resolve($name);
             }
         }
     }

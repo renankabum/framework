@@ -22,10 +22,10 @@ namespace Core\Middlewares {
      * @package Core\Middlewares
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class TrailingSlashMiddleware extends Middleware
+    class TrailingSlashMiddleware extends Middleware
     {
         /**
-         * Register middleware
+         * Registra middleware para verificar se existe o '/' na url
          *
          * @param \Slim\Http\Request  $request  PSR7 request
          * @param \Slim\Http\Response $response PSR7 response
@@ -42,7 +42,7 @@ namespace Core\Middlewares {
                 $uri = $uri->withPath(substr($path, 0, -1));
                 
                 if ($request->getMethod() == 'GET') {
-                    return $response->withRedirect((string)$uri, 301);
+                    return $response->withRedirect((string) $uri, 301);
                 } else {
                     $response = $next($request->withUri($uri), $response);
                     

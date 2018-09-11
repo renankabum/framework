@@ -12,7 +12,7 @@
 
 namespace Core\Providers\Session {
     
-    use Core\Contracts\Provider;
+    use Core\Contracts\Provider as BaseProvider;
     
     /**
      * Class SessionProvider
@@ -20,36 +20,37 @@ namespace Core\Providers\Session {
      * @package Core\Providers\Session
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class SessionProvider extends Provider
+    class SessionProvider extends BaseProvider
     {
         /**
-         * Registers services on the given container.
+         * Registra os serviços da sessões
          *
          * @return void
          */
         public function register()
         {
-            /**
-             * @return bool|\Core\Providers\Session\Session
-             */
-            $this->container['session'] = function () {
-                if (config('app.session')) {
-                    return new Session();
-                }
+            // Verifica se a sessão está ativa
+            if (config('app.session')) {
+                // Sessão
+                $this->container['session'] = new Session();
                 
-                return false;
-            };
-            
-            /**
-             * @return bool|\Core\Providers\Session\Flash
-             */
-            $this->container['flash'] = function () {
-                if (config('app.session')) {
-                    return new Flash();
-                }
-                
-                return false;
-            };
+                // Flash Message
+                $this->container['flash'] = new Flash();
+            }
+        }
+        
+        /**
+         * Registra outros serviços no escopo do provider
+         *
+         * @return void
+         */
+        public function boot()
+        {
+            // Verifica se a sessão está ativa
+            if (config('app.session')) {
+                $this->view->addGlobal('session', $this->session->all());
+                $this->view->addGlobal('flash', $this->flash->all());
+            }
         }
     }
 }

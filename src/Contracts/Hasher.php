@@ -10,15 +10,15 @@
  * @copyright 2017-2018 Vagner Cardoso
  */
 
-namespace Core\Providers\Hash {
+namespace Core\Contracts {
     
     /**
-     * Class AbstractHasher
+     * Class Hasher
      *
-     * @package Core\Providers\Hash
+     * @package Core\Contracts
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    abstract class AbstractHasher
+    abstract class Hasher
     {
         /**
          * Retorna a informações sobre o hash fornecido

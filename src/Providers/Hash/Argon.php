@@ -12,13 +12,15 @@
 
 namespace Core\Providers\Hash {
     
+    use Core\Contracts\Hasher;
+    
     /**
-     * Class ArgonHasher
+     * Class Argon
      *
      * @package Core\Providers\Hash
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class ArgonHasher extends AbstractHasher
+    class Argon extends Hasher
     {
         /**
          * @var int
@@ -59,6 +61,36 @@ namespace Core\Providers\Hash {
         }
         
         /**
+         * @param array $options
+         *
+         * @return int
+         */
+        protected function memory(array $options)
+        {
+            return isset($options['memory']) ? $options['memory'] : $this->memory;
+        }
+        
+        /**
+         * @param array $options
+         *
+         * @return int
+         */
+        protected function time(array $options)
+        {
+            return isset($options['time']) ? $options['time'] : $this->time;
+        }
+        
+        /**
+         * @param array $options
+         *
+         * @return int
+         */
+        protected function threads(array $options)
+        {
+            return isset($options['threads']) ? $options['threads'] : $this->threads;
+        }
+        
+        /**
          * Esta função verifica se o hash fornecido implementa o algoritmo e as opções indicadas.
          * Se não, ela assume que o hash precisa ser regenerado.
          *
@@ -79,7 +111,7 @@ namespace Core\Providers\Hash {
         /**
          * @param int $threads
          *
-         * @return ArgonHasher
+         * @return Argon
          */
         public function setThreads($threads)
         {
@@ -91,7 +123,7 @@ namespace Core\Providers\Hash {
         /**
          * @param int $memory
          *
-         * @return ArgonHasher
+         * @return Argon
          */
         public function setMemory($memory)
         {
@@ -103,49 +135,13 @@ namespace Core\Providers\Hash {
         /**
          * @param int $time
          *
-         * @return ArgonHasher
+         * @return Argon
          */
         public function setTime($time)
         {
             $this->time = $time;
             
             return $this;
-        }
-        
-        /**
-         * @param array $options
-         *
-         * @return int
-         */
-        protected function memory(array $options)
-        {
-            return isset($options['memory'])
-                ? $options['memory']
-                : $this->memory;
-        }
-        
-        /**
-         * @param array $options
-         *
-         * @return int
-         */
-        protected function time(array $options)
-        {
-            return isset($options['time'])
-                ? $options['time']
-                : $this->time;
-        }
-        
-        /**
-         * @param array $options
-         *
-         * @return int
-         */
-        protected function threads(array $options)
-        {
-            return isset($options['threads'])
-                ? $options['threads']
-                : $this->threads;
         }
     }
 }

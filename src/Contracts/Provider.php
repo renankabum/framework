@@ -12,44 +12,46 @@
 
 namespace Core\Contracts {
     
+    use Core\App;
     use Slim\Container;
     
     /**
      * Class Provider
      *
+     * @property \Slim\Collection                      settings
+     * @property \Slim\Http\Environment                environment
+     * @property \Slim\Http\Request                    request
+     * @property \Slim\Http\Response                   response
+     * @property \Slim\Router                          router
+     *
+     * @property \Core\Providers\View\Twig             view
+     * @property \Core\Providers\Session\Session       session
+     * @property \Core\Providers\Session\Flash         flash
+     * @property \Core\Providers\Mailer\Mailer         mailer
+     * @property \Core\Providers\Hash\Bcrypt           hash
+     * @property \Core\Providers\Hash\Argon            argon
+     * @property \Core\Providers\Encryption\Encryption encryption
+     *
+     * @property \Core\Database\Connect                db
+     * @property \Core\Database\Statement\Create       create
+     * @property \Core\Database\Statement\Read         read
+     * @property \Core\Database\Statement\Update       update
+     * @property \Core\Database\Statement\Delete       delete
+     *
      * @package Core\Contracts
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
-     *
-     * @property \Core\Providers\Hash\BcryptHasher        hash
-     * @property \Core\Providers\Hash\ArgonHasher         hashArgon
-     * @property \Core\Providers\Session\Session          session
-     * @property \Core\Providers\Mailer\Mailer            mailer
-     * @property \Core\Providers\Encryption\Encryption    encryption
-     * @property \Core\Providers\View\Twig                view
-     * @property \Core\Providers\Session\Flash            flash
-     *
-     * @property \Core\Database\Database|\PDO             db
-     * @property \Core\Database\Statement\CreateStatement create
-     * @property \Core\Database\Statement\ReadStatement   read
-     * @property \Core\Database\Statement\UpdateStatement update
-     * @property \Core\Database\Statement\DeleteStatement delete
-     *
-     * @property \Slim\Container                          container
-     * @property \Slim\Http\Response                      response
-     * @property \Slim\Http\Request                       request
-     * @property \Slim\Router                             router
      */
     abstract class Provider
     {
         /**
-         * @var Container
+         * @var \Slim\Container
          */
         protected $container;
         
         /**
          * Provider constructor.
          *
-         * @param Container $container
+         * @param \Slim\Container $container
          */
         public function __construct(Container $container)
         {
@@ -57,14 +59,14 @@ namespace Core\Contracts {
         }
         
         /**
-         * Registers services on the given container.
+         * Registra novo(s) serviços. (container)
          *
          * @return void
          */
         abstract public function register();
         
         /**
-         * Register other services, such as middleware etc.
+         * Registra outros serviços no escopo do provider
          *
          * @return void
          */
@@ -76,12 +78,11 @@ namespace Core\Contracts {
          * @param string $name
          *
          * @return mixed
-         * @throws \Interop\Container\Exception\ContainerException
          */
         public function __get($name)
         {
-            if ($this->container->has($name)) {
-                return $this->container->get($name);
+            if (App::getInstance()->resolve($name)) {
+                return App::getInstance()->resolve($name);
             }
         }
     }

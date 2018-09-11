@@ -13,11 +13,11 @@
 namespace Core\Providers {
     
     use Core\Contracts\Provider;
-    use Core\Database\Database;
-    use Core\Database\Statement\CreateStatement;
-    use Core\Database\Statement\DeleteStatement;
-    use Core\Database\Statement\ReadStatement;
-    use Core\Database\Statement\UpdateStatement;
+    use Core\Database\Connect;
+    use Core\Database\Statement\Create;
+    use Core\Database\Statement\Delete;
+    use Core\Database\Statement\Read;
+    use Core\Database\Statement\Update;
     
     /**
      * Class DatabaseProvider
@@ -25,70 +25,30 @@ namespace Core\Providers {
      * @package Core\Providers
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class DatabaseProvider extends Provider
+    class DatabaseProvider extends Provider
     {
         /**
-         * Registers services on the given container.
+         * Registra os serviços para trabalhar com banco de dados
          *
          * @return void
+         * @throws \Exception
          */
         public function register()
         {
-            /**
-             * @return \Core\Database\Database|\PDO
-             * @throws \Exception
-             */
-            $this->container['db'] = function () {
-                if (empty($dbh)) {
-                    $dbh = new Database();
-                }
-                
-                return $dbh;
-            };
+            // Coneção
+            $this->container['db'] = new Connect();
             
-            /**
-             * @return CreateStatement
-             */
-            $this->container['create'] = function () {
-                if (empty($create)) {
-                    $create = new CreateStatement($this->container);
-                }
-                
-                return $create;
-            };
+            // Criação
+            $this->container['create'] = new Create();
             
-            /**
-             * @return ReadStatement
-             */
-            $this->container['read'] = function () {
-                if (empty($read)) {
-                    $read = new ReadStatement($this->container);
-                }
-                
-                return $read;
-            };
+            // Leitura
+            $this->container['read'] = new Read();
             
-            /**
-             * @return UpdateStatement
-             */
-            $this->container['update'] = function () {
-                if (empty($update)) {
-                    $update = new UpdateStatement($this->container);
-                }
-                
-                return $update;
-            };
+            // Atualização
+            $this->container['update'] = new Update();
             
-            /**
-             * @return DeleteStatement
-             */
-            $this->container['delete'] = function () {
-                if (empty($delete)) {
-                    $delete = new DeleteStatement($this->container);
-                }
-                
-                return $delete;
-            };
+            // Remover
+            $this->container['delete'] = new Delete();
         }
     }
 }

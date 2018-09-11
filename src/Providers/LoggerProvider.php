@@ -15,7 +15,7 @@ namespace Core\Providers {
     use Core\Contracts\Provider;
     use Monolog\Formatter\LineFormatter;
     use Monolog\Handler\StreamHandler;
-    use Monolog\Logger;
+    use Monolog\Logger as MonoLogger;
     
     /**
      * Class LoggerProvider
@@ -23,10 +23,10 @@ namespace Core\Providers {
      * @package Core\Providers
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class LoggerProvider extends Provider
+    class LoggerProvider extends Provider
     {
         /**
-         * Registers services on the given container.
+         * Registra o serviço de logs [Monolog]
          *
          * @return void
          */
@@ -46,7 +46,7 @@ namespace Core\Providers {
                     /**
                      * Instance logger
                      */
-                    $logger = new Logger('VCWEB_LOG');
+                    $logger = new MonoLogger('VCWEB_LOG');
                     
                     /**
                      * Verify name/dir
@@ -77,7 +77,7 @@ namespace Core\Providers {
                     /**
                      * Create logger handler
                      */
-                    $logger->pushHandler((new StreamHandler($dirOutput, Logger::DEBUG))->setFormatter($formatter));
+                    $logger->pushHandler((new StreamHandler($dirOutput, MonoLogger::DEBUG))->setFormatter($formatter));
                     
                     return $logger;
                 };

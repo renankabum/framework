@@ -13,12 +13,12 @@
 namespace Core\Providers\Mailer {
     
     /**
-     * Class MailerMessage
+     * Class Message
      *
      * @package Core\Providers\Mailer
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class MailerMessage
+    class Message
     {
         /**
          * @var \PHPMailer
@@ -26,7 +26,7 @@ namespace Core\Providers\Mailer {
         protected $mail;
         
         /**
-         * MailerMessage constructor.
+         * Message constructor.
          *
          * @param \PHPMailer $mail
          */
@@ -38,12 +38,12 @@ namespace Core\Providers\Mailer {
         /**
          * Adicionar quem está enviando o email
          *
-         * @param string      $address
-         * @param null|string $name
+         * @param string $address
+         * @param string $name
          *
          * @return $this
          */
-        public function from($address, $name = null)
+        public function from($address, $name = '')
         {
             $this->mail->From = $address;
             $this->mail->FromName = $name;
@@ -54,12 +54,12 @@ namespace Core\Providers\Mailer {
         /**
          * Adicionar a quem vai a resposta se for respondido o email
          *
-         * @param string      $address
-         * @param null|string $name
+         * @param string $address
+         * @param string $name
          *
          * @return $this
          */
-        public function reply($address, $name = null)
+        public function reply($address, $name = '')
         {
             $this->mail->addReplyTo($address, $name);
             
@@ -69,12 +69,12 @@ namespace Core\Providers\Mailer {
         /**
          * Adiciona para quem vai enviar o email.
          *
-         * @param string      $address
-         * @param null|string $name
+         * @param string $address
+         * @param string $name
          *
          * @return $this
          */
-        public function to($address, $name = null)
+        public function to($address, $name = '')
         {
             $this->mail->addAddress($address, $name);
             

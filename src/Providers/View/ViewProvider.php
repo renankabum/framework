@@ -12,7 +12,7 @@
 
 namespace Core\Providers\View {
     
-    use Core\Contracts\Provider;
+    use Core\Contracts\Provider as BaseProvider;
     
     /**
      * Class ViewProvider
@@ -20,10 +20,10 @@ namespace Core\Providers\View {
      * @package Core\Providers\View
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class ViewProvider extends Provider
+    class ViewProvider extends BaseProvider
     {
         /**
-         * Registers services on the given container.
+         * Registra o serviço de template
          *
          * @return void
          */
@@ -51,13 +51,14 @@ namespace Core\Providers\View {
             /**
              * Register view in mail
              *
-             * @return \Twig_Environment
+             * @return \Core\Providers\View\Twig
              */
-            $this->container['mailView'] = function () {
-                $mailView = new \Twig_Environment(new \Twig_Loader_Filesystem(APP_FOLDER.'/resources/mail'));
-                $mailView->addExtension(new TwigExtension());
-                
-                return $mailView;
+            $this->container['view-mail'] = function () {
+                return new Twig(APP_FOLDER.'/resources/mail', [
+                    'charset' => 'UTF-8',
+                    'cache' => false,
+                    'auto_reload' => true,
+                ]);
             };
         }
     }

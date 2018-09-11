@@ -15,12 +15,12 @@ namespace Core\Database\Statement {
     use Core\Database\Statement;
     
     /**
-     * Class UpdateStatement
+     * Class Update
      *
-     * @package Core\Database\Statement
+     * @package Core\Connect\Statement
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class UpdateStatement extends Statement
+    class Update extends Statement
     {
         /**
          * @var array
@@ -38,9 +38,9 @@ namespace Core\Database\Statement {
          */
         public function exec($table, array $columns, $terms = null, $places = null)
         {
-            $this->table = (string)$table;
-            $this->columns = (array)$columns;
-            $this->terms = (string)$terms;
+            $this->table = (string) $table;
+            $this->columns = (array) $columns;
+            $this->terms = (string) $terms;
             
             // Recupera o places
             $this->setPlaces($places);
@@ -52,13 +52,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                $code = $e->getCode();
-                
-                if (is_string($code)) {
-                    $code = 500;
-                }
-                
-                throw new \Exception($e->getMessage(), $code);
+                throw new \Exception("[UPDATE] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             // Retorna o resultado
@@ -83,13 +77,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                $code = $e->getCode();
-                
-                if (is_string($code)) {
-                    $code = 500;
-                }
-                
-                throw new \Exception($e->getMessage(), $code);
+                throw new \Exception("[UPDATE] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             // Retorna o resultado
@@ -115,7 +103,7 @@ namespace Core\Database\Statement {
         {
             $columns = [];
             
-            foreach ((array)$this->columns as $key => $value) {
+            foreach ((array) $this->columns as $key => $value) {
                 $time = '';
                 
                 if (!empty($this->places[$key])) {

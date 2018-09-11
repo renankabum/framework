@@ -12,7 +12,7 @@
 
 namespace Core\Providers\Mailer {
     
-    use Core\Contracts\Provider;
+    use Core\Contracts\Provider as BaseProvider;
     
     /**
      * Class MailerProvider
@@ -20,21 +20,16 @@ namespace Core\Providers\Mailer {
      * @package Core\Providers\Mailer
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class MailerProvider extends Provider
+    class MailerProvider extends BaseProvider
     {
         /**
-         * Registers services on the given container.
+         * Registra o serviço de envio de e-mail
          *
          * @return void
          */
         public function register()
         {
-            /**
-             * @return \Core\Providers\Mailer\Mailer
-             */
-            $this->container['mailer'] = function () {
-                return new Mailer($this->container);
-            };
+            $this->container['mailer'] = new Mailer();
         }
     }
 }

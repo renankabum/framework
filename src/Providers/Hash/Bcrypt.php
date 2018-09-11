@@ -12,13 +12,15 @@
 
 namespace Core\Providers\Hash {
     
+    use Core\Contracts\Hasher;
+    
     /**
-     * Class BcryptHasher
+     * Class Bcrypt
      *
      * @package Core\Providers\Hash
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class BcryptHasher extends AbstractHasher
+    class Bcrypt extends Hasher
     {
         /**
          * @var int
@@ -44,6 +46,18 @@ namespace Core\Providers\Hash {
             }
             
             return $hashedValue;
+        }
+        
+        /**
+         * Extraia o valor de custo da matriz de opções.
+         *
+         * @param array $options
+         *
+         * @return int
+         */
+        protected function cost(array $options)
+        {
+            return isset($options['rounds']) ? $options['rounds'] : $this->rounds;
         }
         
         /**
@@ -74,20 +88,6 @@ namespace Core\Providers\Hash {
             $this->rounds = (int) $rounds;
             
             return $this;
-        }
-        
-        /**
-         * Extraia o valor de custo da matriz de opções.
-         *
-         * @param array $options
-         *
-         * @return int
-         */
-        protected function cost(array $options)
-        {
-            return isset($options['rounds'])
-                ? $options['rounds']
-                : $this->rounds;
         }
     }
 }

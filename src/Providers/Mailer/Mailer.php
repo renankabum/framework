@@ -12,7 +12,8 @@
 
 namespace Core\Providers\Mailer {
     
-    use Psr\Container\ContainerInterface as Container;
+    use Core\App;
+    use Core\Helpers\Obj;
     
     /**
      * Class Mailer
@@ -20,18 +21,8 @@ namespace Core\Providers\Mailer {
      * @package Core\Providers\Mailer
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class Mailer
+    class Mailer
     {
-        /**
-         * Retorna o erro ocorrido
-         */
-        protected $error;
-        
-        /**
-         * @var \Slim\Container
-         */
-        protected $container;
-        
         /**
          * @var \PHPMailer
          */
@@ -39,86 +30,83 @@ namespace Core\Providers\Mailer {
         
         /**
          * Mailer constructor.
-         *
-         * @param Container $container
          */
-        public function __construct(Container $container)
+        public function __construct()
         {
-            $this->container = $container;
+            // Instancia do PHPMAILER
             $this->mail = new \PHPMailer();
-            $mail = object_set(config('mail'));
             
-            /**
-             * SMTP Autenticação
-             */
-            $this->mail->CharSet = $mail->charset;
-            $this->mail->setLanguage($mail->language->name, $mail->language->path);
+            // Configurações
+            $config = Obj::set(config('mail'));
+            
+            // Debug
+            $this->mail->SMTPDebug = $config->debug;
+            
+            // Charset
+            $this->mail->CharSet = $config->charset;
+            
+            // Linguagem
+            $this->mail->setLanguage('pt_br', '');
+            
+            // Ativar SMTP
             $this->mail->isSMTP();
+            
+            // Aceitar HTML
             $this->mail->isHTML(true);
             
-            /**
-             * Configuração dos dados de envio de emails.
-             */
-            $this->mail->Host = $mail->host;
-            $this->mail->Port = $mail->port;
-            $this->mail->Username = $mail->username;
-            $this->mail->Password = $mail->password;
-            $this->mail->SMTPAuth = $mail->auth;
-            $this->mail->SMTPSecure = $mail->secure;
+            // Configuração do servidor
+            $this->mail->Host = $config->host;
+            $this->mail->Port = $config->port;
+            $this->mail->Username = $config->username;
+            $this->mail->Password = $config->password;
             
-            /**
-             * Remetente e retorno do email
-             */
-            if ($mail->from->mail && $mail->from->name) {
-                $this->mail->setFrom($mail->from->mail, $mail->from->name);
-            }
+            // Autenticação SMTP
+            $this->mail->SMTPAuth = $config->auth;
             
-            if ($mail->reply->mail && $mail->reply->name) {
-                $this->mail->addReplyTo($mail->reply->mail, $mail->reply->name);
-            }
+            // Ativar segurança
+            $this->mail->SMTPSecure = $config->secure;
+            
+            // Remetente
+            $this->mail->From = $config->from->mail;
+            $this->mail->FromName = $config->from->name;
         }
         
         /**
-         * Envia o e-mail
+         * Monta e envia o e-mail
          *
-         * @param string   $view
-         * @param mixed    $data
-         * @param \Closure $callback
+         * @param string   $template
+         * @param array    $params
+         * @param callable $callback
          *
          * @return $this
+         * @throws \Exception
          */
-        public function send($view, $data, callable $callback)
+        public function send($template, array $params, callable $callback)
         {
-            $message = new MailerMessage($this->mail);
+            $message = new Message($this->mail);
             
-            $message->body($this->container['mailView']->render("{$view}.twig", [
-                'data' => $data,
-            ]));
+            $message->body(App::getInstance()->resolve('view-mail')->fetch($template, ['data' => $params]));
             
-            call_user_func_array($callback, [$message, $data]);
+            call_user_func_array($callback, [$message, $params]);
             
-            if (!$this->mail->send()) {
-                $this->error = $this->mail->ErrorInfo;
+            try {
+                if (!$this->mail->send()) {
+                    throw new \phpmailerException($this->mail->ErrorInfo, E_USER_ERROR);
+                }
                 
-                return $this;
+                // Limpa as propriedade do email
+                $this->mail->clearAddresses();
+                $this->mail->clearAllRecipients();
+                $this->mail->clearAttachments();
+                $this->mail->clearBCCs();
+                $this->mail->clearCCs();
+                $this->mail->clearCustomHeaders();
+                $this->mail->clearReplyTos();
+            } catch (\phpmailerException $e) {
+                throw new \Exception("[MAILER'] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
-            $this->error = false;
-            
-            $this->mail->clearAddresses();
-            $this->mail->clearReplyTos();
-            $this->mail->clearAllRecipients();
-            $this->mail->clearAttachments();
-            
             return $this;
-        }
-        
-        /**
-         * @return mixed
-         */
-        public function failed()
-        {
-            return $this->error;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Core\Providers\View {
      * @package Core\Providers\View\Engine
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class Twig
+    class Twig
     {
         /**
          * @var \Twig_Loader_Filesystem
@@ -36,18 +36,68 @@ namespace Core\Providers\View {
          * TwigProvider constructor.
          *
          * @param string|array $path
-         * @param array        $settings
+         * @param array        $options
          */
-        public function __construct($path, array $settings = [])
+        public function __construct($path, array $options = [])
         {
             $this->loader = $this->createLoader(is_string($path) ? [$path] : $path);
-            $this->environment = new \Twig_Environment($this->loader, $settings);
+            $this->environment = new \Twig_Environment($this->loader, $options);
             
             /**
              * Add default extension debug
              */
             $this->addExtension(new \Twig_Extension_Debug());
             $this->addExtension(new TwigExtension());
+        }
+        
+        /**
+         * @param array $paths
+         *
+         * @return \Twig_Loader_Filesystem
+         */
+        private function createLoader(array $paths)
+        {
+            $loader = new \Twig_Loader_Filesystem();
+            
+            foreach ($paths as $namespace => $path) {
+                if (is_string($namespace)) {
+                    $loader->setPaths($path, $namespace);
+                } else {
+                    $loader->addPath($path);
+                }
+            }
+            
+            return $loader;
+        }
+        
+        /**
+         * Add new extension
+         *
+         * @param \Twig_ExtensionInterface $extension
+         *
+         * @return $this
+         */
+        public function addExtension(\Twig_ExtensionInterface $extension)
+        {
+            $this->environment->addExtension($extension);
+            
+            return $this;
+        }
+        
+        /**
+         * Render the template with the slim3 response
+         *
+         * @param Response $response
+         * @param string   $template
+         * @param array    $data
+         *
+         * @return Response
+         */
+        public function render(Response $response, $template, array $data = [])
+        {
+            $response->getBody()->write($this->fetch($template, $data));
+            
+            return $response;
         }
         
         /**
@@ -72,37 +122,6 @@ namespace Core\Providers\View {
         }
         
         /**
-         * Render the template with the slim3 response
-         *
-         * @param Response $response
-         * @param string   $template
-         * @param array    $data
-         *
-         * @return Response
-         */
-        public function render(Response $response, $template, array $data = [])
-        {
-            $response->getBody()
-                ->write($this->fetch($template, $data));
-            
-            return $response;
-        }
-        
-        /**
-         * Add new extension
-         *
-         * @param \Twig_ExtensionInterface $extension
-         *
-         * @return $this
-         */
-        public function addExtension(\Twig_ExtensionInterface $extension)
-        {
-            $this->environment->addExtension($extension);
-            
-            return $this;
-        }
-        
-        /**
          * Add new function
          *
          * @param string   $name
@@ -111,7 +130,7 @@ namespace Core\Providers\View {
          *
          * @return $this
          */
-        public function addFunction($name, $callable, array $options = [])
+        public function addFunction($name, $callable, array $options = ['is_safe' => ['all']])
         {
             $this->environment->addFunction(new \Twig_SimpleFunction($name, $callable, $options));
             
@@ -127,7 +146,7 @@ namespace Core\Providers\View {
          *
          * @return $this
          */
-        public function addFilter($name, $callable, array $options = [])
+        public function addFilter($name, $callable, array $options = ['is_safe' => ['all']])
         {
             $this->environment->addFilter(new \Twig_SimpleFilter($name, $callable, $options));
             
@@ -157,26 +176,6 @@ namespace Core\Providers\View {
         public function getEnvironment()
         {
             return $this->environment;
-        }
-        
-        /**
-         * @param array $paths
-         *
-         * @return \Twig_Loader_Filesystem
-         */
-        private function createLoader(array $paths)
-        {
-            $loader = new \Twig_Loader_Filesystem();
-            
-            foreach ($paths as $namespace => $path) {
-                if (is_string($namespace)) {
-                    $loader->setPaths($path, $namespace);
-                } else {
-                    $loader->addPath($path);
-                }
-            }
-            
-            return $loader;
         }
     }
 }

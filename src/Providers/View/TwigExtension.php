@@ -23,7 +23,7 @@ namespace Core\Providers\View {
      * @property \Core\Providers\Session\Session session
      * @property \Core\Providers\Session\Flash   flash
      */
-    final class TwigExtension extends \Twig_Extension implements \Twig_Extension_GlobalsInterface
+    class  TwigExtension extends \Twig_Extension implements \Twig_Extension_GlobalsInterface
     {
         /**
          * Get class name
@@ -74,9 +74,7 @@ namespace Core\Providers\View {
          */
         public function flash($key = null)
         {
-            return app()
-                ->resolve('flash')
-                ->get($key);
+            return app()->resolve('flash')->get($key);
         }
     }
 }

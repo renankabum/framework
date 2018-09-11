@@ -22,10 +22,10 @@ namespace Core\Providers {
      * @package Core\Providers
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class ErrorProvider extends Provider
+    class ErrorProvider extends Provider
     {
         /**
-         * Registers services on the given container.
+         * Modifica o padrão de exibição de erros na aplicação
          *
          * @return void
          */
@@ -46,20 +46,21 @@ namespace Core\Providers {
                     $errors = [
                         'debug' => $this->container->settings['displayErrorDetails'],
                         'error' => [
-                            'type' => get_class($exception),
+                            //'type' => get_class($exception),
                             'code' => $exception->getCode(),
-                            'message' => $exception->getMessage(),
                             'file' => $exception->getFile(),
                             'line' => $exception->getLine(),
+                            'message' => $exception->getMessage(),
                             'trace' => explode("\n", $exception->getTraceAsString()),
                         ],
                     ];
                     
-                    if ($request->isXhr()) {
+                    // Verifica se é ajax ou api
+                    if ($request->isXhr() || has_route('/api')) {
                         return $response->withJson($errors, 500);
                     }
                     
-                    return view('error.500', $errors, 500);
+                    return view('@error.500', $errors, 500);
                 };
             };
             
@@ -76,18 +77,17 @@ namespace Core\Providers {
                 return function (Request $request, Response $response) {
                     $uri = urldecode($request->getUri());
                     
-                    if ($request->isXhr()) {
+                    // Verifica se é ajax ou api
+                    if ($request->isXhr() || has_route('/api')) {
                         return $response->withJson([
                             'error' => [
-                                'message' => 'Error 404 (Not Found)',
                                 'url' => $uri,
+                                'message' => 'Error 404 (Not Found)',
                             ],
                         ], 404);
                     }
                     
-                    return view('error.404', [
-                        'url' => $uri,
-                    ], 404);
+                    return view('@error.404', ['url' => $uri], 404);
                 };
             };
             
@@ -106,18 +106,19 @@ namespace Core\Providers {
                     $uri = urldecode($request->getUri());
                     $method = $request->getMethod();
                     
-                    if ($request->isXhr()) {
+                    // Verifica se é ajax ou api
+                    if ($request->isXhr() || has_route('/api')) {
                         return $response->withJson([
                             'error' => [
-                                'message' => 'Error 405 (Method not Allowed)',
                                 'url' => $uri,
                                 'method' => $method,
                                 'methods' => implode(', ', $methods),
+                                'message' => 'Error 405 (Method not Allowed)',
                             ],
                         ], 405);
                     }
                     
-                    return view('error.405', [
+                    return view('@error.405', [
                         'url' => $uri,
                         'method' => $method,
                         'methods' => implode(', ', $methods),

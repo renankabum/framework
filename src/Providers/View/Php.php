@@ -20,7 +20,7 @@ namespace Core\Providers\View {
      * @package Core\Providers\View
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class Php
+    class Php
     {
         /**
          * @var string
@@ -54,6 +54,30 @@ namespace Core\Providers\View {
         }
         
         /**
+         * Renderiza a view
+         *
+         * @param Response $response
+         * @param string   $template
+         * @param array    $context
+         *
+         * @return Response
+         * @throws \Exception
+         * @throws \Throwable
+         */
+        public function render(Response $response, $template, array $context = [])
+        {
+            try {
+                $response->getBody()->write($this->fetch($template, $context));
+                
+                return $response;
+            } catch (\Exception $e) {
+                throw $e;
+            } catch (\Throwable $e) {
+                throw $e;
+            }
+        }
+        
+        /**
          * Cria o render
          *
          * @param string $template
@@ -75,7 +99,7 @@ namespace Core\Providers\View {
             
             // Verify if exists file
             if (!is_file("{$this->path}/{$template}.php")) {
-                throw new \Exception("O template `{$template}` não existe.");
+                throw new \Exception("[VIEW::PHP] O template `{$template}` não existe.");
             }
             
             $this->context = $context;
@@ -105,31 +129,6 @@ namespace Core\Providers\View {
             }
             
             return $output;
-        }
-        
-        /**
-         * Renderiza a view
-         *
-         * @param Response $response
-         * @param string   $template
-         * @param array    $context
-         *
-         * @return Response
-         * @throws \Exception
-         * @throws \Throwable
-         */
-        public function render(Response $response, $template, array $context = [])
-        {
-            try {
-                $response->getBody()
-                    ->write($this->fetch($template, $context));
-                
-                return $response;
-            } catch (\Exception $e) {
-                throw $e;
-            } catch (\Throwable $e) {
-                throw $e;
-            }
         }
         
         /**

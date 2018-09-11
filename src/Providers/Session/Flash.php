@@ -18,14 +18,14 @@ namespace Core\Providers\Session {
      * @package App\Core\Providers\Session
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class Flash
+    class Flash
     {
         /**
          * Flash key
          *
          * @var string
          */
-        protected $key = '__vcFlash';
+        protected $key = '__flash__';
         
         /**
          * Flash data
@@ -47,44 +47,43 @@ namespace Core\Providers\Session {
         public function __construct()
         {
             if (!isset($_SESSION)) {
-                throw new \RuntimeException('Session not started.');
+                throw new \RuntimeException('[FLASH] Session not started.');
             }
             
-            $this->storage = &$_SESSION;
+            $this->storage = &$_SESSION[$this->key];
             
-            if (!empty($this->storage[$this->key]) && is_array($this->storage[$this->key])) {
-                $this->data = $this->storage[$this->key];
+            if (!empty($this->storage) && is_array($this->storage)) {
+                $this->data = $this->storage;
             }
             
-            $this->storage[$this->key] = [];
+            $this->storage = [];
         }
         
         /**
          * Adiciona uma nova mensagem
          *
-         * @param $key
-         * @param $message
+         * @param $name
+         * @param $value
          */
-        public function add($key, $message)
+        public function add($name, $value)
         {
             // Cria um array vasio caso não exista a key
-            if (empty($this->storage[$this->key][$key])) {
-                $this->storage[$this->key][$key] = [];
+            if (empty($this->storage[$name])) {
+                $this->storage[$name] = [];
             }
             
             // Adiciona uma nova mensagem
-            $this->storage[$this->key][$key] = $message;
+            $this->storage[$name] = $value;
         }
         
         /**
-         * Seta um novo alerta
+         * Retorna todas mensagems
          *
-         * @param $type
-         * @param $message
+         * @return array
          */
-        public function set($type, $message)
+        public function all()
         {
-            $this->add('alert', ['type' => $type, 'message' => $message]);
+            return $this->get();
         }
         
         /**
@@ -96,25 +95,25 @@ namespace Core\Providers\Session {
          */
         public function get($key = null)
         {
-            $messages = $this->data;
+            $data = $this->data;
             
-            if (is_null($key)) {
-                return $messages;
+            if (empty($key)) {
+                return $data;
             }
             
-            if (array_key_exists($key, $messages)) {
-                return $messages[$key];
+            if (array_key_exists($key, $data)) {
+                return $data[$key];
             }
             
             foreach (explode('.', $key) as $segment) {
-                if (is_array($messages) && array_key_exists($segment, $messages)) {
-                    $messages = $messages[$segment];
+                if (is_array($data) && array_key_exists($segment, $data)) {
+                    $data = $data[$segment];
                 } else {
                     return null;
                 }
             }
             
-            return $messages;
+            return $data;
         }
         
         /**
@@ -126,37 +125,37 @@ namespace Core\Providers\Session {
          */
         public function has($key)
         {
-            $messages = $this->data;
+            $data = $this->data;
             
             if (is_null($key)) {
                 return false;
             }
             
-            $key = (array)$key;
+            $key = (array) $key;
             
-            if (!$messages) {
+            if (!$data) {
                 return false;
             }
             
-            if ($messages === []) {
+            if ($data === []) {
                 return false;
             }
             
             foreach ($key as $item) {
-                if (array_key_exists($item, $messages)) {
+                if (array_key_exists($item, $data)) {
                     continue;
                 }
                 
                 foreach (explode('.', $item) as $segment) {
-                    if (is_array($messages) && array_key_exists($messages, $segment)) {
-                        $messages = $messages[$segment];
+                    if (is_array($data) && array_key_exists($data, $segment)) {
+                        $data = $data[$segment];
                     } else {
                         return false;
                     }
                 }
             }
             
-            return $messages;
+            return $data;
         }
     }
 }

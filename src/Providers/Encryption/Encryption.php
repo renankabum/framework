@@ -12,6 +12,7 @@
 
 namespace Core\Providers\Encryption {
     
+    use Core\Helpers\Str;
     use RuntimeException;
     
     /**
@@ -20,7 +21,7 @@ namespace Core\Providers\Encryption {
      * @package Core\Providers\Encryption
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class Encryption
+    class Encryption
     {
         /**
          * The encryption key.
@@ -44,13 +45,19 @@ namespace Core\Providers\Encryption {
          */
         public function __construct($key, $cipher = 'AES-128-CBC')
         {
-            $key = (string)$key;
+            $this->key = $key;
+            $this->cipher = $cipher;
             
-            if (static::supported($key, $cipher)) {
-                $this->key = $key;
-                $this->cipher = $cipher;
-            } else {
-                throw new RuntimeException('As únicas cifras suportadas são AES-128-CBC e AES-256-CBC com os comprimentos de chave corretos.');
+            if (empty($this->key)) {
+                throw new \RuntimeException('[ENCRYPTION] Não foi possível identificar sua chave.', E_ERROR);
+            }
+            
+            if (Str::startsWith($this->key, 'base64:')) {
+                $this->key = (string) base64_decode(substr($this->key, 7));
+            }
+            
+            if (!static::supported($this->key, $this->cipher)) {
+                throw new RuntimeException('[ENCRYPTION] As únicas cifras suportadas são AES-128-CBC e AES-256-CBC com os comprimentos de chave corretos.', E_ERROR);
             }
         }
         
@@ -66,8 +73,7 @@ namespace Core\Providers\Encryption {
         {
             $length = mb_strlen($key, '8bit');
             
-            return ($cipher === 'AES-128-CBC' && $length === 16) ||
-                   ($cipher === 'AES-256-CBC' && $length === 32);
+            return ($cipher === 'AES-128-CBC' && $length === 16) || ($cipher === 'AES-256-CBC' && $length === 32);
         }
         
         /**
@@ -81,6 +87,19 @@ namespace Core\Providers\Encryption {
         public static function generateKey($cipher)
         {
             return random_bytes($cipher == 'AES-128-CBC' ? 16 : 32);
+        }
+        
+        /**
+         * Encrypt a string without serialization.
+         *
+         * @param  string $value
+         *
+         * @return string
+         * @throws \Exception
+         */
+        public function encryptString($value)
+        {
+            return $this->encrypt($value, false);
         }
         
         /**
@@ -100,30 +119,43 @@ namespace Core\Providers\Encryption {
             $value = \openssl_encrypt($serialize ? serialize($value) : $value, $this->cipher, $this->key, 0, $iv);
             
             if ($value === false) {
-                throw new RuntimeException('Não foi possível criptografar os dados.');
+                throw new RuntimeException('[ENCRYPTION] Não foi possível criptografar os dados.', E_ERROR);
             }
             
             $mac = $this->hash($iv = base64_encode($iv), $value);
             $json = json_encode(compact('iv', 'value', 'mac'));
             
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new RuntimeException('Não foi possível criptografar os dados.');
+                throw new RuntimeException('[ENCRYPTION] Não foi possível criptografar os dados.', E_ERROR);
             }
             
             return base64_encode($json);
         }
         
         /**
-         * Encrypt a string without serialization.
+         * Create a MAC for the given value.
          *
-         * @param  string $value
+         * @param  string $iv
+         * @param  mixed  $value
+         *
+         * @return string
+         */
+        protected function hash($iv, $value)
+        {
+            return hash_hmac('sha256', $iv.$value, $this->key);
+        }
+        
+        /**
+         * Decrypt the given string without unserialization.
+         *
+         * @param  string $payload
          *
          * @return string
          * @throws \Exception
          */
-        public function encryptString($value)
+        public function decryptString($payload)
         {
-            return $this->encrypt($value, false);
+            return $this->decrypt($payload, false);
         }
         
         /**
@@ -148,32 +180,6 @@ namespace Core\Providers\Encryption {
             }
             
             return $unserialize ? unserialize($decrypted) : $decrypted;
-        }
-        
-        /**
-         * Decrypt the given string without unserialization.
-         *
-         * @param  string $payload
-         *
-         * @return string
-         * @throws \Exception
-         */
-        public function decryptString($payload)
-        {
-            return $this->decrypt($payload, false);
-        }
-        
-        /**
-         * Create a MAC for the given value.
-         *
-         * @param  string $iv
-         * @param  mixed  $value
-         *
-         * @return string
-         */
-        protected function hash($iv, $value)
-        {
-            return hash_hmac('sha256', $iv.$value, $this->key);
         }
         
         /**
@@ -208,8 +214,7 @@ namespace Core\Providers\Encryption {
          */
         protected function validPayload($payload)
         {
-            return is_array($payload) && isset($payload['iv'], $payload['value'], $payload['mac']) &&
-                   strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length($this->cipher);
+            return is_array($payload) && isset($payload['iv'], $payload['value'], $payload['mac']) && strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length($this->cipher);
         }
         
         /**
@@ -224,9 +229,7 @@ namespace Core\Providers\Encryption {
         {
             $calculated = $this->calculateMac($payload, $bytes = random_bytes(16));
             
-            return hash_equals(
-                hash_hmac('sha256', $payload['mac'], $bytes, true), $calculated
-            );
+            return hash_equals(hash_hmac('sha256', $payload['mac'], $bytes, true), $calculated);
         }
         
         /**
@@ -239,9 +242,7 @@ namespace Core\Providers\Encryption {
          */
         protected function calculateMac($payload, $bytes)
         {
-            return hash_hmac(
-                'sha256', $this->hash($payload['iv'], $payload['value']), $bytes, true
-            );
+            return hash_hmac('sha256', $this->hash($payload['iv'], $payload['value']), $bytes, true);
         }
         
         /**

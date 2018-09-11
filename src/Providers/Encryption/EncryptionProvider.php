@@ -12,8 +12,7 @@
 
 namespace Core\Providers\Encryption {
     
-    use Core\Contracts\Provider;
-    use Core\Helpers\Str;
+    use Core\Contracts\Provider as BaseProvider;
     
     /**
      * Class EncryptionProvider
@@ -21,29 +20,19 @@ namespace Core\Providers\Encryption {
      * @package Core\Providers\Encryption
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class EncryptionProvider extends Provider
+    class EncryptionProvider extends BaseProvider
     {
         /**
+         * Registra o serviço de criptografia de dados
+         *
          * @return void
          */
         public function register()
         {
-            /**
-             * @return \Core\Providers\Encryption\Encryption
-             */
-            $this->container['encryption'] = function () {
-                $config = config('app.encryption');
-                
-                if (empty($config['key'])) {
-                    throw new \RuntimeException('Não foi possível identificar sua `APP_KEY`.');
-                }
-                
-                if (Str::startsWith($config['key'], 'base64:')) {
-                    $config['key'] = base64_decode(substr($config['key'], 7));
-                }
-                
-                return new Encryption($config['key'], $config['cipher']);
-            };
+            // Configurações de criptografia
+            $encryption = config('app.encryption');
+            
+            $this->container['encryption'] = new Encryption($encryption['key'], $encryption['cipher']);
         }
     }
 }

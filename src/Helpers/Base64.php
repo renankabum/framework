@@ -1,9 +1,9 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * VCWeb Networks <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   VCWeb Networks
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
@@ -18,41 +18,30 @@ namespace Core\Helpers {
      * @package Core\Helpers
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    final class Base64
+    class Base64
     {
         /**
-         * Encoda o valor passado
-         *
-         * @param string|int $value
-         *
-         * @return mixed
-         */
-        public static function encode($value)
-        {
-            return str_replace('=', '', strtr(
-                base64_encode($value), '+/', '-_')
-            );
-        }
-        
-        /**
-         * Decoda o valor passado como encode
+         * Encode base64 URL-SAFE
          *
          * @param string $value
          *
+         * @return string
+         */
+        public static function encode($value)
+        {
+            return Helper::base64Encode($value);
+        }
+        
+        /**
+         * Decode base64 URL-SAFE
+         *
+         * @param string $encoded
+         *
          * @return bool|string
          */
-        public static function decode($value)
+        public static function decode($encoded)
         {
-            $remainder = strlen($value) % 4;
-            
-            if ($remainder) {
-                $padlen = 4 - $remainder;
-                $value .= str_repeat('=', $padlen);
-            }
-            
-            return base64_decode(strtr(
-                $value, '-/', '+/')
-            );
+            return Helper::base64Decode($encoded);
         }
     }
 }
