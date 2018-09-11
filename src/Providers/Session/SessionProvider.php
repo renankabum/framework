@@ -32,10 +32,14 @@ namespace Core\Providers\Session {
             // Verifica se a sessão está ativa
             if (config('app.session')) {
                 // Sessão
-                $this->container['session'] = new Session();
+                $this->container['session'] = function () {
+                    return new Session();
+                };
                 
                 // Flash Message
-                $this->container['flash'] = new Flash();
+                $this->container['flash'] = function () {
+                    return new Flash();
+                };
             }
         }
         

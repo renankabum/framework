@@ -29,7 +29,9 @@ namespace Core\Providers\Mailer {
          */
         public function register()
         {
-            $this->container['mailer'] = new Mailer();
+            $this->container['mailer'] = function () {
+                return new Mailer();
+            };
         }
     }
 }

@@ -40,10 +40,14 @@ namespace Core\Providers\Hash {
         public function register()
         {
             // Bcrypt
-            $this->container['hash'] = new Bcrypt();
+            $this->container['hash'] = function () {
+                return new Bcrypt();
+            };
             
             // Argon 2I
-            $this->container['argon'] = new Argon();
+            $this->container['argon'] = function () {
+                return new Argon();
+            };
         }
     }
 }

@@ -29,10 +29,12 @@ namespace Core\Providers\Encryption {
          */
         public function register()
         {
-            // Configurações de criptografia
-            $encryption = config('app.encryption');
-            
-            $this->container['encryption'] = new Encryption($encryption['key'], $encryption['cipher']);
+            $this->container['encryption'] = function () {
+                // Configurações de criptografia
+                $encryption = config('app.encryption');
+                
+                return new Encryption($encryption['key'], $encryption['cipher']);
+            };
         }
     }
 }

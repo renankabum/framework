@@ -36,19 +36,29 @@ namespace Core\Providers {
         public function register()
         {
             // Coneção
-            $this->container['db'] = new Connect();
+            $this->container['db'] = function () {
+                return new Connect();
+            };
             
             // Criação
-            $this->container['create'] = new Create();
+            $this->container['create'] = function () {
+                return new Create();
+            };
             
             // Leitura
-            $this->container['read'] = new Read();
+            $this->container['read'] = function () {
+                return new Read();
+            };
             
             // Atualização
-            $this->container['update'] = new Update();
+            $this->container['update'] = function () {
+                return new Update();
+            };
             
             // Remover
-            $this->container['delete'] = new Delete();
+            $this->container['delete'] = function () {
+                return new Delete();
+            };
         }
     }
 }
