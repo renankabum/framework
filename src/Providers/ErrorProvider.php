@@ -60,7 +60,7 @@ namespace Core\Providers {
                         return $response->withJson($errors, 500);
                     }
                     
-                    return view('@error.500', $errors, 500);
+                    return view('error.500', $errors, 500);
                 };
             };
             
@@ -87,7 +87,7 @@ namespace Core\Providers {
                         ], 404);
                     }
                     
-                    return view('@error.404', ['url' => $uri], 404);
+                    return view('error.404', ['url' => $uri], 404);
                 };
             };
             
@@ -118,7 +118,7 @@ namespace Core\Providers {
                         ], 405);
                     }
                     
-                    return view('@error.405', [
+                    return view('error.405', [
                         'url' => $uri,
                         'method' => $method,
                         'methods' => implode(', ', $methods),
