@@ -47,7 +47,7 @@ namespace Core\Providers\Session {
         public function __construct()
         {
             if (!isset($_SESSION)) {
-                throw new \RuntimeException('[FLASH] Session not started.');
+                throw new \RuntimeException('[FLASH] :: Session not started.');
             }
             
             $this->storage = &$_SESSION[$this->key];

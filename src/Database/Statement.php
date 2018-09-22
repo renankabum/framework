@@ -103,7 +103,7 @@ namespace Core\Database {
                 // Executa a query
                 $this->stmt->execute();
             } catch (\PDOException $e) {
-                throw new \Exception($e->getMessage(), (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[STATEMENT] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
         }
         

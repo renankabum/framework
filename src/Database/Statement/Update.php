@@ -52,7 +52,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new \Exception("[UPDATE] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[UPDATE] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             // Retorna o resultado
@@ -77,7 +77,7 @@ namespace Core\Database\Statement {
                 // Recupera o resultado
                 $this->result = $this->stmt->rowCount();
             } catch (\PDOException $e) {
-                throw new \Exception("[UPDATE] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[UPDATE] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             // Retorna o resultado

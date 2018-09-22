@@ -74,18 +74,18 @@ namespace Core\Providers\Mailer {
         /**
          * Monta e envia o e-mail
          *
-         * @param string   $template
+         * @param string   $view
          * @param array    $params
          * @param callable $callback
          *
          * @return $this
          * @throws \Exception
          */
-        public function send($template, array $params, callable $callback)
+        public function send($view, array $params, callable $callback)
         {
             $message = new Message($this->mail);
             
-            $message->body(App::getInstance()->resolve('view-mail')->fetch($template, ['data' => $params]));
+            $message->body(App::getInstance()->resolve('view-mail')->fetch($view, ['data' => $params]));
             
             call_user_func_array($callback, [$message, $params]);
             
@@ -103,7 +103,7 @@ namespace Core\Providers\Mailer {
                 $this->mail->clearCustomHeaders();
                 $this->mail->clearReplyTos();
             } catch (\phpmailerException $e) {
-                throw new \Exception("[MAILER'] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[MAILER'] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             return $this;

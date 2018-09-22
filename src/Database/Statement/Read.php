@@ -46,7 +46,7 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute($sql);
             } catch (\PDOException $e) {
-                throw new \Exception("[READ] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[READ] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             return $this;
@@ -71,7 +71,7 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute($sql);
             } catch (\PDOException $e) {
-                throw new \Exception("[READ] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[READ] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             return $this;
@@ -92,7 +92,7 @@ namespace Core\Database\Statement {
                 // Executa o bind e query
                 $this->execute();
             } catch (\PDOException $e) {
-                throw new \Exception("[READ] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[READ] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
             
             return $this;

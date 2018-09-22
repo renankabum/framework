@@ -67,7 +67,7 @@ namespace Core\Database {
             } catch (\PDOException $e) {
                 $this->failed = true;
                 
-                throw new \Exception("[DB] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[CONNECT] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
         }
         

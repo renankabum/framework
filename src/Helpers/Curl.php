@@ -85,7 +85,7 @@ namespace Core\Helpers {
                 
                 return $result;
             } catch (\Exception $e) {
-                throw new \Exception($e->getMessage(), (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[CURL] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
         }
         

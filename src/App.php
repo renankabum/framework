@@ -37,22 +37,28 @@ namespace Core {
             $environment = config('app.environment', 'development');
             
             /**
-             * Slim
+             * PHP Basic Config
              *
-             * Configurações padrões
+             * Configurações básicas do sistema
              */
             
-            parent::__construct([
-                'settings' => [
-                    'httpVersion' => '1.1',
-                    'responseChunkSize' => 4096,
-                    'outputBuffering' => 'append',
-                    'determineRouteBeforeAppMiddleware' => true,
-                    'displayErrorDetails' => ($environment === 'production' ? false : true),
-                    'addContentLengthHeader' => true,
-                    'routerCacheFile' => false,
-                ],
-            ]);
+            ini_set('display_errors', 'On');
+            ini_set('display_startup_errors', 'On');
+            ini_set('default_charset', 'UTF-8');
+            
+            mb_internal_encoding('UTF-8');
+            date_default_timezone_set(config('app.timezone', 'America/Sao_Paulo'));
+            setlocale(LC_ALL, config('app.locale'), config('app.locale').'.utf-8');
+            
+            if ($environment == 'development') {
+                error_reporting(E_ALL);
+            } else {
+                error_reporting(E_ALL ^ E_NOTICE);
+            }
+            
+            set_error_handler(function ($code, $message, $file, $line) {
+                throw new \ErrorException($message, $code, 1, $file, $line);
+            });
             
             /**
              * Session
@@ -71,33 +77,12 @@ namespace Core {
             }
             
             /**
-             * PHP Basic Config
-             *
-             * Configurações básicas do sistema
-             */
-            
-            mb_internal_encoding('UTF-8');
-            date_default_timezone_set(config('app.timezone', 'America/Sao_Paulo'));
-            ini_set('default_charset', 'UTF-8');
-            setlocale(LC_ALL, config('app.locale'), config('app.locale').'.utf-8');
-            
-            /**
              * Carbon
              *
              * Configura a linguagem
              */
             
             Carbon::setLocale(config('app.locale'));
-            
-            /**
-             * ErrorProvider Handler
-             *
-             * Função customizada para output dos erros
-             */
-            
-            set_error_handler(function ($code, $message, $file, $line) {
-                throw new \ErrorException($message, $code, 1, $file, $line);
-            });
             
             /**
              * APP Key
@@ -108,15 +93,33 @@ namespace Core {
             if (substr(config('app.encryption.key'), 0, 7) !== "base64:") {
                 $this->generateKey();
             }
+            
+            /**
+             * Slim
+             *
+             * Configurações padrões
+             */
+            
+            parent::__construct([
+                'settings' => [
+                    'httpVersion' => '1.1',
+                    'responseChunkSize' => 4096,
+                    'outputBuffering' => 'append',
+                    'determineRouteBeforeAppMiddleware' => true,
+                    'displayErrorDetails' => ($environment === 'production' ? false : true),
+                    'addContentLengthHeader' => true,
+                    'routerCacheFile' => false,
+                ],
+            ]);
         }
-    
+        
         /**
          * Troca o APP_KEY do arquivos .env
          */
         private function generateKey()
         {
             $escaped = preg_quote('='.config('app.encryption.key'), '/');
-        
+            
             file_put_contents(
                 APP_FOLDER.'/.env',
                 preg_replace(
@@ -127,7 +130,7 @@ namespace Core {
                     file_get_contents(APP_FOLDER.'/.env')
                 )
             );
-        
+            
             location(BASE_URL, 302);
         }
         
@@ -217,7 +220,7 @@ namespace Core {
         }
         
         /**
-         * Register Middleware for application
+         * Registra as middlewares
          *
          * @return mixed
          */
@@ -255,9 +258,7 @@ namespace Core {
         }
         
         /**
-         * Register functions for application
-         *
-         * @return mixed
+         * Registra as funções
          */
         public function registerFunctions()
         {
@@ -271,7 +272,7 @@ namespace Core {
         }
         
         /**
-         * Register container for application
+         * Registra os serviços
          *
          * @return mixed
          */
@@ -299,9 +300,7 @@ namespace Core {
         }
         
         /**
-         * Register router for application
-         *
-         * @return mixed
+         * Registra as rotas
          */
         public function registerRouter()
         {

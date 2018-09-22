@@ -35,7 +35,7 @@ namespace Core\Providers {
          */
         public function register()
         {
-            // Coneção
+            // Conexão
             $this->container['db'] = function () {
                 return new Connect();
             };
