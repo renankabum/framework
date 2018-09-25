@@ -29,6 +29,11 @@ namespace Core\Providers\Mailer {
         protected $mail;
         
         /**
+         * @var string|bool
+         */
+        protected $error;
+        
+        /**
          * Mailer constructor.
          */
         public function __construct()
@@ -102,11 +107,24 @@ namespace Core\Providers\Mailer {
                 $this->mail->clearCCs();
                 $this->mail->clearCustomHeaders();
                 $this->mail->clearReplyTos();
+                $this->error = false;
+                
+                return $this;
             } catch (\phpmailerException $e) {
+                $this->error = $e->getMessage();
+                
                 throw new \Exception("[MAILER'] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
-            
-            return $this;
+        }
+        
+        /**
+         * Verifica se existe erros
+         *
+         * @return bool|string
+         */
+        public function failed()
+        {
+            return $this->error;
         }
     }
 }
