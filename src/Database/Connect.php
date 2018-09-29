@@ -72,6 +72,38 @@ namespace Core\Database {
         }
         
         /**
+         * Cria a transação customizada
+         *
+         * @param \Closure $callback
+         *
+         * @throws \Exception|\Throwable
+         */
+        public function transaction(\Closure $callback)
+        {
+            try {
+                // Inicia a transação
+                $this->beginTransaction();
+                
+                // Executa o bloco de código
+                call_user_func($callback);
+                
+                // Envia as informações para o banco
+                $this->commit();
+            }
+            
+            // Faz a reversão no banco
+            catch (\Exception $e) {
+                $this->rollBack();
+                
+                throw $e;
+            } catch (\Throwable $e) {
+                $this->rollBack();
+                
+                throw $e;
+            }
+        }
+        
+        /**
          * @param string $driver
          *
          * @return string
