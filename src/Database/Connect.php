@@ -70,12 +70,13 @@ namespace Core\Database {
                 throw new \Exception("[CONNECT] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
         }
-        
+    
         /**
          * Cria a transação customizada
          *
          * @param \Closure $callback
          *
+         * @return \Closure|mixed
          * @throws \Exception|\Throwable
          */
         public function transaction(\Closure $callback)
@@ -85,13 +86,13 @@ namespace Core\Database {
                 $this->beginTransaction();
                 
                 // Executa o bloco de código
-                call_user_func($callback);
+                $callback = call_user_func($callback);
                 
                 // Envia as informações para o banco
                 $this->commit();
-            }
-            
-            // Faz a reversão no banco
+                
+                return $callback;
+            } // Faz a reversão no banco
             catch (\Exception $e) {
                 $this->rollBack();
                 
