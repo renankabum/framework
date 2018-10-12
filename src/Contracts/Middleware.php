@@ -32,6 +32,7 @@ namespace Core\Contracts {
      * @property \Core\Providers\Hash\Bcrypt           hash
      * @property \Core\Providers\Hash\Argon            argon
      * @property \Core\Providers\Encryption\Encryption encryption
+     * @property \Core\Providers\Jwt\Jwt               jwt
      *
      * @property \Core\Database\Connect                db
      * @property \Core\Database\Statement\Create       create
