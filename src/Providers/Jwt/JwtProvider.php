@@ -10,15 +10,14 @@
  * @copyright 2017-2018 Vagner Cardoso
  */
 
-namespace App\App\Providers\Jwt {
+namespace Core\Providers\Jwt {
     
     use Core\Contracts\Provider;
-    use Core\Providers\Jwt\Jwt;
     
     /**
      * Class JwtProvider
      *
-     * @package App\App\Providers\Jwt
+     * @package Core\Providers\Jwt
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
     class JwtProvider extends Provider
