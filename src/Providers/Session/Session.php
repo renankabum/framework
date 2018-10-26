@@ -106,7 +106,17 @@ namespace Core\Providers\Session {
         /**
          * @param string $key
          *
-         * @return mixed
+         * @return void
+         */
+        public function forget($key)
+        {
+            $this->remove($key);
+        }
+        
+        /**
+         * @param string $key
+         *
+         * @return void
          */
         public function remove($key)
         {
