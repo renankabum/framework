@@ -12,9 +12,6 @@
 
 namespace Core\Providers\Encryption {
     
-    use Core\Helpers\Str;
-    use RuntimeException;
-    
     /**
      * Class Encrypter
      *
@@ -40,53 +37,17 @@ namespace Core\Providers\Encryption {
         /**
          * Create a new encrypter instance.
          *
-         * @param  string $key
-         * @param  string $cipher
+         * @param string $key
+         * @param string $cipher
          */
-        public function __construct($key, $cipher = 'AES-128-CBC')
+        public function __construct($key, $cipher = 'AES-256-CBC')
         {
             $this->key = $key;
             $this->cipher = $cipher;
             
             if (empty($this->key)) {
-                throw new \RuntimeException('[ENCRYPTION] Não foi possível identificar sua chave.', E_ERROR);
+                throw new \InvalidArgumentException('[ENCRYPTION] :: Empty key.', E_ERROR);
             }
-            
-            if (Str::startsWith($this->key, 'base64:')) {
-                $this->key = (string) base64_decode(substr($this->key, 7));
-            }
-            
-            if (!static::supported($this->key, $this->cipher)) {
-                throw new RuntimeException('[ENCRYPTION] As únicas cifras suportadas são AES-128-CBC e AES-256-CBC com os comprimentos de chave corretos.', E_ERROR);
-            }
-        }
-        
-        /**
-         * Determine if the given key and cipher combination is valid.
-         *
-         * @param  string $key
-         * @param  string $cipher
-         *
-         * @return bool
-         */
-        public static function supported($key, $cipher)
-        {
-            $length = mb_strlen($key, '8bit');
-            
-            return ($cipher === 'AES-128-CBC' && $length === 16) || ($cipher === 'AES-256-CBC' && $length === 32);
-        }
-        
-        /**
-         * Create a new encryption key for the given cipher.
-         *
-         * @param  string $cipher
-         *
-         * @return string
-         * @throws \Exception
-         */
-        public static function generateKey($cipher)
-        {
-            return random_bytes($cipher == 'AES-128-CBC' ? 16 : 32);
         }
         
         /**
@@ -109,24 +70,29 @@ namespace Core\Providers\Encryption {
          * @param  bool  $serialize
          *
          * @return string
-         *
-         * @throws RuntimeException
-         * @throws \Exception
          */
         public function encrypt($value, $serialize = true)
         {
-            $iv = random_bytes(openssl_cipher_iv_length($this->cipher));
+            $ivlenght = openssl_cipher_iv_length($this->cipher);
+            
+            // Verifica a versão do PHP
+            if (PHP_MAJOR_VERSION > 5) {
+                $iv = random_bytes($ivlenght);
+            } else {
+                $iv = openssl_random_pseudo_bytes($ivlenght);
+            }
+            
             $value = \openssl_encrypt($serialize ? serialize($value) : $value, $this->cipher, $this->key, 0, $iv);
             
             if ($value === false) {
-                throw new RuntimeException('[ENCRYPTION] Não foi possível criptografar os dados.', E_ERROR);
+                return false;
             }
             
             $mac = $this->hash($iv = base64_encode($iv), $value);
             $json = json_encode(compact('iv', 'value', 'mac'));
             
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new RuntimeException('[ENCRYPTION] Não foi possível criptografar os dados.', E_ERROR);
+                return false;
             }
             
             return base64_encode($json);
@@ -165,9 +131,6 @@ namespace Core\Providers\Encryption {
          * @param  bool  $unserialize
          *
          * @return string|bool
-         *
-         * @throws \RuntimeException
-         * @throws \Exception
          */
         public function decrypt($payload, $unserialize = true)
         {
@@ -188,7 +151,6 @@ namespace Core\Providers\Encryption {
          * @param  string $payload
          *
          * @return array|bool
-         * @throws \Exception
          */
         protected function getJsonPayload($payload)
         {
@@ -223,11 +185,12 @@ namespace Core\Providers\Encryption {
          * @param  array $payload
          *
          * @return bool
-         * @throws \Exception
          */
         protected function validMac(array $payload)
         {
-            $calculated = $this->calculateMac($payload, $bytes = random_bytes(16));
+            $bytes = (PHP_MAJOR_VERSION > 5) ? random_bytes(16) : openssl_random_pseudo_bytes(16);
+            
+            $calculated = $this->calculateMac($payload, $bytes);
             
             return hash_equals(hash_hmac('sha256', $payload['mac'], $bytes, true), $calculated);
         }

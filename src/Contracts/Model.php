@@ -28,7 +28,6 @@ namespace Core\Contracts {
      * @property \Core\Providers\Session\Flash         flash
      * @property \Core\Providers\Mailer\Mailer         mailer
      * @property \Core\Providers\Hash\Bcrypt           hash
-     * @property \Core\Providers\Hash\Argon            argon
      * @property \Core\Providers\Encryption\Encryption encryption
      * @property \Core\Providers\Jwt\Jwt               jwt
      *
@@ -50,9 +49,7 @@ namespace Core\Contracts {
          */
         public function __get($name)
         {
-            if (App::getInstance()->resolve($name)) {
-                return App::getInstance()->resolve($name);
-            }
+            return App::getInstance()->resolve($name);
         }
     }
 }

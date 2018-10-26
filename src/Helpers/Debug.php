@@ -24,14 +24,14 @@ namespace Core\Helpers {
     class Debug
     {
         /**
-         * Symfony customize dump
+         * Melhoria no dumper
          *
-         * @param $var
+         * @param mixed $var
          */
         public function dump($var)
         {
             if (class_exists(CliDumper::class)) {
-                $dump = in_array(PHP_SAPI, ['cli', 'phpdbg']) ? new CliDumper() : new HtmlDumper();
+                $dump = is_php_cli() ? new CliDumper() : new HtmlDumper();
                 $dump->dump((new VarCloner())->cloneVar($var));
             } else {
                 var_dump($var);

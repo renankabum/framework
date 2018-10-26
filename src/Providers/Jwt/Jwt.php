@@ -12,7 +12,7 @@
 
 namespace Core\Providers\Jwt {
     
-    use Core\Helpers\Helper;
+    use Core\Helpers\Base64;
     
     /**
      * Class Jwt
@@ -73,82 +73,16 @@ namespace Core\Providers\Jwt {
                 'alg' => $algorithm,
             ]);
             
-            $array[] = Helper::base64Encode(json_encode($header));
+            $array[] = Base64::encode(json_encode($header));
             
             // Payload
-            $array[] = Helper::base64Encode(json_encode($payload));
+            $array[] = Base64::encode(json_encode($payload));
             
             // Signature
             $signature = $this->signature(implode('.', $array), $algorithm);
-            $array[] = Helper::base64Encode($signature);
+            $array[] = Base64::encode($signature);
             
             return implode('.', $array);
-        }
-        
-        /**
-         * Decode the jwt string.
-         *
-         * @param string $token
-         *
-         * @return array
-         * @throws \Exception
-         */
-        public function decode($token)
-        {
-            $split = explode('.', $token);
-            
-            if (count($split) != 3) {
-                throw new \InvalidArgumentException("[JWT] :: The token does not contain a valid format.", E_USER_ERROR);
-            }
-            
-            // Separate the token
-            list($header64, $payload64, $signature) = $split;
-            
-            if (!$header = json_decode(Helper::base64Decode($header64), true, 512, JSON_BIGINT_AS_STRING)) {
-                throw new \UnexpectedValueException("[JWT] :: Invalid header encoding.", E_USER_ERROR);
-            }
-            
-            if (!$payload = json_decode(Helper::base64Decode($payload64), true, 512, JSON_BIGINT_AS_STRING)) {
-                throw new \UnexpectedValueException("[JWT] :: Invalid payload encoding.", E_USER_ERROR);
-            }
-            
-            if (!$signature = Helper::base64Decode($signature)) {
-                throw new \UnexpectedValueException("[JWT] :: Invalid signature encoding.", E_USER_ERROR);
-            }
-            
-            if (empty($header['alg'])) {
-                throw new \UnexpectedValueException("[JWT] :: Empty algorithm.", E_USER_ERROR);
-            }
-            
-            if (!array_key_exists($header['alg'], $this->algorithms)) {
-                throw new \UnexpectedValueException("[JWT] :: Algorithm {$header['alg']} is not supported.", E_USER_ERROR);
-            }
-            
-            if (!$this->validate("{$header64}.{$payload64}", $signature, $header['alg'])) {
-                throw new \Exception("[JWT] :: Signature verification failed.", E_USER_ERROR);
-            }
-            
-            return $payload;
-        }
-        
-        /**
-         * @return string
-         */
-        public function getKey()
-        {
-            return $this->key;
-        }
-        
-        /**
-         * @param string $key
-         *
-         * @return Jwt
-         */
-        public function setKey($key)
-        {
-            $this->key = $key;
-            
-            return $this;
         }
         
         /**
@@ -173,6 +107,52 @@ namespace Core\Providers\Jwt {
                     return hash_hmac($algorithm, $hashed, $this->key, true);
                     break;
             }
+        }
+        
+        /**
+         * Decode the jwt string.
+         *
+         * @param string $token
+         *
+         * @return array
+         * @throws \Exception
+         */
+        public function decode($token)
+        {
+            $split = explode('.', $token);
+            
+            if (count($split) != 3) {
+                throw new \InvalidArgumentException("[JWT] :: The token does not contain a valid format.", E_USER_ERROR);
+            }
+            
+            // Separate the token
+            list($header64, $payload64, $signature) = $split;
+            
+            if (!$header = json_decode(Base64::decode($header64), true, 512, JSON_BIGINT_AS_STRING)) {
+                throw new \UnexpectedValueException("[JWT] :: Invalid header encoding.", E_USER_ERROR);
+            }
+            
+            if (!$payload = json_decode(Base64::decode($payload64), true, 512, JSON_BIGINT_AS_STRING)) {
+                throw new \UnexpectedValueException("[JWT] :: Invalid payload encoding.", E_USER_ERROR);
+            }
+            
+            if (!$signature = Base64::decode($signature)) {
+                throw new \UnexpectedValueException("[JWT] :: Invalid signature encoding.", E_USER_ERROR);
+            }
+            
+            if (empty($header['alg'])) {
+                throw new \UnexpectedValueException("[JWT] :: Empty algorithm.", E_USER_ERROR);
+            }
+            
+            if (!array_key_exists($header['alg'], $this->algorithms)) {
+                throw new \UnexpectedValueException("[JWT] :: Algorithm {$header['alg']} is not supported.", E_USER_ERROR);
+            }
+            
+            if (!$this->validate("{$header64}.{$payload64}", $signature, $header['alg'])) {
+                throw new \Exception("[JWT] :: Signature verification failed.", E_USER_ERROR);
+            }
+            
+            return $payload;
         }
         
         /**
@@ -206,6 +186,26 @@ namespace Core\Providers\Jwt {
             }
             
             return false;
+        }
+        
+        /**
+         * @return string
+         */
+        public function getKey()
+        {
+            return $this->key;
+        }
+        
+        /**
+         * @param string $key
+         *
+         * @return Jwt
+         */
+        public function setKey($key)
+        {
+            $this->key = $key;
+            
+            return $this;
         }
     }
 }

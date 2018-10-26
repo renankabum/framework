@@ -43,13 +43,13 @@ namespace Core\Providers\View {
         public function getFunctions()
         {
             return [
-                new \Twig_SimpleFunction('path_for', 'path_for'),
-                new \Twig_SimpleFunction('config', 'config'),
+                new \Twig_SimpleFunction('path_for', 'path_for', ['is_safe' => ['all']]),
+                new \Twig_SimpleFunction('config', 'config', ['is_safe' => ['all']]),
                 new \Twig_SimpleFunction('asset', 'asset', ['is_safe' => ['all']]),
                 new \Twig_SimpleFunction('asset_source', 'asset_source', ['is_safe' => ['all']]),
-                new \Twig_SimpleFunction('has_route', 'has_route'),
-                new \Twig_SimpleFunction('is_route', 'is_route'),
-                new \Twig_SimpleFunction('flash', [$this, 'flash'], ['is_safe' => ['html']]),
+                new \Twig_SimpleFunction('has_route', 'has_route', ['is_safe' => ['all']]),
+                new \Twig_SimpleFunction('is_route', 'is_route', ['is_safe' => ['all']]),
+                new \Twig_SimpleFunction('dd', 'dd', ['is_safe' => ['all']]),
             ];
         }
         
@@ -60,21 +60,7 @@ namespace Core\Providers\View {
          */
         public function getGlobals()
         {
-            return [
-                'session' => app()->resolve('session'),
-            ];
-        }
-        
-        // FUNCTIONS TWIG
-        
-        /**
-         * @param string $key
-         *
-         * @return mixed
-         */
-        public function flash($key = null)
-        {
-            return app()->resolve('flash')->get($key);
+            return [];
         }
     }
 }

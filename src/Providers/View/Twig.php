@@ -71,6 +71,20 @@ namespace Core\Providers\View {
         }
         
         /**
+         * Add new extension
+         *
+         * @param \Twig_ExtensionInterface $extension
+         *
+         * @return $this
+         */
+        public function addExtension(\Twig_ExtensionInterface $extension)
+        {
+            $this->environment->addExtension($extension);
+            
+            return $this;
+        }
+        
+        /**
          * Render the template with the slim3 response
          *
          * @param Response $response
@@ -105,20 +119,6 @@ namespace Core\Providers\View {
             $template = str_replace('.', '/', $template);
             
             return $this->environment->render("{$template}.twig", $data);
-        }
-        
-        /**
-         * Add new extension
-         *
-         * @param \Twig_ExtensionInterface $extension
-         *
-         * @return $this
-         */
-        public function addExtension(\Twig_ExtensionInterface $extension)
-        {
-            $this->environment->addExtension($extension);
-            
-            return $this;
         }
         
         /**

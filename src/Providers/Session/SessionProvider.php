@@ -29,18 +29,23 @@ namespace Core\Providers\Session {
          */
         public function register()
         {
-            // Verifica se a sessão está ativa
-            if (config('app.session')) {
-                // Sessão
-                $this->container['session'] = function () {
+            // Sessão
+            $this->container['session'] = function () {
+                if (!is_php_cli() && config('app.session')) {
                     return new Session();
-                };
+                }
                 
-                // Flash Message
-                $this->container['flash'] = function () {
+                return false;
+            };
+            
+            // Flash Message
+            $this->container['flash'] = function () {
+                if (!is_php_cli() && config('app.session')) {
                     return new Flash();
-                };
-            }
+                }
+                
+                return false;
+            };
         }
         
         /**
@@ -50,8 +55,7 @@ namespace Core\Providers\Session {
          */
         public function boot()
         {
-            // Verifica se a sessão está ativa
-            if (config('app.session')) {
+            if (!is_php_cli() && config('app.session')) {
                 $this->view->addGlobal('session', $this->session->all());
                 $this->view->addGlobal('flash', $this->flash->all());
             }

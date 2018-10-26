@@ -2,8 +2,6 @@
 
 use Core\App;
 use Core\Helpers\Debug;
-use Core\Helpers\Helper;
-use Core\Helpers\Obj;
 use Core\Helpers\Str;
 
 if (!function_exists('dd')) {
@@ -24,6 +22,22 @@ if (!function_exists('dd')) {
     }
 }
 
+if (!function_exists('onlyNumber')) {
+    /**
+     * Retorna apenas os números de uma string passada
+     *
+     * @param string $value
+     *
+     * @return int|string
+     */
+    function onlyNumber($value)
+    {
+        if (!empty($value)) {
+            return preg_replace('/[^0-9]/', '', $value);
+        }
+    }
+}
+
 if (!function_exists('env')) {
     /**
      * Recupera a configuração setada no .env
@@ -35,19 +49,32 @@ if (!function_exists('env')) {
      */
     function env($name, $default = null)
     {
-        return Helper::env($name, $default);
-    }
-}
-
-if (!function_exists('uuid')) {
-    /**
-     * Gera uma string no formato UUID()
-     *
-     * @return string
-     */
-    function uuid()
-    {
-        return Helper::uuid();
+        $value = getenv($name);
+        
+        if ($value === false) {
+            return $default;
+        }
+        
+        switch (strtolower($value)) {
+            case 'true':
+            case '(true)':
+                return true;
+                break;
+            case 'false':
+            case '(false)':
+                return false;
+                break;
+            case 'empty':
+            case '(empty)':
+                return '';
+                break;
+            case 'null':
+            case '(null)':
+                return null;
+                break;
+        }
+        
+        return trim($value);
     }
 }
 
@@ -56,11 +83,12 @@ if (!function_exists('asset')) {
      * Retorna o caminho completo do asset
      *
      * @param string $file
-     * @param bool   $url
+     * @param bool   $baseUrl
+     * @param bool   $version
      *
      * @return bool|string
      */
-    function asset($file, $url = false)
+    function asset($file, $baseUrl = false, $version = false)
     {
         if (!Str::startsWith($file, '/')) {
             $file = "/{$file}";
@@ -69,10 +97,10 @@ if (!function_exists('asset')) {
         $basePath = rtrim(str_ireplace('index.php', '', App::getInstance()->resolve('request')->getUri()->getBasePath()), '/');
         
         if (file_exists(PUBLIC_FOLDER."{$file}")) {
-            $baseUrl = ($url === true) ? BASE_URL : '';
-            $md5Hash = substr(md5_file(PUBLIC_FOLDER."{$file}"), 0, 15);
+            $baseUrl = ($baseUrl === true ? BASE_URL : '');
+            $version = ($version ? '?v='.substr(md5_file(PUBLIC_FOLDER."{$file}"), 0, 15) : '');
             
-            return "{$baseUrl}{$basePath}{$file}?v={$md5Hash}";
+            return "{$baseUrl}{$basePath}{$file}{$version}";
         }
         
         return false;
@@ -128,64 +156,6 @@ if (!function_exists('glob_recursive')) {
         }
         
         return $files;
-    }
-}
-
-if (!function_exists('object_set')) {
-    /**
-     * Seta um array para objeto
-     *
-     * @param array $array
-     *
-     * @return \stdClass
-     */
-    function object_set(array $array)
-    {
-        return Obj::set($array);
-    }
-}
-
-if (!function_exists('object_get')) {
-    /**
-     * Recupera um objeto
-     *
-     * @param object $object
-     * @param string $name
-     * @param string $default
-     *
-     * @return mixed|\stdClass
-     */
-    function object_get($object, $name = null, $default = null)
-    {
-        return Obj::get($object, $name, $default);
-    }
-}
-
-if (!function_exists('object_to_array')) {
-    /**
-     * Converte um objeto em um array
-     *
-     * @param object $object
-     *
-     * @return array
-     */
-    function object_to_array($object)
-    {
-        return Obj::toArray($object);
-    }
-}
-
-if (!function_exists('object_to_json')) {
-    /**
-     * Converte um objeto em um json
-     *
-     * @param object $object
-     *
-     * @return string
-     */
-    function object_to_json($object)
-    {
-        return Obj::toJson($object);
     }
 }
 
@@ -272,6 +242,304 @@ if (!function_exists('view')) {
         }
         
         return App::getInstance()->resolve('view')->render($response, $template, $array);
+    }
+}
+
+if (!function_exists('json')) {
+    /**
+     * Retorna a o resultado em JSON
+     *
+     * @param mixed $data
+     * @param int   $status
+     *
+     * @return \Slim\Http\Response
+     */
+    function json($data, $status = 200)
+    {
+        return App::getInstance()->resolve('response')->withJson($data, $status, JSON_PRETTY_PRINT);
+    }
+}
+
+if (!function_exists('path_for')) {
+    /**
+     * Cria a URL do Slim3
+     *
+     * @param string $name
+     * @param array  $data
+     * @param array  $queryParams
+     * @param string $hash
+     *
+     * @return string
+     */
+    function path_for($name, array $data = [], array $queryParams = [], $hash = null)
+    {
+        if (!empty($hash)) {
+            $hash = "#{$hash}";
+        }
+        
+        return App::getInstance()->resolve('router')->pathFor(strtolower($name), $data, $queryParams).$hash;
+    }
+}
+
+if (!function_exists('location')) {
+    /**
+     * Redireciona para determinada rota
+     *
+     * @param string $route
+     * @param int    $status
+     */
+    function location($route, $status = 302)
+    {
+        header("Location: {$route}", true, $status);
+        
+        exit;
+    }
+}
+
+if (!function_exists('redirect')) {
+    /**
+     * Redireciona para determinada rota padrão Slim3
+     *
+     * @param string $name
+     * @param array  $data
+     * @param array  $queryParams
+     * @param string $hash
+     *
+     * @return \Slim\Http\Response
+     */
+    function redirect($name, array $data = [], array $queryParams = [], $hash = null)
+    {
+        $uri = path_for($name, $data, $queryParams, $hash);
+        
+        // Return location ajax
+        if (App::getInstance()->resolve('request')->isXhr()) {
+            return json([
+                'location' => $uri,
+            ]);
+        }
+        
+        // Return redirect
+        return App::getInstance()->resolve('response')->withRedirect($uri);
+    }
+}
+
+if (!function_exists('__')) {
+    /**
+     *  Converte todas as entidades HTML para os seus caracteres
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    function __($value)
+    {
+        return html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('entities')) {
+    /**
+     * @param mixed $values
+     *
+     * @return array
+     */
+    function entities($values)
+    {
+        $params = [];
+        
+        foreach ((array) $values as $key => $value) {
+            if (is_array($value)) {
+                $params[$key] = entities($value);
+            } else {
+                if (is_string($value)) {
+                    $value = htmlentities($value, ENT_QUOTES, 'UTF-8', false);
+                }
+                
+                $params[$key] = $value;
+            }
+        }
+        
+        return $params;
+    }
+}
+
+if (!function_exists('empty_filter')) {
+    /**
+     * @param array $data
+     *
+     * @return bool
+     */
+    function empty_filter(array $data)
+    {
+        if (empty($data)) {
+            return true;
+        }
+        
+        foreach ((array) $data as $key => $value) {
+            if (is_array($value)) {
+                return empty_filter($value);
+            } else {
+                if (empty($value) && $value != '0') {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+}
+
+if (!function_exists('input_filter')) {
+    /**
+     * @param string|array $data
+     *
+     * @return array
+     */
+    function input_filter($data)
+    {
+        $request = [];
+        
+        foreach ((array) $data as $key => $value) {
+            if (is_array($value)) {
+                $request[$key] = input_filter($value);
+            } else {
+                if (is_int($value)) {
+                    $filter = FILTER_SANITIZE_NUMBER_INT;
+                } else if (is_float($value)) {
+                    $filter = FILTER_SANITIZE_NUMBER_FLOAT;
+                } else if (is_string($value)) {
+                    $filter = FILTER_SANITIZE_STRING;
+                } else {
+                    $filter = FILTER_DEFAULT;
+                }
+                
+                $request[$key] = addslashes(strip_tags(trim(filter_var($value, $filter))));
+            }
+        }
+        
+        return $request;
+    }
+}
+
+if (!function_exists('input')) {
+    /**
+     * @param string $name
+     *
+     * @return mixed
+     */
+    function input($name = null)
+    {
+        $params = App::getInstance()->resolve('request')->getParams();
+        $params = input_filter($params);
+        
+        if (empty($name)) {
+            return $params;
+        }
+        
+        if (array_key_exists($name, $params)) {
+            return $params[$name];
+        }
+        
+        return null;
+    }
+}
+
+if (!function_exists('is_route')) {
+    /**
+     * Verifica se está em determinada rota
+     *
+     * @param string $route
+     * @param string $active
+     *
+     * @return bool|string
+     */
+    function is_route($route, $active = null)
+    {
+        $current = App::getInstance()->resolve('request')->getUri()->getPath();
+        
+        if (substr($current, 0, 1) !== '/') {
+            $current = "/{$current}";
+        }
+        
+        if (path_for($route) === $current) {
+            if (!empty($active)) {
+                return 'active';
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }
+}
+
+if (!function_exists('has_route')) {
+    /**
+     * Verifica se está entre as rotas passadas
+     *
+     * @param mixed $routes
+     *
+     * @return bool
+     */
+    function has_route($routes)
+    {
+        $current = App::getInstance()->resolve('request')->getUri()->getPath();
+        
+        return Str::contains($current, $routes);
+    }
+}
+
+if (!function_exists('is_php_cli')) {
+    /**
+     * Verifica se está usando o php no terminal
+     *
+     * @return bool
+     */
+    function is_php_cli()
+    {
+        return in_array(PHP_SAPI, ['cli', 'phpdbg']);
+    }
+}
+
+if (!function_exists('get_code_video_youtube')) {
+    /**
+     * Recupera o código do vídeo do Youtube
+     *
+     * @param string $url
+     *
+     * @return string|bool
+     */
+    function get_code_video_youtube($url)
+    {
+        if (strpos($url, 'youtu.be/')) {
+            preg_match('/(https:|http:|)(\/\/www\.|\/\/|)(.*?)\/(.{11})/i', $url, $matches);
+            
+            return $matches[4];
+        } else if (strstr($url, "/v/")) {
+            $aux = explode("v/", $url);
+            $aux2 = explode("?", $aux[1]);
+            $cod_youtube = $aux2[0];
+            
+            return $cod_youtube;
+        } else if (strstr($url, "v=")) {
+            $aux = explode("v=", $url);
+            $aux2 = explode("&", $aux[1]);
+            $cod_youtube = $aux2[0];
+            
+            return $cod_youtube;
+        } else if (strstr($url, "/embed/")) {
+            $aux = explode("/embed/", $url);
+            $cod_youtube = $aux[1];
+            
+            return $cod_youtube;
+        } else if (strstr($url, "be/")) {
+            $aux = explode("be/", $url);
+            $cod_youtube = $aux[1];
+            
+            return $cod_youtube;
+        }
+        
+        return false;
     }
 }
 
@@ -465,316 +733,72 @@ if (!function_exists('imagemTamExato')) {
     }
 }
 
-if (!function_exists('json')) {
+if (!function_exists('organize_upload_multiple_files')) {
     /**
-     * Retorna a o resultado em JSON
+     * Reorganiza o array dos files
      *
-     * @param mixed $data
-     * @param int   $status
-     *
-     * @return \Slim\Http\Response
-     */
-    function json($data, $status = 200)
-    {
-        return App::getInstance()->resolve('response')->withJson($data, $status, JSON_PRETTY_PRINT);
-    }
-}
-
-if (!function_exists('path_for')) {
-    /**
-     * Cria a URL do Slim3
-     *
-     * @param string $name
-     * @param array  $data
-     * @param array  $queryParams
-     * @param string $hash
-     *
-     * @return string
-     */
-    function path_for($name, array $data = [], array $queryParams = [], $hash = null)
-    {
-        if (!empty($hash)) {
-            $hash = "#{$hash}";
-        }
-        
-        return App::getInstance()->resolve('router')->pathFor(strtolower($name), $data, $queryParams).$hash;
-    }
-}
-
-if (!function_exists('location')) {
-    /**
-     * Redireciona para determinada rota
-     *
-     * @param string $route
-     * @param int    $status
-     */
-    function location($route, $status = 302)
-    {
-        header("Location: {$route}", true, $status);
-        
-        exit;
-    }
-}
-
-if (!function_exists('redirect')) {
-    /**
-     * Redireciona para determinada rota padrão Slim3
-     *
-     * @param string $name
-     * @param array  $data
-     * @param array  $queryParams
-     * @param string $hash
-     *
-     * @return \Slim\Http\Response
-     */
-    function redirect($name, array $data = [], array $queryParams = [], $hash = null)
-    {
-        $uri = path_for($name, $data, $queryParams, $hash);
-        
-        // Verify ajax
-        // Return location ajax
-        if (App::getInstance()->resolve('request')->isXhr()) {
-            return json([
-                'location' => $uri,
-            ]);
-        }
-        
-        // Return redirect
-        return App::getInstance()->resolve('response')->withRedirect($uri);
-    }
-}
-
-if (!function_exists('__')) {
-    /**
-     *  Converte todas as entidades HTML para os seus caracteres
-     *
-     * @param string $value
-     *
-     * @return string
-     */
-    function __($value)
-    {
-        return html_entity_decode($value, ENT_QUOTES, 'UTF-8');
-    }
-}
-
-if (!function_exists('entities')) {
-    /**
-     * @param mixed $values
+     * @param array $files
      *
      * @return array
      */
-    function entities($values)
+    function organize_upload_multiple_files($files)
     {
-        $params = [];
+        $newFiles = [];
+        $multiple = is_array($files);
+        $fileCount = $multiple ? count($files['name']) : 1;
+        $fileKeys = array_keys($files);
         
-        foreach ((array) $values as $key => $value) {
-            if (is_array($value)) {
-                $params[$key] = entities($value);
-            } else {
-                if (is_string($value)) {
-                    $value = htmlentities($value, ENT_QUOTES, 'UTF-8', false);
-                }
+        for ($i = 0; $i < $fileCount; $i++) {
+            foreach ($fileKeys as $fileKey) {
+                $newFiles[$i][$fileKey] = $multiple ? $files[$fileKey][$i] : $files[$fileKey];
+            }
+        }
+        
+        return $newFiles;
+    }
+}
+
+if (!function_exists('get_upload_max_filesize')) {
+    /**
+     * Converte o `filesize` máximo configurado
+     * para upload de arquivos/images
+     *
+     * @return float|int
+     */
+    function get_upload_max_filesize()
+    {
+        $mb = ini_get('upload_max_filesize');
+        $maxFileSize = 0;
+        
+        if (preg_match('/([0-9])+([a-zA-Z])/', $mb, $matche)) {
+            switch ($matche[2]) {
+                case 'K':
+                case 'KB':
+                    $maxFileSize = ($matche[1] * pow(1024, 1));
+                    break;
                 
-                $params[$key] = $value;
-            }
-        }
-        
-        return $params;
-    }
-}
-
-if (!function_exists('empty_filter')) {
-    /**
-     * @param array $data
-     *
-     * @return bool
-     */
-    function empty_filter(array $data)
-    {
-        if (empty($data)) {
-            return true;
-        }
-        
-        foreach ((array) $data as $key => $value) {
-            if (is_array($value)) {
-                return empty_filter($value);
-            } else {
-                if (empty($value)) {
-                    return true;
-                }
-            }
-        }
-        
-        return false;
-    }
-}
-
-if (!function_exists('input_filter')) {
-    /**
-     * @param array $data
-     *
-     * @return array
-     */
-    function input_filter(array $data)
-    {
-        $request = [];
-        
-        foreach ((array) $data as $key => $value) {
-            if (is_array($value)) {
-                $request[$key] = input_filter($value);
-            } else {
-                if (is_int($value)) {
-                    $filter = FILTER_SANITIZE_NUMBER_INT;
-                } else if (is_float($value)) {
-                    $filter = FILTER_SANITIZE_NUMBER_FLOAT;
-                } else if (is_string($value)) {
-                    $filter = FILTER_SANITIZE_STRING;
-                } else {
-                    $filter = FILTER_DEFAULT;
-                }
+                case 'M':
+                case 'MB':
+                    $maxFileSize = ($matche[1] * pow(1024, 2));
+                    break;
                 
-                $request[$key] = addslashes(strip_tags(trim(filter_var($value, $filter))));
+                case 'G':
+                case 'GB':
+                    $maxFileSize = ($matche[1] * pow(1024, 3));
+                    break;
+                
+                case 'T':
+                case 'TB':
+                    $maxFileSize = ($matche[1] * pow(1024, 4));
+                    break;
+                
+                case 'P':
+                case 'PB':
+                    $maxFileSize = ($matche[1] * pow(1024, 5));
+                    break;
             }
         }
         
-        return $request;
-    }
-}
-
-if (!function_exists('input')) {
-    /**
-     * @param string $name
-     *
-     * @return mixed
-     */
-    function input($name = null)
-    {
-        $params = App::getInstance()->resolve('request')->getParams();
-        $params = input_filter($params);
-        
-        if (empty($name)) {
-            return $params;
-        }
-        
-        if (array_key_exists($name, $params)) {
-            return $params[$name];
-        }
-        
-        return null;
-    }
-}
-
-if (!function_exists('bytes_convert')) {
-    /**
-     * Converte os bytes para um formato melhorado
-     *
-     * @param int $bytes
-     * @param int $precision
-     *
-     * @return string
-     */
-    function bytes_convert($bytes, $precision = 2)
-    {
-        return Helper::convertBytes($bytes, $precision);
-    }
-}
-
-if (!function_exists('is_route')) {
-    /**
-     * Verifica se está em determinada rota
-     *
-     * @param string $route
-     * @param string $active
-     *
-     * @return bool|string
-     */
-    function is_route($route, $active = null)
-    {
-        $current = App::getInstance()->resolve('request')->getUri()->getPath();
-        
-        if (substr($current, 0, 1) !== '/') {
-            $current = "/{$current}";
-        }
-        
-        if (path_for($route) === $current) {
-            if (!empty($active)) {
-                return 'active';
-            }
-            
-            return true;
-        }
-        
-        return false;
-    }
-}
-
-if (!function_exists('has_route')) {
-    /**
-     * Verifica se está entre as rotas passadas
-     *
-     * @param mixed $routes
-     *
-     * @return bool
-     */
-    function has_route($routes)
-    {
-        $current = App::getInstance()->resolve('request')->getUri()->getPath();
-        
-        foreach ((array) $routes as $name) {
-            if ($name !== '' && mb_strpos($current, $name) !== false) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-}
-
-if (!function_exists('app')) {
-    /**
-     * Get instance app
-     *
-     * @return App
-     */
-    function app()
-    {
-        return App::getInstance();
-    }
-}
-
-if (!function_exists('request')) {
-    /**
-     * Get instance request
-     *
-     * @return \Psr\Http\Message\ServerRequestInterface|\Slim\Http\Request
-     */
-    function request()
-    {
-        return app()->resolve('request');
-    }
-}
-
-if (!function_exists('response')) {
-    /**
-     * Get instance response
-     *
-     * @return \Psr\Http\Message\ResponseInterface|\Slim\Http\Response
-     */
-    function response()
-    {
-        return app()->resolve('response');
-    }
-}
-
-if (!function_exists('router')) {
-    /**
-     * Get instance router
-     *
-     * @return \Slim\Router
-     */
-    function router()
-    {
-        return app()->resolve('router');
+        return $maxFileSize;
     }
 }

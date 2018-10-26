@@ -12,17 +12,7 @@
 
 namespace Core\Providers\Hash {
     
-    use Core\Contracts\Provider as BaseProvider;
-    
-    /**
-     * Class BcryptProvider
-     *
-     * @package Core\Providers\Hash
-     * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
-     */
-    class BcryptProvider extends HashProvider
-    {
-    }
+    use Core\Contracts\Provider;
     
     /**
      * Class HashProvider
@@ -30,7 +20,7 @@ namespace Core\Providers\Hash {
      * @package Core\Providers\Hash
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class HashProvider extends BaseProvider
+    class HashProvider extends Provider
     {
         /**
          * Registra os serviço de criptografia das senhas
@@ -39,14 +29,18 @@ namespace Core\Providers\Hash {
          */
         public function register()
         {
-            // Bcrypt
             $this->container['hash'] = function () {
-                return new Bcrypt();
-            };
-            
-            // Argon 2I
-            $this->container['argon'] = function () {
-                return new Argon();
+                $driver = env('APP_HASH_DRIVER', 'bcrypt');
+                
+                switch ($driver) {
+                    case 'bcrypt':
+                        return new Bcrypt();
+                        break;
+                    
+                    case 'argon':
+                        return new Argon();
+                        break;
+                }
             };
         }
     }

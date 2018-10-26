@@ -12,8 +12,6 @@
 
 namespace Core\Database {
     
-    use Core\Helpers\Obj;
-    
     /**
      * Class Connect
      *
@@ -22,6 +20,11 @@ namespace Core\Database {
      */
     class Connect extends \PDO
     {
+        /**
+         * @var
+         */
+        protected static $instance;
+        
         /**
          * @var bool
          */
@@ -37,40 +40,96 @@ namespace Core\Database {
          */
         public function __construct($driver = null, array $options = [])
         {
-            // Carrega as configurações
-            $database = Obj::set(config('database'));
-            
-            if (empty($driver)) {
-                $driver = $database->default;
-            }
-            
-            // Pega a configuração do driver escolhido
-            $database = $database->connections->{$driver};
+            // Carrega configurações
+            $driver = (empty($driver) ? config('database.default') : $driver);
+            $connections = config('database.connections');
             
             try {
-                // Pega o dns e os options padrões
-                $dsn = sprintf($this->getDns($driver), $database->host, $database->database);
+                // Verifica driver
+                if (!array_key_exists($driver, $connections)) {
+                    throw new \InvalidArgumentException("Driver `{$driver}` is not configured in the application.", E_ERROR);
+                }
+                
+                // Configuração do driver
+                $connection = $connections[$driver];
+                
+                // Dsn e opçoes padrão
+                $dsn = sprintf($this->getDsn($driver), $connection['host'], $connection['database']);
                 $options = $this->getDefaultOptions() + $options;
                 
                 // Realiza a conexão
-                parent::__construct($dsn, $database->username, $database->password, $options);
+                parent::__construct($dsn, $connection['username'], $connection['password'], $options);
                 
-                // Usa o banco configurado
-                if (isset($database->database)) {
-                    $this->exec("USE {$database->database};");
-                }
+                // Usa a datanase
+                $this->exec("USE {$connection['database']};");
                 
-                // Configura o encoding
-                if (isset($database->charset) && isset($database->collation)) {
-                    $this->exec("SET NAMES {$database->charset} COLLATE {$database->collation}");
+                // Verifica se tem o CHARSET e COLLATE configurado
+                if (!empty($connection['charset'])) {
+                    $exec = "SET NAMES {$connection['charset']}";
+                    
+                    if (!empty($connection['collation'])) {
+                        $exec .= " COLLATE {$connection['collation']}";
+                    }
+                    
+                    $this->exec("{$exec};");
                 }
             } catch (\PDOException $e) {
                 $this->failed = true;
                 
-                throw new \Exception("[CONNECT] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[CONNECT] :: {$e->getMessage()}", (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode()));
             }
         }
-    
+        
+        /**
+         * @param string $driver
+         *
+         * @return string
+         */
+        protected function getDsn($driver)
+        {
+            switch ($driver) {
+                case 'sqlsrv':
+                    return "sqlsrv:Server=%s;Connect=%s;ConnectionPooling=0";
+                    break;
+                case 'dblib':
+                    return "dblib:host=%s;dbname=%s";
+                    break;
+                default:
+                    return "mysql:host=%s;dbname=%s";
+                    break;
+            }
+        }
+        
+        /**
+         * @return array
+         */
+        protected function getDefaultOptions()
+        {
+            return [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                \PDO::ATTR_CASE => \PDO::CASE_NATURAL,
+            ];
+        }
+        
+        /**
+         * Recupera a instância da classe
+         *
+         * @param string $driver
+         * @param array  $options
+         *
+         * @return \Core\Database\Connect
+         * @throws \Exception
+         */
+        public static function getInstance($driver = null, array $options = [])
+        {
+            if (empty(self::$instance)) {
+                self::$instance = new self($driver, $options);
+            }
+            
+            return self::$instance;
+        }
+        
         /**
          * Cria a transação customizada
          *
@@ -92,8 +151,7 @@ namespace Core\Database {
                 $this->commit();
                 
                 return $callback;
-            } // Faz a reversão no banco
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 $this->rollBack();
                 
                 throw $e;
@@ -102,40 +160,6 @@ namespace Core\Database {
                 
                 throw $e;
             }
-        }
-        
-        /**
-         * @param string $driver
-         *
-         * @return string
-         */
-        private function getDns($driver)
-        {
-            switch ($driver) {
-                case 'sqlsrv':
-                    $dns = "sqlsrv:Server=%s;Connect=%s;ConnectionPooling=0";
-                    break;
-                case 'dblib':
-                    $dns = "dblib:host=%s;dbname=%s";
-                    break;
-                default:
-                    $dns = "mysql:host=%s;dbname=%s";
-                    break;
-            }
-            
-            return $dns;
-        }
-        
-        /**
-         * @return array
-         */
-        private function getDefaultOptions()
-        {
-            return [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                \PDO::ATTR_CASE => \PDO::CASE_NATURAL,
-            ];
         }
         
         /**

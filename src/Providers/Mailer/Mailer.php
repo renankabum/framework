@@ -13,7 +13,8 @@
 namespace Core\Providers\Mailer {
     
     use Core\App;
-    use Core\Helpers\Obj;
+    use PHPMailer\PHPMailer\Exception;
+    use PHPMailer\PHPMailer\PHPMailer;
     
     /**
      * Class Mailer
@@ -24,7 +25,7 @@ namespace Core\Providers\Mailer {
     class Mailer
     {
         /**
-         * @var \PHPMailer
+         * @var PHPMailer
          */
         protected $mail;
         
@@ -38,42 +39,30 @@ namespace Core\Providers\Mailer {
          */
         public function __construct()
         {
-            // Instancia do PHPMAILER
-            $this->mail = new \PHPMailer();
+            $this->mail = new PHPMailer(true);
             
-            // Configurações
-            $config = Obj::set(config('mail'));
-            
-            // Debug
-            $this->mail->SMTPDebug = $config->debug;
-            
-            // Charset
-            $this->mail->CharSet = $config->charset;
-            
-            // Linguagem
-            $this->mail->setLanguage('pt_br', '');
-            
-            // Ativar SMTP
+            // Inicia configurações
+            $this->mail->SMTPDebug = config('mail.debug');
+            $this->mail->CharSet = config('mail.charset');
             $this->mail->isSMTP();
-            
-            // Aceitar HTML
+            $this->mail->setLanguage('pt_br');
             $this->mail->isHTML(true);
             
-            // Configuração do servidor
-            $this->mail->Host = $config->host;
-            $this->mail->Port = $config->port;
-            $this->mail->Username = $config->username;
-            $this->mail->Password = $config->password;
+            // SMTP Segurança
+            $this->mail->SMTPAuth = config('mail.auth');
+            $this->mail->SMTPSecure = config('mail.secure');
             
-            // Autenticação SMTP
-            $this->mail->SMTPAuth = $config->auth;
+            // Servidor de e-mail
+            $this->mail->Host = (is_array(config('mail.host')) ? implode(';', config('mail.host')) : config('mail.host'));
+            $this->mail->Port = config('mail.port');
+            $this->mail->Username = config('mail.username');
+            $this->mail->Password = config('mail.password');
             
-            // Ativar segurança
-            $this->mail->SMTPSecure = $config->secure;
-            
-            // Remetente
-            $this->mail->From = $config->from->mail;
-            $this->mail->FromName = $config->from->name;
+            // Quem está enviando
+            if (config('mail.from.mail')) {
+                $this->mail->From = config('mail.from.mail');
+                $this->mail->FromName = config('mail.from.name');
+            }
         }
         
         /**
@@ -82,21 +71,26 @@ namespace Core\Providers\Mailer {
          * @param string   $view
          * @param array    $params
          * @param callable $callback
+         * @param bool     $SMTPKeepAlive
          *
          * @return $this
          * @throws \Exception
          */
-        public function send($view, array $params, callable $callback)
+        public function send($view, array $params, callable $callback, $SMTPKeepAlive = false)
         {
             $message = new Message($this->mail);
-            
             $message->body(App::getInstance()->resolve('view-mail')->fetch($view, ['data' => $params]));
             
             call_user_func_array($callback, [$message, $params]);
             
+            // Conexão SMTP não fechará após cada email enviado, reduz a sobrecarga de SMTP
+            if ($SMTPKeepAlive) {
+                $this->mail->SMTPKeepAlive = true;
+            }
+            
             try {
                 if (!$this->mail->send()) {
-                    throw new \phpmailerException($this->mail->ErrorInfo, E_USER_ERROR);
+                    throw new Exception($this->mail->ErrorInfo, E_USER_ERROR);
                 }
                 
                 // Limpa as propriedade do email
@@ -110,7 +104,7 @@ namespace Core\Providers\Mailer {
                 $this->error = false;
                 
                 return $this;
-            } catch (\phpmailerException $e) {
+            } catch (Exception $e) {
                 $this->error = $e->getMessage();
                 
                 throw new \Exception("[MAILER'] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));

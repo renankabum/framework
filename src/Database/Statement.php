@@ -61,9 +61,7 @@ namespace Core\Database {
          */
         public function __get($name)
         {
-            if (App::getInstance()->resolve($name)) {
-                return App::getInstance()->resolve($name);
-            }
+            return App::getInstance()->resolve($name);
         }
         
         /**

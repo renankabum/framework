@@ -13,8 +13,8 @@
 namespace Core {
     
     use Carbon\Carbon;
-    use Psr\Http\Message\ResponseInterface as Response;
-    use Psr\Http\Message\ServerRequestInterface as Request;
+    use Slim\Http\Request;
+    use Slim\Http\Response;
     
     /**
      * Class App
@@ -30,74 +30,14 @@ namespace Core {
         private static $instance;
         
         /**
-         * App constructor.
+         * App constructor
          */
         public function __construct()
         {
-            $environment = config('app.environment', 'development');
-            
-            /**
-             * PHP Basic Config
-             *
-             * Configurações básicas do sistema
-             */
-            
-            ini_set('display_errors', 'On');
-            ini_set('display_startup_errors', 'On');
-            ini_set('default_charset', 'UTF-8');
-            
-            mb_internal_encoding('UTF-8');
-            date_default_timezone_set(config('app.timezone', 'America/Sao_Paulo'));
-            setlocale(LC_ALL, config('app.locale'), config('app.locale').'.utf-8');
-            
-            if ($environment == 'development') {
-                error_reporting(E_ALL);
-            } else {
-                error_reporting(E_ALL ^ E_NOTICE);
-            }
-            
-            set_error_handler(function ($code, $message, $file, $line) {
-                throw new \ErrorException($message, $code, 1, $file, $line);
-            });
-            
-            /**
-             * Session
-             *
-             * Inicia a sessão caso ela esteja habilitada
-             */
-            
-            if (!session_id() && config('app.session')) {
-                $current = session_get_cookie_params();
-                
-                session_set_cookie_params($current['lifetime'], $current['path'], $current['domain'], $current['secure'], true);
-                session_name(md5(md5('VCWEBNETWORKS')));
-                session_cache_limiter('nocache');
-                
-                session_start();
-            }
-            
-            /**
-             * Carbon
-             *
-             * Configura a linguagem
-             */
-            
-            Carbon::setLocale(config('app.locale'));
-            
-            /**
-             * APP Key
-             *
-             * Gera a chave única caso ela não exista
-             */
-            
-            if (substr(config('app.encryption.key'), 0, 7) !== "base64:") {
-                $this->generateKey();
-            }
-            
             /**
              * Slim
              *
-             * Configurações padrões
+             * Inicia as configurações do slim
              */
             
             parent::__construct([
@@ -106,36 +46,63 @@ namespace Core {
                     'responseChunkSize' => 4096,
                     'outputBuffering' => 'append',
                     'determineRouteBeforeAppMiddleware' => true,
-                    'displayErrorDetails' => ($environment === 'production' ? false : true),
+                    'displayErrorDetails' => (config('app.environment', 'development') === 'development'),
                     'addContentLengthHeader' => true,
                     'routerCacheFile' => false,
                 ],
             ]);
+            
+            /**
+             * Inicia as configurações
+             */
+            
+            $this->initConfigs();
         }
         
         /**
-         * Troca o APP_KEY do arquivos .env
+         * Inicia as configurações padrão da aplicação
          */
-        private function generateKey()
+        public function initConfigs()
         {
-            $escaped = preg_quote('='.config('app.encryption.key'), '/');
+            /**
+             * PHP Basic Config
+             *
+             * Configurações básicas da aplicação
+             */
             
-            file_put_contents(
-                APP_FOLDER.'/.env',
-                preg_replace(
-                    "/^APP_KEY".$escaped."/m",
-                    'APP_KEY=base64:'.base64_encode(
-                        random_bytes(config('app.encryption.cipher') === 'AES-128-CBC' ? 16 : 32)
-                    ),
-                    file_get_contents(APP_FOLDER.'/.env')
-                )
-            );
+            ini_set('display_errors', 'On');
+            ini_set('display_startup_errors', 'On');
+            ini_set('default_charset', 'UTF-8');
             
-            location(BASE_URL, 302);
+            mb_internal_encoding('UTF-8');
+            date_default_timezone_set(config('app.timezone', 'America/Sao_Paulo'));
+            setlocale(LC_ALL, config('app.locale'), config('app.locale').'utf-8');
+            
+            /**
+             * Carbon
+             */
+            
+            Carbon::setLocale(config('app.locale'));
+            
+            /**
+             * Errors
+             *
+             * Controle de erro do sistema
+             */
+            
+            if (config('app.environment', 'development') === 'development') {
+                error_reporting(E_ALL);
+            } else {
+                error_reporting(E_ALL ^ E_NOTICE);
+            }
+            
+            set_error_handler(function ($code, $message, $file, $line) {
+                throw new \ErrorException($message, $code, 1, $file, $line);
+            });
         }
         
         /**
-         * Recupera a instancia da classe
+         * Recupera a instância da classe
          *
          * @return \Core\App
          */
@@ -149,70 +116,90 @@ namespace Core {
         }
         
         /**
-         * Adiciona método para criação de rotas simplificado
+         * Cria rota personalizadas
          *
-         * @param string $methods
-         * @param string $pattern
-         * @param string $controller
-         * @param string $name
-         * @param string $middleware
+         * @param string|array    $methods
+         * @param string          $pattern
+         * @param string|\Closure $callable
+         * @param string          $name
+         * @param string|\Closure $middleware
          *
          * @return \Slim\Interfaces\RouteInterface
          */
-        public function route($methods, $pattern, $controller, $name = null, $middleware = null)
+        public function route($methods, $pattern, $callable, $name = null, $middleware = null)
         {
             /**
-             * Transforma os métodos passado em array
+             * Trata argumentos
              */
             
-            $methods = explode(',', strtoupper($methods));
-            $name = strtolower($name);
+            $methods = (is_string($methods) ? explode(',', mb_strtoupper($methods)) : $methods);
+            $pattern = (string) $pattern;
             
             /**
-             * Mapeamento da rota
+             * Verifica se o callable e uma closure
              */
             
-            $route = $this->map($methods, $pattern, function (Request $request, Response $response, $params) use ($controller) {
-                // Verifica se existe métodos customizados
-                if (strpos($controller, '@') !== false) {
-                    list($controller, $method) = explode('@', $controller);
-                } else {
-                    $method = null;
-                }
-                
-                /**
-                 * Inicia o controller
-                 */
-                
-                $method = mb_strtolower($request->getMethod(), 'UTF-8').ucfirst($method);
-                $controller = 'App\\Controllers\\'.str_replace('/', '\\', $controller);
-                $controller = new $controller($request, $response, $this);
-                
-                // Verifica se o método no controller existe
-                if (!method_exists($controller, $method)) {
-                    throw new \Exception(sprintf(__("O Método '%s::%s' não existe."), get_class($controller), $method));
-                }
-                
-                return call_user_func_array([$controller, $method], $params);
-            });
+            if ($callable instanceof \Closure) {
+                $route = $this->map($methods, $pattern, $callable);
+            } else {
+                $route = $this->map($methods, $pattern, function (Request $request, Response $response, array $params) use ($callable) {
+                    /**
+                     * Separa o callable
+                     */
+                    
+                    if (mb_strpos($callable, '@')) {
+                        list($class, $method) = explode('@', $callable);
+                    } else {
+                        $class = $callable;
+                        $method = null;
+                    }
+                    
+                    /**
+                     * Inicia o controller
+                     */
+                    
+                    $method = mb_strtolower($request->getMethod()).ucfirst($method);
+                    $class = "App\\Controllers\\".str_ireplace('/', '\\', $class);
+                    $classObject = new $class($request, $response, $this);
+                    
+                    /**
+                     * Verifica método
+                     */
+                    
+                    if (!method_exists($classObject, $method)) {
+                        throw new \BadMethodCallException(sprintf("Method %s::%s not found.", get_class($classObject), $method), E_ERROR);
+                    }
+                    
+                    return call_user_func_array([$classObject, $method], $params);
+                });
+            }
             
             /**
-             * Nome da rota
+             * Verifica se foi passado o nome
              */
             
             if (!empty($name)) {
+                $name = mb_strtolower($name);
                 $route->setName($name);
             }
             
             /**
-             * Middleware
+             * Verifica se foi passado a middleware
              */
             
             if (!empty($middleware)) {
-                $middlewares = $this->loadRegisters()['middleware']['web'];
-                
-                if (array_key_exists($middleware, $middlewares)) {
-                    $route->add($middlewares[$middleware]);
+                if ($middleware instanceof \Closure) {
+                    $route->add($middleware);
+                } else {
+                    $registers = $this->loadRegistersFile();
+                    
+                    if (!empty($registers['middleware']['web'])) {
+                        $middlewares = $registers['middleware']['web'];
+                        
+                        if (array_key_exists($middleware, $middlewares)) {
+                            $route->add($middlewares[$middleware]);
+                        }
+                    }
                 }
             }
             
@@ -220,31 +207,11 @@ namespace Core {
         }
         
         /**
-         * Registra as middlewares
-         *
-         * @return mixed
-         */
-        public function registerMiddleware()
-        {
-            $registers = $this->loadRegisters();
-            
-            if (!empty($registers['middleware']['app'])) {
-                foreach ($registers['middleware']['app'] as $key => $middleware) {
-                    if (class_exists($middleware)) {
-                        $this->add($middleware);
-                    }
-                }
-            }
-            
-            return $this;
-        }
-        
-        /**
          * Providers, Middlewares, Functions
          *
          * @return array
          */
-        private function loadRegisters()
+        private function loadRegistersFile()
         {
             $registers = [];
             
@@ -258,14 +225,34 @@ namespace Core {
         }
         
         /**
+         * Registra as middlewares
+         *
+         * @return mixed
+         */
+        public function registerMiddleware()
+        {
+            $registers = $this->loadRegistersFile();
+            
+            if (!empty($registers['middleware']['app'])) {
+                foreach ($registers['middleware']['app'] as $key => $middleware) {
+                    if (class_exists($middleware)) {
+                        $this->add($middleware);
+                    }
+                }
+            }
+            
+            return $this;
+        }
+        
+        /**
          * Registra as funções
          */
         public function registerFunctions()
         {
-            $registers = $this->loadRegisters();
+            $registers = $this->loadRegistersFile();
             
             if (!empty($registers['functions'])) {
-                foreach ((array) $registers['functions'] as $function) {
+                foreach ($registers['functions'] as $function) {
                     include "{$function}";
                 }
             }
@@ -278,22 +265,29 @@ namespace Core {
          */
         public function registerProviders()
         {
-            $registers = $this->loadRegisters();
-            $classes = [];
+            $registers = $this->loadRegistersFile();
+            $boots = [];
             
-            foreach ($registers['providers'] as $key => $items) {
-                foreach ($items as $class) {
-                    if (class_exists($class)) {
-                        $class = new $class($this->getContainer());
-                        $class->register();
-                        
-                        array_push($classes, $class);
+            if (!empty($registers['providers'])) {
+                foreach ($registers['providers'] as $key => $providers) {
+                    foreach ($providers as $provider) {
+                        if (class_exists($provider)) {
+                            $provider = new $provider($this->getContainer());
+                            
+                            if (method_exists($provider, 'register')) {
+                                $provider->register();
+                            }
+                            
+                            array_push($boots, $provider);
+                        }
                     }
                 }
-            }
-            
-            foreach ($classes as $class) {
-                $class->boot();
+                
+                foreach ($boots as $provider) {
+                    if (method_exists($provider, 'boot')) {
+                        $provider->boot();
+                    }
+                }
             }
             
             return $this;
@@ -307,14 +301,14 @@ namespace Core {
             // Router for web
             if (file_exists(APP_FOLDER.'/routes/web.php')) {
                 $this->group('', function ($app) {
-                    include APP_FOLDER.'/routes/web.php';
+                    include_once APP_FOLDER.'/routes/web.php';
                 });
             }
             
             // Router for api
             if (file_exists(APP_FOLDER.'/routes/api.php')) {
                 $this->group('/api', function ($app) {
-                    include APP_FOLDER.'/routes/api.php';
+                    include_once APP_FOLDER.'/routes/api.php';
                 });
             }
         }
@@ -326,30 +320,28 @@ namespace Core {
          */
         public function __get($name)
         {
-            if ($this->resolve($name)) {
-                return $this->resolve($name);
-            }
+            return $this->resolve($name);
         }
         
         /**
-         * Resolve a chamada dos containes
+         * Resolve as chamada dos container
          *
          * @param string $name
          * @param array  $params
          *
-         * @return mixed|null
+         * @return mixed
          */
-        public function resolve($name, $params = [])
+        public function resolve($name = null, $params = [])
         {
-            if ($this->getContainer()->has($name)) {
-                if (is_callable($this->getContainer()->get($name))) {
-                    return call_user_func_array($this->getContainer()->get($name), $params);
-                } else {
-                    return $this->getContainer()->get($name);
+            $container = $this->getContainer();
+            
+            if ($container->has($name)) {
+                if (is_callable($container->get($name))) {
+                    return call_user_func_array($container->get($name), $params);
                 }
             }
             
-            return null;
+            return $container->get($name);
         }
     }
 }

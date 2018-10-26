@@ -30,10 +30,7 @@ namespace Core\Providers\Encryption {
         public function register()
         {
             $this->container['encryption'] = function () {
-                // Configurações de criptografia
-                $encryption = config('app.encryption');
-                
-                return new Encryption($encryption['key'], $encryption['cipher']);
+                return new Encryption((env('APP_KEY') ?: md5(md5('VCWEBNETWORKS'))));
             };
         }
     }

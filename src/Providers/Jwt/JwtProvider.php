@@ -30,9 +30,7 @@ namespace Core\Providers\Jwt {
         public function register()
         {
             $this->container['jwt'] = function () {
-                $key = (config('app.encryption.key', null) ?: md5(md5('VCWEBNETWORKS')));
-                
-                return new Jwt($key);
+                return new Jwt((env('APP_KEY') ?: md5(md5('VCWEBNETWORKS'))));
             };
         }
     }

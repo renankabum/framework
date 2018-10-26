@@ -32,7 +32,29 @@ namespace Core\Providers\Session {
          */
         public function __construct()
         {
+            if (!isset($_SESSION)) {
+                $this->start();
+            }
+            
             $this->session = &$_SESSION;
+        }
+        
+        /**
+         * Session
+         *
+         * Inicia a sessão caso ela esteja habilitada
+         */
+        public function start()
+        {
+            if (!session_id()) {
+                $current = session_get_cookie_params();
+                
+                session_set_cookie_params($current['lifetime'], $current['path'], $current['domain'], $current['secure'], true);
+                session_name(md5(md5('VCWEBNETWORKS')));
+                session_cache_limiter('nocache');
+                
+                session_start();
+            }
         }
         
         /**
@@ -45,7 +67,9 @@ namespace Core\Providers\Session {
         
         /**
          * @param string $key
-         * @param null   $value
+         * @param mixed  $value
+         *
+         * @return void
          */
         public function set($key, $value = null)
         {
@@ -53,19 +77,9 @@ namespace Core\Providers\Session {
                 $key = [$key => $value];
             }
             
-            foreach ($key as $arrayKey => $arrayValue) {
-                Arr::set($this->session, $arrayKey, $arrayValue);
+            foreach ($key as $k => $v) {
+                Arr::set($this->session, $k, $v);
             }
-        }
-        
-        /**
-         * @param string $key
-         *
-         * @return bool
-         */
-        public function exists($key)
-        {
-            return Arr::exists($this->session, $key);
         }
         
         /**
@@ -75,12 +89,12 @@ namespace Core\Providers\Session {
          */
         public function has($key)
         {
-            return !is_null($this->get($key));
+            return $this->get($key, false);
         }
         
         /**
          * @param string $key
-         * @param null   $default
+         * @param mixed  $default
          *
          * @return mixed
          */
@@ -96,15 +110,7 @@ namespace Core\Providers\Session {
          */
         public function remove($key)
         {
-            return Arr::pull($this->session, $key);
-        }
-        
-        /**
-         * @param string $keys
-         */
-        public function forget($keys)
-        {
-            Arr::forget($this->session, $keys);
+            Arr::forget($this->session, $key);
         }
         
         /**

@@ -32,7 +32,6 @@ namespace Core\Contracts {
      * @property \Core\Providers\Session\Flash         flash
      * @property \Core\Providers\Mailer\Mailer         mailer
      * @property \Core\Providers\Hash\Bcrypt           hash
-     * @property \Core\Providers\Hash\Argon            argon
      * @property \Core\Providers\Encryption\Encryption encryption
      * @property \Core\Providers\Jwt\Jwt               jwt
      *
@@ -79,7 +78,7 @@ namespace Core\Contracts {
         }
         
         /**
-         * Inicializa junto com o controller
+         * Inicia junto com o __construct da classe pai
          */
         protected function boot()
         {
@@ -195,15 +194,15 @@ namespace Core\Contracts {
         }
         
         /**
+         * Recupera o container cadastro
+         *
          * @param string $name
          *
          * @return mixed
          */
         public function __get($name)
         {
-            if (App::getInstance()->resolve($name)) {
-                return App::getInstance()->resolve($name);
-            }
+            return App::getInstance()->resolve($name);
         }
     }
 }

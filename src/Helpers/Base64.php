@@ -29,7 +29,7 @@ namespace Core\Helpers {
          */
         public static function encode($value)
         {
-            return Helper::base64Encode($value);
+            return str_replace('=', '', strtr(base64_encode($value), '+/', '-_'));
         }
         
         /**
@@ -41,7 +41,14 @@ namespace Core\Helpers {
          */
         public static function decode($encoded)
         {
-            return Helper::base64Decode($encoded);
+            $remainder = strlen($encoded) % 4;
+            
+            if ($remainder) {
+                $padlen = 4 - $remainder;
+                $encoded .= str_repeat('=', $padlen);
+            }
+            
+            return base64_decode(strtr($encoded, '-_', '+/'));
         }
     }
 }

@@ -12,6 +12,9 @@
 
 namespace Core\Providers\Session {
     
+    use Core\App;
+    use Core\Helpers\Arr;
+    
     /**
      * Class Flash
      *
@@ -21,23 +24,17 @@ namespace Core\Providers\Session {
     class Flash
     {
         /**
-         * Flash key
-         *
          * @var string
          */
-        protected $key = '__flash__';
+        protected $key = '_flash';
         
-        /**
-         * Flash data
-         *
+        /***
          * @var array
          */
         protected $data = [];
         
         /**
-         * Flash storage
-         *
-         * @var null|array
+         * @var array
          */
         protected $storage;
         
@@ -47,7 +44,7 @@ namespace Core\Providers\Session {
         public function __construct()
         {
             if (!isset($_SESSION)) {
-                throw new \RuntimeException('[FLASH] :: Session not started.');
+                App::getInstance()->resolve('session')->start();
             }
             
             $this->storage = &$_SESSION[$this->key];
@@ -62,8 +59,8 @@ namespace Core\Providers\Session {
         /**
          * Adiciona uma nova mensagem
          *
-         * @param $name
-         * @param $value
+         * @param string $name
+         * @param mixed  $value
          */
         public function add($name, $value)
         {
@@ -83,37 +80,20 @@ namespace Core\Providers\Session {
          */
         public function all()
         {
-            return $this->get();
+            return $this->data;
         }
         
         /**
          * Recupera a mensagem
          *
          * @param string $key
+         * @param string $default
          *
          * @return mixed
          */
-        public function get($key = null)
+        public function get($key, $default = null)
         {
-            $data = $this->data;
-            
-            if (empty($key)) {
-                return $data;
-            }
-            
-            if (array_key_exists($key, $data)) {
-                return $data[$key];
-            }
-            
-            foreach (explode('.', $key) as $segment) {
-                if (is_array($data) && array_key_exists($segment, $data)) {
-                    $data = $data[$segment];
-                } else {
-                    return null;
-                }
-            }
-            
-            return $data;
+            return Arr::get($this->data, $key, $default);
         }
         
         /**
@@ -125,37 +105,7 @@ namespace Core\Providers\Session {
          */
         public function has($key)
         {
-            $data = $this->data;
-            
-            if (is_null($key)) {
-                return false;
-            }
-            
-            $key = (array) $key;
-            
-            if (!$data) {
-                return false;
-            }
-            
-            if ($data === []) {
-                return false;
-            }
-            
-            foreach ($key as $item) {
-                if (array_key_exists($item, $data)) {
-                    continue;
-                }
-                
-                foreach (explode('.', $item) as $segment) {
-                    if (is_array($data) && array_key_exists($data, $segment)) {
-                        $data = $data[$segment];
-                    } else {
-                        return false;
-                    }
-                }
-            }
-            
-            return $data;
+            return Arr::has($this->data, $key);
         }
     }
 }

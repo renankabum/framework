@@ -12,6 +12,8 @@
 
 namespace Core\Providers\Mailer {
     
+    use PHPMailer\PHPMailer\PHPMailer;
+    
     /**
      * Class Message
      *
@@ -21,16 +23,16 @@ namespace Core\Providers\Mailer {
     class Message
     {
         /**
-         * @var \PHPMailer
+         * @var PHPMailer
          */
         protected $mail;
         
         /**
          * Message constructor.
          *
-         * @param \PHPMailer $mail
+         * @param PHPMailer $mail
          */
-        public function __construct(\PHPMailer $mail)
+        public function __construct(PHPMailer $mail)
         {
             $this->mail = $mail;
         }
@@ -42,11 +44,11 @@ namespace Core\Providers\Mailer {
          * @param string $name
          *
          * @return $this
+         * @throws \PHPMailer\PHPMailer\Exception
          */
         public function from($address, $name = '')
         {
-            $this->mail->From = $address;
-            $this->mail->FromName = $name;
+            $this->mail->setFrom($address, $name);
             
             return $this;
         }
@@ -103,6 +105,7 @@ namespace Core\Providers\Mailer {
          * @param string $name
          *
          * @return $this
+         * @throws \PHPMailer\PHPMailer\Exception
          */
         public function addFile($path, $name = '')
         {
