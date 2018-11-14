@@ -114,8 +114,14 @@ namespace Core\Database {
                 if ($key == 'limit' || $key == 'offset') {
                     $bind = (int) $bind;
                 }
+    
+                $bind = (empty($bind) ? null : $bind);
                 
-                $this->stmt->bindValue(is_string($key) ? ":{$key}" : ((int) $key + 1), $bind, is_int($bind) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
+                $this->stmt->bindValue(
+                    is_string($key) ? ":{$key}" : ((int) $key + 1),
+                    $bind,
+                    is_int($bind) ? \PDO::PARAM_INT : \PDO::PARAM_STR
+                );
             }
         }
     }
