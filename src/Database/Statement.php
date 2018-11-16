@@ -115,7 +115,7 @@ namespace Core\Database {
                     $bind = (int) $bind;
                 }
     
-                $bind = (empty($bind) ? null : $bind);
+                $bind = ((empty($bind) && $bind != '0') ? null : $bind);
                 
                 $this->stmt->bindValue(
                     is_string($key) ? ":{$key}" : ((int) $key + 1),
