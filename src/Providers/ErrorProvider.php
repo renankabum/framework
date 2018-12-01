@@ -50,10 +50,10 @@ namespace Core\Providers {
                         'debug' => $this->container->settings['displayErrorDetails'],
                         'error' => [
                             'code' => $exception->getCode(),
-                            'file' => $exception->getFile(),
+                            'file' => str_replace([PUBLIC_FOLDER, APP_FOLDER, RESOURCE_FOLDER], '', $exception->getFile()),
                             'line' => $exception->getLine(),
                             'message' => $exception->getMessage(),
-                            'route' => "(".implode(", ", $route->getMethods()).") {$route->getPattern()}",
+                            'route' => is_object($route) ? "(".implode(", ", $route->getMethods()).") {$route->getPattern()}" : null,
                             'trace' => explode("\n", $exception->getTraceAsString()),
                         ],
                     ];
