@@ -30,36 +30,36 @@ namespace Core\Providers\View {
         public function register()
         {
             $this->container['view'] = function () {
-                $view = null;
-                
-                if (config('view.engine') === 'twig') {
-                    $view = new Twig(config('view.path.folder'), [
-                        'debug' => config('view.debug'),
-                        'charset' => 'UTF-8',
-                        'cache' => (config('view.cache') && config('app.environment') === 'production') ? config('view.path.compiled') : false,
-                        'auto_reload' => true,
-                    ]);
-                }
-                
-                if (config('view.engine') === 'php') {
-                    $view = new Php(config('view.path.folder'));
-                }
-                
-                return $view;
+                return new Twig(config('view.templates'), config('view.options'));
             };
+        }
+        
+        /**
+         * Registra outros serviços no escopo do provider
+         *
+         * @return void
+         */
+        public function boot()
+        {
+            // Ativa debug
+            $this->view->addExtension(new \Twig_Extension_Debug());
             
-            /**
-             * Register view in mail
-             *
-             * @return \Core\Providers\View\Twig
-             */
-            $this->container['view-mail'] = function () {
-                return new Twig(APP_FOLDER.'/resources/mail', [
-                    'charset' => 'UTF-8',
-                    'cache' => false,
-                    'auto_reload' => true,
-                ]);
-            };
+            // Registra as funções e filtros
+            foreach (config('view.registers') as $key => $items) {
+                foreach ($items as $name => $item) {
+                    if (function_exists($item)) {
+                        switch ($key) {
+                            case 'functions':
+                                $this->view->addFunction($name, $item);
+                                break;
+                            
+                            case 'filters':
+                                $this->view->addFilter($name, $item);
+                                break;
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -37,8 +37,8 @@ namespace Core\Middlewares {
         public function __invoke(Request $request, Response $response, callable $next)
         {
             // Verifica se a manutenção está ativa
-            if (config('app.maintenance', false) === true) {
-                return view('error.503', [], 503);
+            if (env('APP_MAINTENANCE', false) === true) {
+                return view('@error.503', [], 503);
             }
             
             $response = $next($request, $response);

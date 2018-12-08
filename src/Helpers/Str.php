@@ -43,7 +43,8 @@ namespace Core\Helpers {
          */
         public static function uuid()
         {
-            return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x', // 32 bits for "time_low"
+            return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                // 32 bits for "time_low"
                 mt_rand(0, 0xffff), mt_rand(0, 0xffff),
                 
                 // 16 bits for "time_mid"
@@ -72,7 +73,7 @@ namespace Core\Helpers {
         public static function randomBytes($lenght = 32)
         {
             $lenght = (intval($lenght) <= 8 ? 32 : $lenght);
-            
+        
             if (function_exists('random_bytes')) {
                 $hashed = bin2hex(random_bytes($lenght));
             } else if (function_exists('mcrypt_create_iv')) {
@@ -80,7 +81,7 @@ namespace Core\Helpers {
             } else {
                 $hashed = bin2hex(openssl_random_pseudo_bytes($lenght));
             }
-            
+        
             return mb_substr(Base64::encode($hashed), 0, $lenght);
         }
     }

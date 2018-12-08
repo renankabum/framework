@@ -57,7 +57,9 @@ namespace Core\Providers\Hash {
          */
         protected function cost(array $options)
         {
-            return isset($options['rounds']) ? $options['rounds'] : $this->rounds;
+            return isset($options['rounds'])
+                ? $options['rounds']
+                : $this->rounds;
         }
         
         /**

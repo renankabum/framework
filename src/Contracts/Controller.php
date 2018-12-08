@@ -35,11 +35,7 @@ namespace Core\Contracts {
      * @property \Core\Providers\Encryption\Encryption encryption
      * @property \Core\Providers\Jwt\Jwt               jwt
      *
-     * @property \Core\Database\Connect                db
-     * @property \Core\Database\Statement\Create       create
-     * @property \Core\Database\Statement\Read         read
-     * @property \Core\Database\Statement\Update       update
-     * @property \Core\Database\Statement\Delete       delete
+     * @property \Core\Providers\Database\Database     db
      *
      * @package Core\Contracts
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
@@ -93,7 +89,7 @@ namespace Core\Contracts {
          */
         public function param($name = null)
         {
-            return input($name);
+            return params($name);
         }
         
         /**

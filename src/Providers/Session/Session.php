@@ -106,7 +106,7 @@ namespace Core\Providers\Session {
         /**
          * @param string $key
          *
-         * @return void
+         * @return mixed
          */
         public function forget($key)
         {
@@ -116,7 +116,7 @@ namespace Core\Providers\Session {
         /**
          * @param string $key
          *
-         * @return void
+         * @return mixed
          */
         public function remove($key)
         {
@@ -143,11 +143,21 @@ namespace Core\Providers\Session {
             if (ini_get('session.use_cookies')) {
                 $params = session_get_cookie_params();
                 
-                setcookie(session_name(), '', (time() - 42000), $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+                setcookie(
+                    session_name(),
+                    '',
+                    (time() - 42000),
+                    $params["path"],
+                    $params["domain"],
+                    $params["secure"],
+                    $params["httponly"]
+                );
             }
             
             if (session_status() == PHP_SESSION_ACTIVE) {
                 session_destroy();
+                
+                $this->regenerate();
             }
         }
     }

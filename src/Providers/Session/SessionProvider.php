@@ -31,7 +31,7 @@ namespace Core\Providers\Session {
         {
             // Sessão
             $this->container['session'] = function () {
-                if (!is_php_cli() && config('app.session')) {
+                if (!is_php_cli() && env('APP_SESSION', true)) {
                     return new Session();
                 }
                 
@@ -40,7 +40,7 @@ namespace Core\Providers\Session {
             
             // Flash Message
             $this->container['flash'] = function () {
-                if (!is_php_cli() && config('app.session')) {
+                if (!is_php_cli() && env('APP_SESSION', true)) {
                     return new Flash();
                 }
                 
@@ -55,7 +55,7 @@ namespace Core\Providers\Session {
          */
         public function boot()
         {
-            if (!is_php_cli() && config('app.session')) {
+            if (!is_php_cli() && env('APP_SESSION', true)) {
                 $this->view->addGlobal('session', $this->session->all());
                 $this->view->addGlobal('flash', $this->flash->all());
             }

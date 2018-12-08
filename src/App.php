@@ -1,9 +1,9 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * VCWeb Networks <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   VCWeb Networks
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
@@ -27,7 +27,7 @@ namespace Core {
         /**
          * @var \Core\App
          */
-        private static $instance;
+        protected static $instance;
         
         /**
          * App constructor
@@ -37,7 +37,7 @@ namespace Core {
             /**
              * Slim
              *
-             * Inicia as configurações do slim
+             * Configurações padrões
              */
             
             parent::__construct([
@@ -46,59 +46,11 @@ namespace Core {
                     'responseChunkSize' => 4096,
                     'outputBuffering' => 'append',
                     'determineRouteBeforeAppMiddleware' => true,
-                    'displayErrorDetails' => (config('app.environment', 'development') === 'development'),
+                    'displayErrorDetails' => (env('APP_ENV', 'development') === 'development'),
                     'addContentLengthHeader' => true,
                     'routerCacheFile' => false,
                 ],
             ]);
-            
-            /**
-             * Inicia as configurações
-             */
-            
-            $this->initConfigs();
-        }
-        
-        /**
-         * Inicia as configurações padrão da aplicação
-         */
-        public function initConfigs()
-        {
-            /**
-             * PHP Basic Config
-             *
-             * Configurações básicas da aplicação
-             */
-            
-            ini_set('display_errors', 'On');
-            ini_set('display_startup_errors', 'On');
-            ini_set('default_charset', 'UTF-8');
-            
-            mb_internal_encoding('UTF-8');
-            date_default_timezone_set(config('app.timezone', 'America/Sao_Paulo'));
-            setlocale(LC_ALL, config('app.locale'), config('app.locale').'utf-8');
-            
-            /**
-             * Carbon
-             */
-            
-            Carbon::setLocale(config('app.locale'));
-            
-            /**
-             * Errors
-             *
-             * Controle de erro do sistema
-             */
-            
-            if (config('app.environment', 'development') === 'development') {
-                error_reporting(E_ALL);
-            } else {
-                error_reporting(E_ALL ^ E_NOTICE);
-            }
-            
-            set_error_handler(function ($code, $message, $file, $line) {
-                throw new \ErrorException($message, $code, 1, $file, $line);
-            });
         }
         
         /**
@@ -191,14 +143,10 @@ namespace Core {
                 if ($middleware instanceof \Closure) {
                     $route->add($middleware);
                 } else {
-                    $registers = $this->loadRegistersFile();
+                    $middlewares = config('app.middlewares.manual', []);
                     
-                    if (!empty($registers['middleware']['web'])) {
-                        $middlewares = $registers['middleware']['web'];
-                        
-                        if (array_key_exists($middleware, $middlewares)) {
-                            $route->add($middlewares[$middleware]);
-                        }
+                    if (array_key_exists($middleware, $middlewares)) {
+                        $route->add($middlewares[$middleware]);
                     }
                 }
             }
@@ -207,120 +155,99 @@ namespace Core {
         }
         
         /**
-         * Providers, Middlewares, Functions
-         *
-         * @return array
+         * Inicia as configurações padrões da aplicação
          */
-        private function loadRegistersFile()
+        public function initConfigs()
         {
-            $registers = [];
+            /**
+             * PHP Basic Config
+             *
+             * Configurações básicas da aplicação
+             */
             
-            if (file_exists(APP_FOLDER.'/bootstrap/registers.php')) {
-                $registers = include APP_FOLDER.'/bootstrap/registers.php';
-                
-                return $registers;
+            ini_set('display_errors', 'On');
+            ini_set('display_startup_errors', 'On');
+            ini_set('default_charset', 'UTF-8');
+            
+            mb_internal_encoding('UTF-8');
+            date_default_timezone_set(env('APP_TIMEZONE', 'America/Sao_Paulo'));
+            setlocale(LC_ALL, env('APP_LOCALE'), env('APP_LOCALE').'utf-8');
+            
+            /**
+             * Carbon
+             */
+            
+            Carbon::setLocale(env('APP_LOCALE'));
+            
+            /**
+             * Errors
+             *
+             * Controle de erro do sistema
+             */
+            
+            if (env('APP_ENV') === 'development') {
+                error_reporting(E_ALL);
+            } else {
+                error_reporting(E_ALL ^ E_NOTICE);
             }
             
-            return $registers;
+            set_error_handler(function ($code, $message, $file, $line) {
+                throw new \ErrorException($message, $code, 1, $file, $line);
+            });
         }
         
         /**
-         * Registra as middlewares
-         *
-         * @return mixed
+         * Inicia as rotas padrão da aplicação
          */
-        public function registerMiddleware()
+        public function initRoutes()
         {
-            $registers = $this->loadRegistersFile();
+            $includeOnce = function ($file, $app) {
+                include_once "{$file}";
+            };
             
-            if (!empty($registers['middleware']['app'])) {
-                foreach ($registers['middleware']['app'] as $key => $middleware) {
-                    if (class_exists($middleware)) {
-                        $this->add($middleware);
+            foreach (glob_recursive(APP_FOLDER."/routes/**") as $file) {
+                if (is_file($file) && !is_dir($file)) {
+                    $includeOnce($file, $this);
+                }
+            }
+        }
+        
+        /**
+         * Inicia os serviços da aplicação
+         */
+        public function initProviders()
+        {
+            $providers = [];
+            
+            foreach (config('app.providers', []) as $provider) {
+                if (class_exists($provider)) {
+                    $provider = new $provider($this->getContainer());
+                    
+                    if (method_exists($provider, 'register')) {
+                        $provider->register();
                     }
+                    
+                    array_push($providers, $provider);
                 }
             }
             
-            return $this;
-        }
-        
-        /**
-         * Registra as funções
-         */
-        public function registerFunctions()
-        {
-            $registers = $this->loadRegistersFile();
-            
-            if (!empty($registers['functions'])) {
-                foreach ($registers['functions'] as $function) {
-                    include "{$function}";
+            foreach ($providers as $provider) {
+                if (method_exists($provider, 'boot')) {
+                    $provider->boot();
                 }
             }
         }
         
         /**
-         * Registra os serviços
-         *
-         * @return mixed
+         * Inicia as middleware da aplicação
          */
-        public function registerProviders()
+        public function initMiddlewares()
         {
-            $registers = $this->loadRegistersFile();
-            $boots = [];
-            
-            if (!empty($registers['providers'])) {
-                foreach ($registers['providers'] as $key => $providers) {
-                    foreach ($providers as $provider) {
-                        if (class_exists($provider)) {
-                            $provider = new $provider($this->getContainer());
-                            
-                            if (method_exists($provider, 'register')) {
-                                $provider->register();
-                            }
-                            
-                            array_push($boots, $provider);
-                        }
-                    }
-                }
-                
-                foreach ($boots as $provider) {
-                    if (method_exists($provider, 'boot')) {
-                        $provider->boot();
-                    }
+            foreach (config('app.middlewares.automatic', []) as $name => $middleware) {
+                if (class_exists($middleware)) {
+                    $this->add($middleware);
                 }
             }
-            
-            return $this;
-        }
-        
-        /**
-         * Registra as rotas
-         */
-        public function registerRouter()
-        {
-            // Router for web
-            if (file_exists(APP_FOLDER.'/routes/web.php')) {
-                $this->group('', function ($app) {
-                    include_once APP_FOLDER.'/routes/web.php';
-                });
-            }
-            
-            // Router for api
-            if (file_exists(APP_FOLDER.'/routes/api.php')) {
-                $this->group('/api', function ($app) {
-                    include_once APP_FOLDER.'/routes/api.php';
-                });
-            }
-        }
-        
-        /**
-         * @param string $name
-         *
-         * @return mixed
-         */
-        public function __get($name)
-        {
-            return $this->resolve($name);
         }
         
         /**
@@ -342,6 +269,46 @@ namespace Core {
             }
             
             return $container->get($name);
+        }
+        
+        /**
+         * Verifica os métodos antigo da classe e converte para o novo
+         *
+         * @param string $method
+         * @param mixed  $parameters
+         *
+         * @return array|bool|string
+         */
+        public function __call($method, $parameters)
+        {
+            $parameter = null;
+            
+            /*if (!empty($parameters[0])) {
+                $parameter = $parameters[0];
+            }*/
+            
+            switch ($method) {
+                case 'registerRouter':
+                    return $this->initRoutes();
+                    break;
+                
+                case 'registerProviders':
+                    return $this->initProviders();
+                    break;
+                
+                case 'registerMiddleware':
+                    return $this->initMiddlewares();
+                    break;
+                
+                case 'registerFunctions':
+                case 'loadRegistersFile':
+                    return '';
+                    break;
+            }
+            
+            if (!method_exists(get_class(), $method)) {
+                throw new \BadMethodCallException(sprintf("Call to undefined method %s::%s()", get_class($this), $method), E_ERROR);
+            }
         }
     }
 }

@@ -42,12 +42,6 @@ namespace Core\Providers\View {
         {
             $this->loader = $this->createLoader(is_string($path) ? [$path] : $path);
             $this->environment = new \Twig_Environment($this->loader, $options);
-            
-            /**
-             * Add default extension debug
-             */
-            $this->addExtension(new \Twig_Extension_Debug());
-            $this->addExtension(new TwigExtension());
         }
         
         /**
@@ -68,20 +62,6 @@ namespace Core\Providers\View {
             }
             
             return $loader;
-        }
-        
-        /**
-         * Add new extension
-         *
-         * @param \Twig_ExtensionInterface $extension
-         *
-         * @return $this
-         */
-        public function addExtension(\Twig_ExtensionInterface $extension)
-        {
-            $this->environment->addExtension($extension);
-            
-            return $this;
         }
         
         /**
@@ -115,10 +95,30 @@ namespace Core\Providers\View {
                 $template = substr($template, 0, -5);
             }
             
+            // Verifica se existe o namespace da view
+            // e caso não exista e atribuido o padrão a ela
+            if (mb_substr($template, 0, 1) !== '@') {
+                $template = "@web.{$template}";
+            }
+            
             // Replace `dot` in `bar`
             $template = str_replace('.', '/', $template);
             
             return $this->environment->render("{$template}.twig", $data);
+        }
+        
+        /**
+         * Add new extension
+         *
+         * @param \Twig_ExtensionInterface $extension
+         *
+         * @return $this
+         */
+        public function addExtension(\Twig_ExtensionInterface $extension)
+        {
+            $this->environment->addExtension($extension);
+            
+            return $this;
         }
         
         /**

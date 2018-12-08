@@ -46,7 +46,7 @@ namespace Core\Providers\Encryption {
             $this->cipher = $cipher;
             
             if (empty($this->key)) {
-                throw new \InvalidArgumentException('[ENCRYPTION] :: Empty key.', E_ERROR);
+                throw new \InvalidArgumentException('[ENCRYPTION] Empty key.', E_ERROR);
             }
         }
         
@@ -176,7 +176,8 @@ namespace Core\Providers\Encryption {
          */
         protected function validPayload($payload)
         {
-            return is_array($payload) && isset($payload['iv'], $payload['value'], $payload['mac']) && strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length($this->cipher);
+            return is_array($payload) && isset($payload['iv'], $payload['value'], $payload['mac']) &&
+                strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length($this->cipher);
         }
         
         /**
