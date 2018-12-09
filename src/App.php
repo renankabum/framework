@@ -12,7 +12,6 @@
 
 namespace Core {
     
-    use Carbon\Carbon;
     use Slim\Http\Request;
     use Slim\Http\Response;
     
@@ -172,12 +171,6 @@ namespace Core {
             mb_internal_encoding('UTF-8');
             date_default_timezone_set(env('APP_TIMEZONE', 'America/Sao_Paulo'));
             setlocale(LC_ALL, env('APP_LOCALE'), env('APP_LOCALE').'utf-8');
-            
-            /**
-             * Carbon
-             */
-            
-            Carbon::setLocale(env('APP_LOCALE'));
             
             /**
              * Errors
