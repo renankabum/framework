@@ -47,16 +47,14 @@ namespace Core\Providers\View {
             // Registra as funções e filtros
             foreach (config('view.registers') as $key => $items) {
                 foreach ($items as $name => $item) {
-                    if (function_exists($item)) {
-                        switch ($key) {
-                            case 'functions':
-                                $this->view->addFunction($name, $item);
-                                break;
-                            
-                            case 'filters':
-                                $this->view->addFilter($name, $item);
-                                break;
-                        }
+                    switch ($key) {
+                        case 'functions':
+                            $this->view->addFunction($name, $item);
+                            break;
+                        
+                        case 'filters':
+                            $this->view->addFilter($name, $item);
+                            break;
                     }
                 }
             }
