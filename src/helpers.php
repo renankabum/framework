@@ -834,7 +834,7 @@ if (!function_exists('get_upload_max_filesize')) {
         $mb = ini_get('upload_max_filesize');
         $maxFileSize = 0;
         
-        if (preg_match('/([0-9])+([a-zA-Z])/', $mb, $matche)) {
+        if (preg_match('/([0-9]+)+([a-zA-Z]+)/', $mb, $matche)) {
             switch ($matche[2]) {
                 case 'K':
                 case 'KB':
