@@ -45,7 +45,10 @@ namespace Core\Providers\Event {
         public function boot()
         {
             $this->view->addFunction('event_emit', function ($event) {
-                $this->event->emit((string) $event);
+                $arguments = func_get_args();
+                array_shift($arguments);
+                
+                $this->event->emit((string) $event, ...$arguments);
             });
         }
     }
