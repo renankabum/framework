@@ -21,21 +21,22 @@ namespace Core\Contracts {
     /**
      * Class Controller
      *
-     * @property \Slim\Collection                      settings
-     * @property \Slim\Http\Environment                environment
-     * @property \Slim\Http\Request                    request
-     * @property \Slim\Http\Response                   response
-     * @property \Slim\Router                          router
+     * @property \Slim\Collection settings
+     * @property \Slim\Http\Environment environment
+     * @property \Slim\Http\Request request
+     * @property \Slim\Http\Response response
+     * @property \Slim\Router router
      *
-     * @property \Core\Providers\View\Twig             view
-     * @property \Core\Providers\Session\Session       session
-     * @property \Core\Providers\Session\Flash         flash
-     * @property \Core\Providers\Mailer\Mailer         mailer
-     * @property \Core\Providers\Hash\Bcrypt           hash
+     * @property \Core\Providers\View\Twig view
+     * @property \Core\Providers\Session\Session session
+     * @property \Core\Providers\Session\Flash flash
+     * @property \Core\Providers\Mailer\Mailer mailer
+     * @property \Core\Providers\Hash\Bcrypt hash
      * @property \Core\Providers\Encryption\Encryption encryption
-     * @property \Core\Providers\Jwt\Jwt               jwt
+     * @property \Core\Providers\Jwt\Jwt jwt
+     * @property \Core\Providers\Event\Event event
      *
-     * @property \Core\Providers\Database\Database     db
+     * @property \Core\Providers\Database\Database db
      *
      * @package Core\Contracts
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
@@ -60,9 +61,9 @@ namespace Core\Contracts {
         /**
          * Controller constructor.
          *
-         * @param \Slim\Http\Request  $request
+         * @param \Slim\Http\Request $request
          * @param \Slim\Http\Response $response
-         * @param \Slim\Container     $container
+         * @param \Slim\Container $container
          */
         public function __construct(Request $request, Response $response, Container $container)
         {
@@ -96,8 +97,8 @@ namespace Core\Contracts {
          * Retorna a view e popula seus dados dentro dela
          *
          * @param string $view
-         * @param array  $array
-         * @param int    $code
+         * @param array $array
+         * @param int $code
          *
          * @return Response
          */
@@ -123,7 +124,7 @@ namespace Core\Contracts {
          * Realiza a salvação de logs no sistema
          *
          * @param string $message
-         * @param array  $context
+         * @param array $context
          * @param string $file
          * @param string $type
          *
@@ -139,8 +140,8 @@ namespace Core\Contracts {
          * e seus parametros e querys
          *
          * @param string $name
-         * @param array  $data
-         * @param array  $queryParams
+         * @param array $data
+         * @param array $queryParams
          * @param string $hash
          *
          * @return Response
@@ -155,8 +156,8 @@ namespace Core\Contracts {
          * dado na rota
          *
          * @param string $name
-         * @param array  $data
-         * @param array  $queryParams
+         * @param array $data
+         * @param array $queryParams
          * @param string $hash
          *
          * @return string
@@ -170,7 +171,7 @@ namespace Core\Contracts {
          * Retorna um json populado
          *
          * @param mixed $data
-         * @param int   $status
+         * @param int $status
          *
          * @return Response
          */
