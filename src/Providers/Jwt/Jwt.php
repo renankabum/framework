@@ -50,7 +50,7 @@ namespace Core\Providers\Jwt {
             $this->key = (string) $key;
             
             if (empty($this->key)) {
-                throw new \InvalidArgumentException("[JWT] :: The security guard can not be watered.", E_USER_ERROR);
+                throw new \InvalidArgumentException("[JWT] The security guard can not be watered.", E_USER_ERROR);
             }
         }
         
@@ -86,30 +86,6 @@ namespace Core\Providers\Jwt {
         }
         
         /**
-         * Generate Token Signature
-         *
-         * @param string $hashed
-         * @param string $algorithm
-         *
-         * @return string
-         */
-        private function signature($hashed, $algorithm = 'HS256')
-        {
-            if (!array_key_exists($algorithm, $this->algorithms)) {
-                throw new \InvalidArgumentException("[JWT] :: Algorithm {$algorithm} is not supported.", E_USER_ERROR);
-            }
-            
-            // Separa o algoritimo
-            list($function, $algorithm) = $this->algorithms[$algorithm];
-            
-            switch ($function) {
-                case 'hash_hmac':
-                    return hash_hmac($algorithm, $hashed, $this->key, true);
-                    break;
-            }
-        }
-        
-        /**
          * Decode the jwt string.
          *
          * @param string $token
@@ -122,70 +98,37 @@ namespace Core\Providers\Jwt {
             $split = explode('.', $token);
             
             if (count($split) != 3) {
-                throw new \InvalidArgumentException("[JWT] :: The token does not contain a valid format.", E_USER_ERROR);
+                throw new \InvalidArgumentException("[JWT] The token does not contain a valid format.", E_USER_ERROR);
             }
             
             // Separate the token
             list($header64, $payload64, $signature) = $split;
             
             if (!$header = json_decode(Base64::decode($header64), true, 512, JSON_BIGINT_AS_STRING)) {
-                throw new \UnexpectedValueException("[JWT] :: Invalid header encoding.", E_USER_ERROR);
+                throw new \UnexpectedValueException("[JWT] Invalid header encoding.", E_USER_ERROR);
             }
             
             if (!$payload = json_decode(Base64::decode($payload64), true, 512, JSON_BIGINT_AS_STRING)) {
-                throw new \UnexpectedValueException("[JWT] :: Invalid payload encoding.", E_USER_ERROR);
+                throw new \UnexpectedValueException("[JWT] Invalid payload encoding.", E_USER_ERROR);
             }
             
             if (!$signature = Base64::decode($signature)) {
-                throw new \UnexpectedValueException("[JWT] :: Invalid signature encoding.", E_USER_ERROR);
+                throw new \UnexpectedValueException("[JWT] Invalid signature encoding.", E_USER_ERROR);
             }
             
             if (empty($header['alg'])) {
-                throw new \UnexpectedValueException("[JWT] :: Empty algorithm.", E_USER_ERROR);
+                throw new \UnexpectedValueException("[JWT] Empty algorithm.", E_USER_ERROR);
             }
             
             if (!array_key_exists($header['alg'], $this->algorithms)) {
-                throw new \UnexpectedValueException("[JWT] :: Algorithm {$header['alg']} is not supported.", E_USER_ERROR);
+                throw new \UnexpectedValueException("[JWT] Algorithm {$header['alg']} is not supported.", E_USER_ERROR);
             }
             
             if (!$this->validate("{$header64}.{$payload64}", $signature, $header['alg'])) {
-                throw new \Exception("[JWT] :: Signature verification failed.", E_USER_ERROR);
+                throw new \Exception("[JWT] Signature verification failed.", E_USER_ERROR);
             }
             
             return $payload;
-        }
-        
-        /**
-         * Token signature validation
-         *
-         * @param string $hashed
-         * @param string $signature
-         * @param string $algorithm
-         *
-         * @return bool
-         */
-        private function validate($hashed, $signature, $algorithm = 'HS256')
-        {
-            if (!array_key_exists($algorithm, $this->algorithms)) {
-                throw new \InvalidArgumentException("[JWT] :: Algorithm {$algorithm} is not supported.", E_USER_ERROR);
-            }
-            
-            // Separa o algoritimo
-            list($function, $algorithm) = $this->algorithms[$algorithm];
-            
-            switch ($function) {
-                case 'hash_hmac':
-                    $hashed = hash_hmac($algorithm, $hashed, $this->key, true);
-                    
-                    if (function_exists('hash_equals')) {
-                        return hash_equals($signature, $hashed);
-                    }
-                    
-                    return $signature === $hashed;
-                    break;
-            }
-            
-            return false;
         }
         
         /**
@@ -206,6 +149,63 @@ namespace Core\Providers\Jwt {
             $this->key = $key;
             
             return $this;
+        }
+        
+        /**
+         * Generate Token Signature
+         *
+         * @param string $hashed
+         * @param string $algorithm
+         *
+         * @return string
+         */
+        private function signature($hashed, $algorithm = 'HS256')
+        {
+            if (!array_key_exists($algorithm, $this->algorithms)) {
+                throw new \InvalidArgumentException("[JWT] Algorithm {$algorithm} is not supported.", E_USER_ERROR);
+            }
+            
+            // Separa o algoritimo
+            list($function, $algorithm) = $this->algorithms[$algorithm];
+            
+            switch ($function) {
+                case 'hash_hmac':
+                    return hash_hmac($algorithm, $hashed, $this->key, true);
+                    break;
+            }
+        }
+        
+        /**
+         * Token signature validation
+         *
+         * @param string $hashed
+         * @param string $signature
+         * @param string $algorithm
+         *
+         * @return bool
+         */
+        private function validate($hashed, $signature, $algorithm = 'HS256')
+        {
+            if (!array_key_exists($algorithm, $this->algorithms)) {
+                throw new \InvalidArgumentException("[JWT] Algorithm {$algorithm} is not supported.", E_USER_ERROR);
+            }
+            
+            // Separa o algoritimo
+            list($function, $algorithm) = $this->algorithms[$algorithm];
+            
+            switch ($function) {
+                case 'hash_hmac':
+                    $hashed = hash_hmac($algorithm, $hashed, $this->key, true);
+                    
+                    if (function_exists('hash_equals')) {
+                        return hash_equals($signature, $hashed);
+                    }
+                    
+                    return $signature === $hashed;
+                    break;
+            }
+            
+            return false;
         }
     }
 }

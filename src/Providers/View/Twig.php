@@ -36,7 +36,7 @@ namespace Core\Providers\View {
          * TwigProvider constructor.
          *
          * @param string|array $path
-         * @param array        $options
+         * @param array $options
          */
         public function __construct($path, array $options = [])
         {
@@ -71,25 +71,11 @@ namespace Core\Providers\View {
         }
         
         /**
-         * Add new extension
-         *
-         * @param \Twig_ExtensionInterface $extension
-         *
-         * @return $this
-         */
-        public function addExtension(\Twig_ExtensionInterface $extension)
-        {
-            $this->environment->addExtension($extension);
-            
-            return $this;
-        }
-        
-        /**
          * Render the template with the slim3 response
          *
          * @param Response $response
-         * @param string   $template
-         * @param array    $data
+         * @param string $template
+         * @param array $data
          *
          * @return Response
          */
@@ -104,7 +90,7 @@ namespace Core\Providers\View {
          * Render template view
          *
          * @param string $template
-         * @param array  $data
+         * @param array $data
          *
          * @return string
          */
@@ -122,11 +108,25 @@ namespace Core\Providers\View {
         }
         
         /**
+         * Add new extension
+         *
+         * @param \Twig_ExtensionInterface $extension
+         *
+         * @return $this
+         */
+        public function addExtension(\Twig_ExtensionInterface $extension)
+        {
+            $this->environment->addExtension($extension);
+            
+            return $this;
+        }
+        
+        /**
          * Add new function
          *
-         * @param string   $name
+         * @param string $name
          * @param callable $callable
-         * @param array    $options
+         * @param array $options
          *
          * @return $this
          */
@@ -140,9 +140,9 @@ namespace Core\Providers\View {
         /**
          * Add new filter
          *
-         * @param string   $name
+         * @param string $name
          * @param callable $callable
-         * @param array    $options
+         * @param array $options
          *
          * @return $this
          */
@@ -157,7 +157,7 @@ namespace Core\Providers\View {
          * Add new global
          *
          * @param string $name
-         * @param mixed  $value
+         * @param mixed $value
          *
          * @return $this
          */

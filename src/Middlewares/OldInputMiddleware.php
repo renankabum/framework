@@ -36,7 +36,7 @@ namespace Core\Middlewares {
         public function __invoke(Request $request, Response $response, callable $next)
         {
             if (!$request->isXhr()) {
-                $this->view->addGlobal('oldInput', (!empty(input())) ? input() : '');
+                $this->view->addGlobal('oldInput', (!empty(params())) ? params() : '');
             }
             
             $response = $next($request, $response);

@@ -1,9 +1,9 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * VCWeb Networks <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   VCWeb Networks
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
@@ -12,7 +12,6 @@
 
 namespace Core {
     
-    use Carbon\Carbon;
     use Slim\Http\Request;
     use Slim\Http\Response;
     
@@ -27,7 +26,7 @@ namespace Core {
         /**
          * @var \Core\App
          */
-        private static $instance;
+        protected static $instance;
         
         /**
          * App constructor
@@ -37,7 +36,7 @@ namespace Core {
             /**
              * Slim
              *
-             * Inicia as configurações do slim
+             * Configurações padrões
              */
             
             parent::__construct([
@@ -79,12 +78,6 @@ namespace Core {
             setlocale(LC_ALL, config('app.locale'), config('app.locale').'utf-8');
             
             /**
-             * Carbon
-             */
-            
-            Carbon::setLocale(config('app.locale'));
-            
-            /**
              * Errors
              *
              * Controle de erro do sistema
@@ -118,10 +111,10 @@ namespace Core {
         /**
          * Cria rota personalizadas
          *
-         * @param string|array    $methods
-         * @param string          $pattern
+         * @param string|array $methods
+         * @param string $pattern
          * @param string|\Closure $callable
-         * @param string          $name
+         * @param string $name
          * @param string|\Closure $middleware
          *
          * @return \Slim\Interfaces\RouteInterface
@@ -327,7 +320,7 @@ namespace Core {
          * Resolve as chamada dos container
          *
          * @param string $name
-         * @param array  $params
+         * @param array $params
          *
          * @return mixed
          */

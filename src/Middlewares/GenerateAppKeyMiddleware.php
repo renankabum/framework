@@ -39,7 +39,7 @@ namespace Core\Middlewares {
             $originalAppKey = env('APP_KEY', null);
             
             if (empty($originalAppKey)) {
-                $newAppKey = 'base64:'.Str::randomBytes(32);
+                $newAppKey = 'base64:'.Str::randomBytes(64);
                 $scaped = preg_quote("={$originalAppKey}", '/');
                 
                 file_put_contents(

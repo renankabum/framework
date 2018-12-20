@@ -339,17 +339,33 @@ if (!function_exists('__')) {
 
 if (!function_exists('entities')) {
     /**
+     * Converte todos os caracteres aplicáveis em entidades html recursivamente.
+     *
      * @param mixed $values
      *
      * @return array
      */
     function entities($values)
     {
+        return htmlentities_recursive($values);
+    }
+}
+
+if (!function_exists('htmlentities_recursive')) {
+    /**
+     * Converte todos os caracteres aplicáveis em entidades html recursivamente.
+     *
+     * @param mixed $values
+     *
+     * @return array
+     */
+    function htmlentities_recursive($values)
+    {
         $params = [];
         
         foreach ((array) $values as $key => $value) {
             if (is_array($value)) {
-                $params[$key] = entities($value);
+                $params[$key] = htmlentities_recursive($value);
             } else {
                 if (is_string($value)) {
                     $value = htmlentities($value, ENT_QUOTES, 'UTF-8', false);
@@ -365,11 +381,27 @@ if (!function_exists('entities')) {
 
 if (!function_exists('empty_filter')) {
     /**
+     * Verifica recursivamente um array de dados se existe algum vázio.
+     *
      * @param array $data
      *
      * @return bool
      */
     function empty_filter(array $data)
+    {
+        return empty_recursive($data);
+    }
+}
+
+if (!function_exists('empty_recursive')) {
+    /**
+     * Verifica recursivamente um array de dados se existe algum vázio.
+     *
+     * @param array $data
+     *
+     * @return bool
+     */
+    function empty_recursive(array $data)
     {
         if (empty($data)) {
             return true;
@@ -377,7 +409,7 @@ if (!function_exists('empty_filter')) {
         
         foreach ((array) $data as $key => $value) {
             if (is_array($value)) {
-                return empty_filter($value);
+                return empty_recursive($value);
             } else {
                 if (empty($value) && $value != '0') {
                     return true;
@@ -391,46 +423,78 @@ if (!function_exists('empty_filter')) {
 
 if (!function_exists('input_filter')) {
     /**
-     * @param string|array $data
+     * Filtra e protege todos dados passados
+     *
+     * @param string|array $params
      *
      * @return array
      */
-    function input_filter($data)
+    function input_filter($params)
     {
-        $request = [];
+        return filter_params($params);
+    }
+}
+
+if (!function_exists('filter_params')) {
+    /**
+     * Filtra e protege todos dados passados
+     *
+     * @param string|array $params
+     *
+     * @return array
+     */
+    function filter_params($params)
+    {
+        $result = [];
         
-        foreach ((array) $data as $key => $value) {
-            if (is_array($value)) {
-                $request[$key] = input_filter($value);
+        foreach ((array) $params as $key => $param) {
+            if (is_array($param)) {
+                $result[$key] = filter_params($param);
             } else {
-                if (is_int($value)) {
+                if (is_int($param)) {
                     $filter = FILTER_SANITIZE_NUMBER_INT;
-                } else if (is_float($value)) {
+                } else if (is_float($param)) {
                     $filter = FILTER_SANITIZE_NUMBER_FLOAT;
-                } else if (is_string($value)) {
+                } else if (is_string($param)) {
                     $filter = FILTER_SANITIZE_STRING;
                 } else {
                     $filter = FILTER_DEFAULT;
                 }
                 
-                $request[$key] = addslashes(strip_tags(trim(filter_var($value, $filter))));
+                $result[$key] = addslashes(strip_tags(trim(filter_var($param, $filter))));
             }
         }
         
-        return $request;
+        return $result;
     }
 }
 
 if (!function_exists('input')) {
     /**
+     * Recupera todos GET,POST...
+     *
      * @param string $name
      *
      * @return mixed
      */
     function input($name = null)
     {
+        return params($name);
+    }
+}
+
+if (!function_exists('params')) {
+    /**
+     * Recupera todos GET,POST...
+     *
+     * @param string $name
+     *
+     * @return mixed
+     */
+    function params($name = null)
+    {
         $params = App::getInstance()->resolve('request')->getParams();
-        $params = input_filter($params);
+        $params = filter_params($params);
         
         if (empty($name)) {
             return $params;
@@ -770,7 +834,7 @@ if (!function_exists('get_upload_max_filesize')) {
         $mb = ini_get('upload_max_filesize');
         $maxFileSize = 0;
         
-        if (preg_match('/([0-9])+([a-zA-Z])/', $mb, $matche)) {
+        if (preg_match('/([0-9]+)+([a-zA-Z]+)/', $mb, $matche)) {
             switch ($matche[2]) {
                 case 'K':
                 case 'KB':

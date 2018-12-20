@@ -99,7 +99,7 @@ namespace Core\Providers\View {
             
             // Verify if exists file
             if (!is_file("{$this->path}/{$template}.php")) {
-                throw new \Exception("[VIEW::PHP] :: O template `{$template}` não existe.");
+                throw new \Exception("[VIEW::PHP] O template `{$template}` não existe.");
             }
             
             $this->context = $context;

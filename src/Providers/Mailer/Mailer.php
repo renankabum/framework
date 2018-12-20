@@ -107,7 +107,7 @@ namespace Core\Providers\Mailer {
             } catch (Exception $e) {
                 $this->error = $e->getMessage();
                 
-                throw new \Exception("[MAILER] :: {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw new \Exception("[MAILER] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
             }
         }
         

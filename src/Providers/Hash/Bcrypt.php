@@ -31,7 +31,7 @@ namespace Core\Providers\Hash {
          * Cria um novo password hash usando um algoritmo forte de hash de via única
          *
          * @param string $value
-         * @param array  $options
+         * @param array $options
          *
          * @return bool|string
          */
@@ -57,7 +57,9 @@ namespace Core\Providers\Hash {
          */
         protected function cost(array $options)
         {
-            return isset($options['rounds']) ? $options['rounds'] : $this->rounds;
+            return isset($options['rounds'])
+                ? $options['rounds']
+                : $this->rounds;
         }
         
         /**
@@ -65,7 +67,7 @@ namespace Core\Providers\Hash {
          * Se não, ela assume que o hash precisa ser regenerado.
          *
          * @param string $hashedValue
-         * @param array  $options
+         * @param array $options
          *
          * @return boolean
          */
