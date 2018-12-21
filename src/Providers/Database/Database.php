@@ -138,6 +138,14 @@ namespace Core\Providers\Database {
             
             return self::$instance;
         }
+    
+        /**
+         * @return bool
+         */
+        public function inTransaction()
+        {
+            return $this->pdo->inTransaction();
+        }
         
         /**
          * @return bool
