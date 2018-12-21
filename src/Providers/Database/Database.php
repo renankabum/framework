@@ -21,6 +21,11 @@ namespace Core\Providers\Database {
     class Database
     {
         /**
+         * @var
+         */
+        protected static $instance;
+        
+        /**
          * @var \PDO
          */
         protected $pdo;
@@ -34,11 +39,6 @@ namespace Core\Providers\Database {
          * @var array
          */
         protected $places = [];
-        
-        /**
-         * @var
-         */
-        protected static $instance;
         
         /**
          * Database constructor.
@@ -148,30 +148,6 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @return bool
-         */
-        public function beginTransaction()
-        {
-            return $this->pdo->beginTransaction();
-        }
-        
-        /**
-         * @return bool
-         */
-        public function commit()
-        {
-            return $this->pdo->commit();
-        }
-        
-        /**
-         * @return bool
-         */
-        public function rollBack()
-        {
-            return $this->pdo->rollBack();
-        }
-        
-        /**
          * @param \Closure $callback
          *
          * @return \Closure|mixed
@@ -194,6 +170,30 @@ namespace Core\Providers\Database {
                 
                 throw $e;
             }
+        }
+        
+        /**
+         * @return bool
+         */
+        public function beginTransaction()
+        {
+            return $this->pdo->beginTransaction();
+        }
+        
+        /**
+         * @return bool
+         */
+        public function commit()
+        {
+            return $this->pdo->commit();
+        }
+        
+        /**
+         * @return bool
+         */
+        public function rollBack()
+        {
+            return $this->pdo->rollBack();
         }
         
         /**
@@ -285,9 +285,8 @@ namespace Core\Providers\Database {
             $this->setPlaces($places);
             
             try {
-                $this->statement = $this->pdo->prepare($sql);
-                $this->bindValues();
-                $this->statement->execute();
+                // Execute
+                $this->execute($sql);
                 
                 return $this;
             } catch (\PDOException $e) {
@@ -311,6 +310,21 @@ namespace Core\Providers\Database {
                     $this->places = (array) $places;
                 }
             }
+        }
+        
+        /**
+         * @param string $sql
+         * @param array $driverOptions
+         */
+        protected function execute($sql, array $driverOptions = [])
+        {
+            // Statement
+            $this->statement = $this->pdo->prepare($sql, $driverOptions);
+            $this->bindValues();
+            $this->statement->execute();
+            
+            // Clear places
+            $this->places = [];
         }
         
         /**
@@ -352,9 +366,8 @@ namespace Core\Providers\Database {
             $this->setPlaces($places);
             
             try {
-                $this->statement = $this->pdo->prepare("SELECT * FROM {$table} {$condition}");
-                $this->bindValues();
-                $this->statement->execute();
+                // Execute
+                $this->execute("SELECT * FROM {$table} {$condition}");
                 
                 return $this;
             } catch (\PDOException $e) {
@@ -380,17 +393,14 @@ namespace Core\Providers\Database {
             
             // Monta os valores conforme se é um array multimensional ou um array simples
             if (!empty($data[0])) {
-                $places = [];
-                
                 foreach ($data as $i => $item) {
                     $values[] = ':'.implode("{$i}, :", array_keys($item)).$i;
                     
                     foreach ($item as $k => $v) {
-                        $places["{$k}{$i}"] = $v;
+                        $this->places["{$k}{$i}"] = $v;
                     }
                 }
                 
-                $this->setPlaces($places);
                 $values = '('.implode("), (", $values).')';
             } else {
                 $this->setPlaces($data);
@@ -398,9 +408,8 @@ namespace Core\Providers\Database {
             }
             
             try {
-                $this->statement = $this->pdo->prepare("INSERT INTO {$table} ({$columns}) VALUES {$values}");
-                $this->bindValues();
-                $this->statement->execute();
+                // Execute
+                $this->execute("INSERT INTO {$table} ({$columns}) VALUES {$values}");
                 
                 return $this;
             } catch (\PDOException $e) {
@@ -422,7 +431,6 @@ namespace Core\Providers\Database {
             $table = (string) $table;
             $condition = (string) $condition;
             $set = [];
-            $arrPlaces = [];
             
             if (empty($condition)) {
                 throw new \InvalidArgumentException("It is not possible to execute the `->update` method without passing the condition.", E_ERROR);
@@ -435,22 +443,20 @@ namespace Core\Providers\Database {
             foreach ($data as $field => $value) {
                 $time = '';
                 
-                if (!empty($arrPlaces[$field])) {
+                if (!empty($this->places[$field])) {
                     $time = time();
                 }
                 
                 $set[] = "{$field} = :{$field}{$time}";
                 
-                $arrPlaces["{$field}{$time}"] = $value;
+                $this->places["{$field}{$time}"] = $value;
             }
             
             $set = implode(', ', $set);
-            $this->setPlaces($arrPlaces);
             
             try {
-                $this->statement = $this->pdo->prepare("UPDATE {$table} SET {$set} {$condition}");
-                $this->bindValues();
-                $this->statement->execute();
+                // Execute
+                $this->execute("UPDATE {$table} SET {$set} {$condition}");
                 
                 return $this;
             } catch (\PDOException $e) {
@@ -479,9 +485,8 @@ namespace Core\Providers\Database {
             $this->setPlaces($places);
             
             try {
-                $this->statement = $this->pdo->prepare("DELETE FROM {$table} {$condition}");
-                $this->bindValues();
-                $this->statement->execute();
+                // Execute
+                $this->execute("DELETE FROM {$table} {$condition}");
                 
                 return $this;
             } catch (\PDOException $e) {
