@@ -138,7 +138,7 @@ namespace Core\Providers\Database {
             
             return self::$instance;
         }
-    
+        
         /**
          * @return bool
          */
@@ -170,7 +170,7 @@ namespace Core\Providers\Database {
         {
             return $this->pdo->rollBack();
         }
-    
+        
         /**
          * @param \Closure $callback
          *
@@ -183,15 +183,15 @@ namespace Core\Providers\Database {
                 $this->beginTransaction();
                 $callback = call_user_func($callback);
                 $this->commit();
-            
+                
                 return $callback;
             } catch (\Exception $e) {
                 $this->rollBack();
-            
+                
                 throw $e;
             } catch (\Throwable $e) {
                 $this->rollBack();
-            
+                
                 throw $e;
             }
         }
@@ -247,7 +247,7 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @param int   $fetch_style
+         * @param int $fetch_style
          * @param mixed $fetch_argument
          * @param array $ctor_args
          *
@@ -267,7 +267,7 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @param string       $sql
+         * @param string $sql
          * @param string|array $places
          *
          * @return $this
@@ -323,7 +323,7 @@ namespace Core\Providers\Database {
                     if (in_array($field, ['limit', 'offset', 'l', 'o'])) {
                         $value = (int) $value;
                     }
-    
+                    
                     $value = ((empty($value) && $value != '0') ? null : $value);
                     
                     $this->statement->bindValue(
@@ -336,8 +336,8 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @param string       $table
-         * @param string       $condition
+         * @param string $table
+         * @param string $condition
          * @param string|array $places
          *
          * @return $this
@@ -364,7 +364,7 @@ namespace Core\Providers\Database {
         
         /**
          * @param string $table
-         * @param array  $data
+         * @param array $data
          *
          * @return $this
          * @throws \Exception
@@ -380,14 +380,17 @@ namespace Core\Providers\Database {
             
             // Monta os valores conforme se é um array multimensional ou um array simples
             if (!empty($data[0])) {
+                $places = [];
+                
                 foreach ($data as $i => $item) {
                     $values[] = ':'.implode("{$i}, :", array_keys($item)).$i;
                     
                     foreach ($item as $k => $v) {
-                        $this->places["{$k}{$i}"] = $v;
+                        $places["{$k}{$i}"] = $v;
                     }
                 }
                 
+                $this->setPlaces($places);
                 $values = '('.implode("), (", $values).')';
             } else {
                 $this->setPlaces($data);
@@ -406,9 +409,9 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @param string       $table
-         * @param array        $data
-         * @param string       $condition
+         * @param string $table
+         * @param array $data
+         * @param string $condition
          * @param string|array $places
          *
          * @return $this
@@ -419,6 +422,7 @@ namespace Core\Providers\Database {
             $table = (string) $table;
             $condition = (string) $condition;
             $set = [];
+            $arrPlaces = [];
             
             if (empty($condition)) {
                 throw new \InvalidArgumentException("It is not possible to execute the `->update` method without passing the condition.", E_ERROR);
@@ -431,16 +435,17 @@ namespace Core\Providers\Database {
             foreach ($data as $field => $value) {
                 $time = '';
                 
-                if (!empty($this->places[$field])) {
+                if (!empty($arrPlaces[$field])) {
                     $time = time();
                 }
                 
                 $set[] = "{$field} = :{$field}{$time}";
                 
-                $this->places["{$field}{$time}"] = $value;
+                $arrPlaces["{$field}{$time}"] = $value;
             }
             
             $set = implode(', ', $set);
+            $this->setPlaces($arrPlaces);
             
             try {
                 $this->statement = $this->pdo->prepare("UPDATE {$table} SET {$set} {$condition}");
@@ -454,8 +459,8 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @param string       $table
-         * @param string       $condition
+         * @param string $table
+         * @param string $condition
          * @param string|array $places
          *
          * @return $this
