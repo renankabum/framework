@@ -23,7 +23,7 @@ namespace Core\Providers\Database {
         /**
          * @var
          */
-        protected static $instance;
+        protected static $instance = null;
         
         /**
          * @var \PDO
@@ -63,16 +63,26 @@ namespace Core\Providers\Database {
                 $connection = $connections[$driver];
                 
                 // Verifica se os dados tão preenchidos
-                if (empty($connection['host']) || empty($connection['username'])) {
+                if (
+                    empty($connection['host']) ||
+                    empty($connection['username'])
+                ) {
                     throw new \Exception("Connection setup is not complete.", E_ERROR);
                 }
                 
-                // Dsn e opçoes padrão
-                $dsn = sprintf($this->getDsn($driver), $connection['host'], $connection['database']);
-                $options = $this->getDefaultOptions();
-                
                 // Connecta no banco
-                $this->pdo = new \PDO($dsn, $connection['username'], $connection['password'], $options);
+                $dsn = (!empty($connection['dsn']) ? $connection['dsn'] : 'mysql:host=%s;dbname=%s');
+                
+                $this->pdo = new \PDO(
+                    sprintf($dsn, $connection['host'], $connection['database']),
+                    $connection['username'],
+                    $connection['password'],
+                    config('database.options', [
+                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                        \PDO::ATTR_CASE => \PDO::CASE_NATURAL,
+                    ])
+                );
                 
                 // Usa a datanase
                 $this->pdo->exec("USE {$connection['database']};");
@@ -93,38 +103,6 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @param string $driver
-         *
-         * @return string
-         */
-        protected function getDsn($driver)
-        {
-            switch ($driver) {
-                case 'sqlsrv':
-                    return "sqlsrv:Server=%s;Connect=%s;ConnectionPooling=0";
-                    break;
-                case 'dblib':
-                    return "dblib:version=7.0;charset=UTF-8;host=%s;dbname=%s";
-                    break;
-                default:
-                    return "mysql:host=%s;dbname=%s";
-                    break;
-            }
-        }
-        
-        /**
-         * @return array
-         */
-        protected function getDefaultOptions()
-        {
-            return [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                \PDO::ATTR_CASE => \PDO::CASE_NATURAL,
-            ];
-        }
-        
-        /**
          * @param null $driver
          *
          * @return \Core\Providers\Database\Database
@@ -132,7 +110,7 @@ namespace Core\Providers\Database {
          */
         public static function connect($driver = null)
         {
-            if (empty(self::$instance)) {
+            if (self::$instance === null) {
                 self::$instance = new self($driver);
             }
             
