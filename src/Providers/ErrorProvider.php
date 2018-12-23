@@ -12,6 +12,7 @@
 
 namespace Core\Providers {
     
+    use Core\App;
     use Core\Contracts\Provider;
     use Slim\Http\Request;
     use Slim\Http\Response;
@@ -36,9 +37,9 @@ namespace Core\Providers {
              */
             $this->container['phpErrorHandler'] = $this->container['errorHandler'] = function () {
                 /**
-                 * @param \Slim\Http\Request  $request
+                 * @param \Slim\Http\Request $request
                  * @param \Slim\Http\Response $response
-                 * @param \Exception          $exception
+                 * @param \Exception $exception
                  *
                  * @return mixed
                  */
@@ -53,10 +54,15 @@ namespace Core\Providers {
                             'file' => str_replace([PUBLIC_FOLDER, APP_FOLDER, RESOURCE_FOLDER], '', $exception->getFile()),
                             'line' => $exception->getLine(),
                             'message' => $exception->getMessage(),
-                            'route' => is_object($route) ? "(".implode(", ", $route->getMethods()).") {$route->getPattern()}" : null,
+                            'route' => (is_object($route) ? "(".implode(", ", $route->getMethods()).") " : null).$request->getUri(),
                             'trace' => explode("\n", $exception->getTraceAsString()),
                         ],
                     ];
+                    
+                    // Dispara evento
+                    if (App::getInstance()->resolve('event')) {
+                        $this->event->emit('event.error.handler', $errors);
+                    }
                     
                     // Verifica se é ajax ou api
                     if (is_php_cli() || ($request->isXhr() || has_route('/api'))) {
@@ -72,7 +78,7 @@ namespace Core\Providers {
              */
             $this->container['notFoundHandler'] = function () {
                 /**
-                 * @param \Slim\Http\Request  $request
+                 * @param \Slim\Http\Request $request
                  * @param \Slim\Http\Response $response
                  *
                  * @return mixed
@@ -99,9 +105,9 @@ namespace Core\Providers {
              */
             $this->container['notAllowedHandler'] = function () {
                 /**
-                 * @param \Slim\Http\Request  $request
+                 * @param \Slim\Http\Request $request
                  * @param \Slim\Http\Response $response
-                 * @param string[]            $methods
+                 * @param string[] $methods
                  *
                  * @return mixed
                  */
