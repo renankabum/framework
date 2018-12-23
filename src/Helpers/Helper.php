@@ -292,6 +292,22 @@ namespace Core\Helpers {
         }
         
         /**
+         * @param string $json
+         *
+         * @return bool|array
+         */
+        public static function checkJson($json)
+        {
+            $json = json_decode($json, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return false;
+            }
+            
+            return $json;
+        }
+        
+        /**
          * Recupera o IP Address do acesso ao sistema
          *
          * @return string
