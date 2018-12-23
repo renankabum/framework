@@ -12,6 +12,7 @@
 
 namespace Core {
     
+    use Core\Helpers\Helper;
     use Slim\Http\Request;
     use Slim\Http\Response;
     
@@ -69,10 +70,10 @@ namespace Core {
         /**
          * Cria rota personalizadas
          *
-         * @param string|array    $methods
-         * @param string          $pattern
+         * @param string|array $methods
+         * @param string $pattern
          * @param string|\Closure $callable
-         * @param string          $name
+         * @param string $name
          * @param string|\Closure $middleware
          *
          * @return \Slim\Interfaces\RouteInterface
@@ -116,9 +117,8 @@ namespace Core {
                     /**
                      * Verifica método
                      */
-                    
-                    if (!method_exists($classObject, $method)) {
-                        throw new \BadMethodCallException(sprintf("Method %s::%s not found.", get_class($classObject), $method), E_ERROR);
+                    if (!Helper::checkMethods($classObject, [$method, '__call', '__callStatic'])) {
+                        throw new \BadMethodCallException(sprintf("Method %s::%s() not found.", get_class($classObject), $method), E_ERROR);
                     }
                     
                     return call_user_func_array([$classObject, $method], $params);
@@ -190,6 +190,36 @@ namespace Core {
         }
         
         /**
+         * Resolve as chamada dos container
+         *
+         * @param string $name
+         * @param array $params
+         *
+         * @return mixed
+         */
+        public function resolve($name = null, $params = [])
+        {
+            $container = $this->getContainer();
+            
+            if ($container->has($name)) {
+                if (is_callable($container->get($name))) {
+                    return call_user_func_array($container->get($name), $params);
+                }
+            }
+            
+            return $container->get($name);
+        }
+        
+        /**
+         * Verifica os métodos antigo da classe e converte para o novo
+         *
+         * @param string $method
+         * @param mixed $parameters
+         *
+         * @return array|bool|string
+         */
+        
+        /**
          * Inicia as rotas padrão da aplicação
          */
         public function initRoutes()
@@ -244,31 +274,8 @@ namespace Core {
         }
         
         /**
-         * Resolve as chamada dos container
-         *
-         * @param string $name
-         * @param array  $params
-         *
-         * @return mixed
-         */
-        public function resolve($name = null, $params = [])
-        {
-            $container = $this->getContainer();
-            
-            if ($container->has($name)) {
-                if (is_callable($container->get($name))) {
-                    return call_user_func_array($container->get($name), $params);
-                }
-            }
-            
-            return $container->get($name);
-        }
-        
-        /**
-         * Verifica os métodos antigo da classe e converte para o novo
-         *
          * @param string $method
-         * @param mixed  $parameters
+         * @param mixed $parameters
          *
          * @return array|bool|string
          */

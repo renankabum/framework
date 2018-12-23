@@ -24,7 +24,7 @@ namespace Core\Helpers {
          * Verifica os métodos antigo da classe e converte para o novo
          *
          * @param string $method
-         * @param mixed  $parameters
+         * @param mixed $parameters
          *
          * @return array|bool|string
          */
@@ -375,7 +375,7 @@ namespace Core\Helpers {
         /**
          * Gera os fields da requisição simulando o http_build_query()
          *
-         * @param array  $array
+         * @param array $array
          * @param string $prefix
          *
          * @return string|array
@@ -430,6 +430,27 @@ namespace Core\Helpers {
             }
             
             return number_format(round($bytes, $precision), 2, ',', '').' '.$units[$pow];
+        }
+        
+        /**
+         * @param object $object
+         * @param string|array $methods
+         *
+         * @return bool
+         */
+        public static function checkMethods($object, $methods)
+        {
+            if (!is_array($methods)) {
+                $methods = [$methods];
+            }
+            
+            foreach ($methods as $method) {
+                if (!empty($method) && method_exists($object, $method)) {
+                    return true;
+                }
+            }
+            
+            return false;
         }
     }
 }
