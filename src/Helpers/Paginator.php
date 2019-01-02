@@ -33,7 +33,17 @@ namespace Core\Helpers {
         /**
          * @var int
          */
-        protected $maxLinks;
+        protected $offset;
+        
+        /**
+         * @var int
+         */
+        protected $pages;
+        
+        /**
+         * @var int
+         */
+        protected $range;
         
         /**
          * @var string
@@ -43,12 +53,7 @@ namespace Core\Helpers {
         /**
          * @var string
          */
-        protected $page;
-        
-        /**
-         * @var int
-         */
-        protected $number;
+        protected $currentPage;
         
         /**
          * @var string
@@ -63,44 +68,54 @@ namespace Core\Helpers {
         /**
          * Paginator constructor.
          *
-         * @param int    $total
-         * @param int    $limit
-         * @param int    $maxLinks
+         * @param int $total
+         * @param int $limit
+         * @param int $range
          * @param string $link
-         * @param string $page
+         * @param string $pageString
          */
-        public function __construct($total, $link, $limit = null, $maxLinks = null, $page = 'page')
+        public function __construct($total, $link, $limit = 10, $range = 4, $pageString = 'page')
         {
-            /**
-             * Filtra o page
-             */
-            $filter = filter_input(INPUT_GET, $page, FILTER_DEFAULT);
-            
-            /**
-             * Inicia os atributos
-             */
+            // Atributos
             $this->total = (int) $total;
             $this->link = (string) $link;
-            $this->limit = ((int) $limit ? $limit : 10);
-            $this->maxLinks = ((int) $maxLinks ? $maxLinks : 4);
-            $this->page = (string) $page;
-            $this->number = (isset($filter) ? $filter : 1);
+            $this->limit = (int) ($limit ? $limit : 10);
+            $this->range = (int) ($range ? $range : 4);
+            
+            // Calcula total de páginas
+            $this->pages = max((int) ceil($this->total / $this->limit), 1);
+            
+            // Filter page
+            $currentPage = filter_input(INPUT_GET, $pageString, FILTER_DEFAULT);
+            $currentPage = ($currentPage > PHP_INT_MAX) ? $this->pages : $currentPage;
+            $this->currentPage = (int) (isset($currentPage) ? $currentPage : 1);
+            
+            // Calcula offset
+            $this->offset = ($this->currentPage * $this->limit) - $this->limit;
+            
+            // Monta o link
+            if (strpos($this->link, '?') !== false) {
+                $this->link = "{$this->link}&{$pageString}=";
+            } else {
+                $this->link = "{$this->link}?{$pageString}=";
+            }
+            
+            // Verifica o total de página passadas
+            if ($this->offset >= $this->total) {
+                header("Location: {$this->link}{$this->pages}", true, 301);
+            }
         }
         
         /**
-         * Get offset
-         *
-         * @return int|mixed
+         * @return int
          */
-        public function offset()
+        public function total()
         {
-            return ($this->number * $this->limit) - $this->limit;
+            return $this->total;
         }
         
         /**
-         * Ger limit
-         *
-         * @return int|null
+         * @return int
          */
         public function limit()
         {
@@ -108,13 +123,59 @@ namespace Core\Helpers {
         }
         
         /**
-         * Next page
-         *
+         * @return int
+         */
+        public function offset()
+        {
+            return $this->offset;
+        }
+        
+        /**
+         * @return int
+         */
+        public function pages()
+        {
+            return $this->pages;
+        }
+        
+        /**
+         * @return int
+         */
+        public function range()
+        {
+            return $this->range;
+        }
+        
+        /**
+         * @return string
+         */
+        public function link()
+        {
+            return $this->link;
+        }
+        
+        /**
+         * @return string
+         */
+        public function currentPage()
+        {
+            return $this->currentPage;
+        }
+        
+        /**
+         * @return bool
+         */
+        public function prev()
+        {
+            return ($this->currentPage > 1);
+        }
+        
+        /**
          * @return bool
          */
         public function next()
         {
-            return ceil($this->total / $this->limit) > $this->number;
+            return ($this->pages > $this->currentPage);
         }
         
         /**
@@ -136,48 +197,64 @@ namespace Core\Helpers {
         /**
          * Gera o html da paginação
          *
+         * @param string $classCss
+         *
          * @return string
          */
-        public function links()
+        public function links($classCss = 'pagination')
         {
-            $links = '';
-            $pages = ceil($this->total / $this->limit);
+            $html = '';
             
-            if (strpos($this->link, '?') !== false) {
-                $this->link = "{$this->link}&{$this->page}=";
-            } else {
-                $this->link = "{$this->link}?{$this->page}=";
-            }
-            
+            // Cria html da paginação
             if ($this->total > $this->limit) {
-                $links .= "<ul class='pagination'>";
-                
-                if ($this->firts) {
-                    $links .= "<li><a href='{$this->link}1'>{$this->firts}</a></li>";
-                }
-                
-                for ($i = $this->number - $this->maxLinks; $i <= $this->number - 1; $i++) {
-                    if ($i >= 1) {
-                        $links .= "<li><a href='{$this->link}{$i}'>{$i}</a></li>";
-                    }
-                }
-                
-                $links .= "<li class='active'><a href='javascript:;'>{$this->number}</a></li>";
-                
-                for ($i = $this->number + 1; $i <= $this->number + $this->maxLinks; $i++) {
-                    if ($i <= $pages) {
-                        $links .= "<li><a href='{$this->link}{$i}'>{$i}</a></li>";
-                    }
-                }
-                
-                if ($this->last) {
-                    $links .= "<li><a href='{$this->link}{$pages}'>{$this->last}</a></li>";
-                }
-                
-                $links .= "</ul>";
+                $html .= "<ul class='{$classCss}'>";
+                $html .= $this->before();
+                $html .= "<li class='active'><a href='javascript:void(0);'>{$this->currentPage}</a></li>";
+                $html .= $this->after();
+                $html .= "</ul>";
             }
             
-            return $links;
+            return $html;
+        }
+        
+        /**
+         * @return string
+         */
+        protected function before()
+        {
+            $html = '';
+            
+            if ($this->firts) {
+                $html .= "<li><a href='{$this->link}1'>{$this->firts}</a></li>";
+            }
+            
+            for ($i = $this->currentPage - $this->range; $i <= $this->currentPage - 1; $i++) {
+                if ($i >= 1) {
+                    $html .= "<li><a href='{$this->link}{$i}'>{$i}</a></li>";
+                }
+            }
+            
+            return $html;
+        }
+        
+        /**
+         * @return string
+         */
+        protected function after()
+        {
+            $html = '';
+            
+            for ($i = $this->currentPage + 1; $i <= $this->currentPage + $this->range; $i++) {
+                if ($i <= $this->pages) {
+                    $html .= "<li><a href='{$this->link}{$i}'>{$i}</a></li>";
+                }
+            }
+            
+            if ($this->last) {
+                $html .= "<li><a href='{$this->link}{$this->pages}'>{$this->last}</a></li>";
+            }
+            
+            return $html;
         }
     }
 }
