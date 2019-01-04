@@ -74,11 +74,11 @@ namespace Core {
          * @param string $pattern
          * @param string|\Closure $callable
          * @param string $name
-         * @param string|\Closure $middleware
+         * @param string|array|\Closure $middlewares
          *
          * @return \Slim\Interfaces\RouteInterface
          */
-        public function route($methods, $pattern, $callable, $name = null, $middleware = null)
+        public function route($methods, $pattern, $callable, $name = null, $middlewares = null)
         {
             /**
              * Trata argumentos
@@ -138,14 +138,20 @@ namespace Core {
              * Verifica se foi passado a middleware
              */
             
-            if (!empty($middleware)) {
-                if ($middleware instanceof \Closure) {
-                    $route->add($middleware);
-                } else {
-                    $middlewares = config('app.middlewares.manual', []);
-                    
-                    if (array_key_exists($middleware, $middlewares)) {
-                        $route->add($middlewares[$middleware]);
+            if (!empty($middlewares)) {
+                $middlewaresManual = config('app.middlewares.manual', []);
+                
+                if (!is_array($middlewares)) {
+                    $middlewares = [$middlewares];
+                }
+                
+                foreach ($middlewares as $middleware) {
+                    if ($middleware instanceof \Closure) {
+                        $route->add($middleware);
+                    } else {
+                        if (array_key_exists($middleware, $middlewaresManual)) {
+                            $route->add($middlewaresManual[$middleware]);
+                        }
                     }
                 }
             }
