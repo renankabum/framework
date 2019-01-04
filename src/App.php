@@ -163,6 +163,39 @@ namespace Core {
         }
         
         /**
+         * @param string $pattern
+         * @param string $controller
+         * @param string|null $name
+         * @param string|array|null $middlewares
+         */
+        public function resource($pattern, $controller, $name = null, $middlewares = null)
+        {
+            // Verifica o nome da rota
+            if (empty($name)) {
+                $name = str_replace('/', '.', $pattern);
+                
+                if ($name[0] === '.') {
+                    $name = substr($name, 1);
+                }
+            }
+            
+            // Ações
+            $actions = [
+                ['get', "{$pattern}/create", 'create'],
+                ['get', "{$pattern}/{id}/edit", 'edit'],
+                ['get,post,put,delete,options,patch', "{$pattern}[/{id}]"],
+            ];
+            
+            // Percore as ações criando as rotas
+            foreach ($actions as $action) {
+                $callable = (!empty($action[2]) ? "{$controller}@{$action[2]}" : $controller);
+                $rname = (!empty($action[2]) ? "{$name}.{$action[2]}" : $name);
+                
+                $this->route($action[0], $action[1], $callable, $rname, $middlewares);
+            }
+        }
+        
+        /**
          * Inicia as configurações padrões da aplicação
          */
         public function initConfigs()
