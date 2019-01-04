@@ -117,8 +117,9 @@ namespace Core {
                     /**
                      * Verifica método
                      */
+                    
                     if (!Helper::checkMethods($classObject, [$method, '__call', '__callStatic'])) {
-                        throw new \BadMethodCallException(sprintf("Method %s::%s() not found.", get_class($classObject), $method), E_ERROR);
+                        throw new \BadMethodCallException(sprintf("Call to undefined method %s::%s()", get_class($classObject), $method), E_ERROR);
                     }
                     
                     return call_user_func_array([$classObject, $method], $params);
