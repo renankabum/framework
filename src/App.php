@@ -146,6 +146,8 @@ namespace Core {
                     $middlewares = [$middlewares];
                 }
                 
+                sort($middlewares);
+                
                 foreach ($middlewares as $middleware) {
                     if ($middleware instanceof \Closure) {
                         $route->add($middleware);
