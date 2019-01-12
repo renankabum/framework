@@ -44,11 +44,25 @@ namespace Core\Providers\Event {
          */
         public function boot()
         {
+            /**
+             * Dispara um evento
+             */
             $this->view->addFunction('event_emit', function ($event) {
                 $arguments = func_get_args();
                 array_shift($arguments);
                 
                 $this->event->emit((string) $event, ...$arguments);
+            });
+            
+            /**
+             * Verifica se o evento existe
+             */
+            $this->view->addFunction('event_has', function ($event) {
+                if (empty($event)) {
+                    return false;
+                }
+                
+                return $this->event->events($event);
             });
         }
     }
