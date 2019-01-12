@@ -51,7 +51,11 @@ namespace Core\Providers {
                         'debug' => $this->container->settings['displayErrorDetails'],
                         'error' => [
                             'code' => $exception->getCode(),
-                            'file' => str_replace([PUBLIC_FOLDER, APP_FOLDER, RESOURCE_FOLDER], '', $exception->getFile()),
+                            'file' => str_replace([
+                                PUBLIC_FOLDER,
+                                APP_FOLDER,
+                                RESOURCE_FOLDER,
+                            ], '', $exception->getFile()),
                             'line' => $exception->getLine(),
                             'message' => $exception->getMessage(),
                             'route' => (is_object($route) ? "(".implode(", ", $route->getMethods()).") " : null).$request->getUri(),
@@ -65,7 +69,7 @@ namespace Core\Providers {
                     }
                     
                     // Verifica se é ajax ou api
-                    if (is_php_cli() || ($request->isXhr() || has_route('/api'))) {
+                    if (is_php_cli() || ($request->isXhr() || has_route('/api/'))) {
                         return $response->withJson($errors, 500);
                     }
                     
@@ -87,7 +91,7 @@ namespace Core\Providers {
                     $uri = urldecode($request->getUri());
                     
                     // Verifica se é ajax ou api
-                    if (is_php_cli() || ($request->isXhr() || has_route('/api'))) {
+                    if (is_php_cli() || ($request->isXhr() || has_route('/api/'))) {
                         return $response->withJson([
                             'error' => [
                                 'url' => $uri,
@@ -116,7 +120,7 @@ namespace Core\Providers {
                     $method = $request->getMethod();
                     
                     // Verifica se é ajax ou api
-                    if (is_php_cli() || ($request->isXhr() || has_route('/api'))) {
+                    if (is_php_cli() || ($request->isXhr() || has_route('/api/'))) {
                         return $response->withJson([
                             'error' => [
                                 'url' => $uri,
