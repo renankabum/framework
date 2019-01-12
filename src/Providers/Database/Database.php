@@ -124,26 +124,22 @@ namespace Core\Providers\Database {
         {
             return $this->pdo->inTransaction();
         }
-        
+    
         /**
          * @param \Closure $callback
          *
          * @return \Closure|mixed
-         * @throws \Throwable
+         * @throws \Exception
          */
         public function transaction(\Closure $callback)
         {
             try {
                 $this->beginTransaction();
-                $callback = call_user_func($callback);
+                $callback = $callback($this);
                 $this->commit();
                 
                 return $callback;
             } catch (\Exception $e) {
-                $this->rollBack();
-                
-                throw $e;
-            } catch (\Throwable $e) {
                 $this->rollBack();
                 
                 throw $e;
