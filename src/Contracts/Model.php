@@ -1,18 +1,16 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * VCWeb Networks <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   VCWeb Networks
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2018 Vagner Cardoso
+ * @copyright 28/04/2017 Vagner Cardoso
  */
 
 namespace Core\Contracts {
-    
-    use Core\App;
     
     /**
      * Class Model
@@ -41,16 +39,7 @@ namespace Core\Contracts {
      * @package Core\Contracts
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    abstract class Model
+    abstract class Model extends Container
     {
-        /**
-         * @param string $name
-         *
-         * @return mixed
-         */
-        public function __get($name)
-        {
-            return App::getInstance()->resolve($name);
-        }
     }
 }

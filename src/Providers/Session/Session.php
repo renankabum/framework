@@ -1,13 +1,13 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * VCWeb Networks <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   VCWeb Networks
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2018 Vagner Cardoso
+ * @copyright 28/04/2017 Vagner Cardoso
  */
 
 namespace Core\Providers\Session {
@@ -67,7 +67,7 @@ namespace Core\Providers\Session {
         
         /**
          * @param string $key
-         * @param mixed $value
+         * @param mixed  $value
          *
          * @return void
          */
@@ -94,7 +94,7 @@ namespace Core\Providers\Session {
         
         /**
          * @param string $key
-         * @param mixed $default
+         * @param mixed  $default
          *
          * @return mixed
          */

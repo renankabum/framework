@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2018 Vagner Cardoso
+ * @copyright 28/04/2017 Vagner Cardoso
  */
 
 namespace Core\Middlewares {
@@ -37,7 +37,7 @@ namespace Core\Middlewares {
         public function __invoke(Request $request, Response $response, callable $next)
         {
             // Verifica se a manutenção está ativa
-            if (config('app.maintenance', false) === true) {
+            if (env('APP_MAINTENANCE', false) === true) {
                 return view('error.503', [], 503);
             }
             

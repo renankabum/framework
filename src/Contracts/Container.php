@@ -7,13 +7,16 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 23/01/19 Vagner Cardoso
  */
 
 namespace Core\Contracts {
     
+    use Core\App;
+    use Slim\Container as SlimContainer;
+    
     /**
-     * Class Provider
+     * Class Container
      *
      * @property \Slim\Collection settings
      * @property \Slim\Http\Environment environment
@@ -37,24 +40,33 @@ namespace Core\Contracts {
      * @property \Core\Database\Statement\Delete delete
      *
      * @package Core\Contracts
-     * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
+     * @author Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    abstract class Provider extends Container
+    abstract class Container
     {
         /**
-         * Registra novo(s) serviços. (container)
-         *
-         * @return void
+         * @var \Slim\Container
          */
-        abstract public function register();
+        protected $container;
         
         /**
-         * Registra outros serviços no escopo do provider
+         * Container constructor.
          *
-         * @return void
+         * @param \Slim\Container|null $container
          */
-        public function boot()
+        public function __construct(SlimContainer $container = null)
         {
+            $this->container = ($container ?: App::getInstance()->getContainer());
+        }
+        
+        /**
+         * @param string $name
+         *
+         * @return mixed
+         */
+        public function __get($name)
+        {
+            return App::getInstance()->resolve($name);
         }
     }
 }

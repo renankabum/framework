@@ -1,13 +1,13 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * VCWeb Networks <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   VCWeb Networks
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2018 Vagner Cardoso
+ * @copyright 28/04/2017 Vagner Cardoso
  */
 
 namespace Core\Helpers {
@@ -44,12 +44,12 @@ namespace Core\Helpers {
          * Metodo get cURL
          *
          * @param string $endPoint
-         * @param array  $params
+         * @param array $params
          *
          * @return array
          * @throws \Exception
          */
-        public function get($endPoint, array $params = array())
+        public function get($endPoint, $params = [])
         {
             return $this->create('get', $endPoint, $params);
         }
@@ -59,33 +59,34 @@ namespace Core\Helpers {
          *
          * @param string $method
          * @param string $endPoint
-         * @param array  $params
+         * @param array $params
          *
          * @return array
          * @throws \Exception
          */
-        public function create($method, $endPoint, array $params = array())
+        public function create($method, $endPoint, $params = [])
         {
             try {
                 // Cria a requisição
                 $response = $this->createRequest($method, $endPoint, $params);
                 
-                // Trata o retorno
-                $result = json_decode($response, true);
-                
-                if (json_last_error() != JSON_ERROR_NONE) {
-                    if ($xml = Helper::checkXml($response)) {
-                        $result = json_decode(json_encode($xml), true);
-                    } else {
-                        // Caso não seja o retorno em `json` e em `xml`
-                        // será retornado a resposta completa
-                        $result = $response;
-                    }
+                // Verifica se o retorno e json
+                if ($json = Helper::checkJson($response)) {
+                    return $json;
                 }
                 
-                return $result;
+                // Verifica se o retorno é xml
+                if ($xml = Helper::checkXml($response)) {
+                    $xml = json_decode(json_encode($xml), true);;
+                    
+                    return $xml;
+                }
+                
+                return $response;
             } catch (\Exception $e) {
-                throw new \Exception("[CURL] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                $code = (is_int($e->getCode()) ? $e->getCode() : 500);
+                
+                throw new \Exception("[CURL] {$e->getMessage()}", $code);
             }
         }
         
@@ -94,18 +95,25 @@ namespace Core\Helpers {
          *
          * @param string $method
          * @param string $endPoint
-         * @param array  $params
+         * @param array|string $params
          *
          * @return mixed
-         * @throws \Exception()
+         * @throws \Exception
          */
-        protected function createRequest($method, $endPoint, array $params)
+        protected function createRequest($method, $endPoint, $params)
         {
             $method = mb_strtoupper($method, 'UTF-8');
             
             // Verifica se a data e array e está passada
-            if (is_array($params) && !empty($params)) {
-                $params = Helper::buildQuery($params);
+            if (!empty($params)) {
+                if (is_array($params)) {
+                    $params = Helper::buildQuery($params);
+                } else {
+                    // Verifica se é json
+                    if (Helper::checkJson($params) && $method !== 'GET') {
+                        $this->setHeaders("Content-Type: application/json");
+                    }
+                }
             } else {
                 $params = null;
             }
@@ -143,11 +151,8 @@ namespace Core\Helpers {
                 $options[CURLOPT_POST] = true;
             }
             
-            // Junta os options default com os passados
-            $options = $options + $this->getOptions();
-            
             // Passa os options para a requisição
-            curl_setopt_array($curl, $options);
+            curl_setopt_array($curl, $options + $this->getOptions());
             
             // Resultados
             $response = curl_exec($curl);
@@ -171,10 +176,11 @@ namespace Core\Helpers {
         public function getHeaders()
         {
             // Defaults headers
-            $this->headers[] = "User-Agent: VCWeb Create cURL";
+            $this->headers[] = "User-Agent: VCWeb Networks Curl";
             $this->headers[] = "Accept-Charset: utf-8";
             $this->headers[] = "Accept-Language: pt-br;q=0.9,pt-BR";
-            $this->headers[] = "Content-Type: application/x-www-form-urlencoded";
+            
+            // $this->headers[] = "Content-Type: application/x-www-form-urlencoded";
             
             return $this->headers;
         }
@@ -216,7 +222,7 @@ namespace Core\Helpers {
          *
          * @return \Core\Helpers\Curl
          */
-        public function setOptions($options)
+        public function setOptions(array $options)
         {
             foreach ((array) $options as $key => $option) {
                 $this->options[$key] = $option;
@@ -229,12 +235,12 @@ namespace Core\Helpers {
          * Metodo post cURL
          *
          * @param string $endPoint
-         * @param array  $params
+         * @param array|string $params
          *
          * @return array
          * @throws \Exception
          */
-        public function post($endPoint, array $params = array())
+        public function post($endPoint, $params = [])
         {
             return $this->create('post', $endPoint, $params);
         }
@@ -243,12 +249,12 @@ namespace Core\Helpers {
          * Metodo put cURL
          *
          * @param string $endPoint
-         * @param array  $params
+         * @param array $params
          *
          * @return array
          * @throws \Exception
          */
-        public function put($endPoint, array $params = array())
+        public function put($endPoint, $params = [])
         {
             return $this->create('put', $endPoint, $params);
         }
@@ -257,12 +263,12 @@ namespace Core\Helpers {
          * Metodo delete cURL
          *
          * @param string $endPoint
-         * @param array  $params
+         * @param array $params
          *
          * @return array
          * @throws \Exception
          */
-        public function delete($endPoint, array $params = array())
+        public function delete($endPoint, $params = [])
         {
             return $this->create('delete', $endPoint, $params);
         }

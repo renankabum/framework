@@ -83,8 +83,8 @@ if (!function_exists('asset')) {
      * Retorna o caminho completo do asset
      *
      * @param string $file
-     * @param bool   $baseUrl
-     * @param bool   $version
+     * @param bool $baseUrl
+     * @param bool $version
      *
      * @return bool|string
      */
@@ -143,7 +143,7 @@ if (!function_exists('glob_recursive')) {
      * verificando se existe o `pattern` passado
      *
      * @param string $pattern
-     * @param int    $flags
+     * @param int $flags
      *
      * @return array
      */
@@ -163,7 +163,7 @@ if (!function_exists('config')) {
     /**
      * Configurações do sistema
      *
-     * @param string|null     $name
+     * @param string|null $name
      * @param string|int|null $default
      *
      * @return mixed
@@ -204,7 +204,7 @@ if (!function_exists('logger')) {
      * LoggerProvider do sistemas
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      * @param string $type
      * @param string $file
      *
@@ -228,8 +228,8 @@ if (!function_exists('view')) {
      * Renderiza a view
      *
      * @param string $template
-     * @param array  $array
-     * @param int    $code
+     * @param array $array
+     * @param int $code
      *
      * @return mixed
      */
@@ -250,7 +250,7 @@ if (!function_exists('json')) {
      * Retorna a o resultado em JSON
      *
      * @param mixed $data
-     * @param int   $status
+     * @param int $status
      *
      * @return \Slim\Http\Response
      */
@@ -265,8 +265,8 @@ if (!function_exists('path_for')) {
      * Cria a URL do Slim3
      *
      * @param string $name
-     * @param array  $data
-     * @param array  $queryParams
+     * @param array $data
+     * @param array $queryParams
      * @param string $hash
      *
      * @return string
@@ -286,7 +286,7 @@ if (!function_exists('location')) {
      * Redireciona para determinada rota
      *
      * @param string $route
-     * @param int    $status
+     * @param int $status
      */
     function location($route, $status = 302)
     {
@@ -301,8 +301,8 @@ if (!function_exists('redirect')) {
      * Redireciona para determinada rota padrão Slim3
      *
      * @param string $name
-     * @param array  $data
-     * @param array  $queryParams
+     * @param array $data
+     * @param array $queryParams
      * @param string $hash
      *
      * @return \Slim\Http\Response
@@ -447,7 +447,11 @@ if (!function_exists('filter_params')) {
     {
         $result = [];
         
-        foreach ((array) $params as $key => $param) {
+        if (!is_array($params)) {
+            $params = [$params];
+        }
+        
+        foreach ($params as $key => $param) {
             if (is_array($param)) {
                 $result[$key] = filter_params($param);
             } else {

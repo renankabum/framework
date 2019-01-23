@@ -7,11 +7,12 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2018 Vagner Cardoso
+ * @copyright 28/04/2017 Vagner Cardoso
  */
 
 namespace Core {
     
+    use Core\Helpers\Helper;
     use Slim\Http\Request;
     use Slim\Http\Response;
     
@@ -45,7 +46,7 @@ namespace Core {
                     'responseChunkSize' => 4096,
                     'outputBuffering' => 'append',
                     'determineRouteBeforeAppMiddleware' => true,
-                    'displayErrorDetails' => (config('app.environment', 'development') === 'development'),
+                    'displayErrorDetails' => (env('APP_ENV', 'development') === 'development'),
                     'addContentLengthHeader' => true,
                     'routerCacheFile' => false,
                 ],
@@ -59,7 +60,7 @@ namespace Core {
         }
         
         /**
-         * Inicia as configurações padrão da aplicação
+         * Inicia as configurações padrões da aplicação
          */
         public function initConfigs()
         {
@@ -74,8 +75,8 @@ namespace Core {
             ini_set('default_charset', 'UTF-8');
             
             mb_internal_encoding('UTF-8');
-            date_default_timezone_set(config('app.timezone', 'America/Sao_Paulo'));
-            setlocale(LC_ALL, config('app.locale'), config('app.locale').'utf-8');
+            date_default_timezone_set(env('APP_TIMEZONE', 'America/Sao_Paulo'));
+            setlocale(LC_ALL, env('APP_LOCALE'), env('APP_LOCALE').'utf-8');
             
             /**
              * Errors
@@ -83,7 +84,7 @@ namespace Core {
              * Controle de erro do sistema
              */
             
-            if (config('app.environment', 'development') === 'development') {
+            if (env('APP_ENV') === 'development') {
                 error_reporting(E_ALL);
             } else {
                 error_reporting(E_ALL ^ E_NOTICE);
@@ -109,17 +110,50 @@ namespace Core {
         }
         
         /**
+         * @param string $pattern
+         * @param string $controller
+         * @param string|null $name
+         * @param string|array|null $middlewares
+         */
+        public function resource($pattern, $controller, $name = null, $middlewares = null)
+        {
+            // Verifica o nome da rota
+            if (empty($name)) {
+                $name = str_replace('/', '.', $pattern);
+                
+                if ($name[0] === '.') {
+                    $name = substr($name, 1);
+                }
+            }
+            
+            // Ações
+            $actions = [
+                ['get', "{$pattern}/create", 'create'],
+                ['get', "{$pattern}/{id}/edit", 'edit'],
+                ['get,post,put,delete,options,patch', "{$pattern}[/{id}]"],
+            ];
+            
+            // Percore as ações criando as rotas
+            foreach ($actions as $action) {
+                $callable = (!empty($action[2]) ? "{$controller}@{$action[2]}" : $controller);
+                $rname = (!empty($action[2]) ? "{$name}.{$action[2]}" : $name);
+                
+                $this->route($action[0], $action[1], $callable, $rname, $middlewares);
+            }
+        }
+        
+        /**
          * Cria rota personalizadas
          *
          * @param string|array $methods
          * @param string $pattern
          * @param string|\Closure $callable
          * @param string $name
-         * @param string|\Closure $middleware
+         * @param string|array|\Closure $middlewares
          *
          * @return \Slim\Interfaces\RouteInterface
          */
-        public function route($methods, $pattern, $callable, $name = null, $middleware = null)
+        public function route($methods, $pattern, $callable, $name = null, $middlewares = null)
         {
             /**
              * Trata argumentos
@@ -159,8 +193,8 @@ namespace Core {
                      * Verifica método
                      */
                     
-                    if (!method_exists($classObject, $method)) {
-                        throw new \BadMethodCallException(sprintf("Method %s::%s not found.", get_class($classObject), $method), E_ERROR);
+                    if (!Helper::checkMethods($classObject, [$method, '__call', '__callStatic'])) {
+                        throw new \BadMethodCallException(sprintf("Call to undefined method %s::%s()", get_class($classObject), $method), E_ERROR);
                     }
                     
                     return call_user_func_array([$classObject, $method], $params);
@@ -180,17 +214,22 @@ namespace Core {
              * Verifica se foi passado a middleware
              */
             
-            if (!empty($middleware)) {
-                if ($middleware instanceof \Closure) {
-                    $route->add($middleware);
-                } else {
-                    $registers = $this->loadRegistersFile();
-                    
-                    if (!empty($registers['middleware']['web'])) {
-                        $middlewares = $registers['middleware']['web'];
-                        
-                        if (array_key_exists($middleware, $middlewares)) {
-                            $route->add($middlewares[$middleware]);
+            if (!empty($middlewares)) {
+                $registers = $this->loadRegistersFile();
+                $middlewaresManual = (!empty($registers['middleware']['web']) ? $registers['middleware']['web'] : []);
+                
+                if (!is_array($middlewares)) {
+                    $middlewares = [$middlewares];
+                }
+                
+                sort($middlewares);
+                
+                foreach ($middlewares as $middleware) {
+                    if ($middleware instanceof \Closure) {
+                        $route->add($middleware);
+                    } else {
+                        if (array_key_exists($middleware, $middlewaresManual)) {
+                            $route->add($middlewaresManual[$middleware]);
                         }
                     }
                 }
@@ -225,16 +264,13 @@ namespace Core {
         public function registerMiddleware()
         {
             $registers = $this->loadRegistersFile();
+            $middlewares = (!empty($registers['middleware']['app']) ? $registers['middleware']['app'] : []);
             
-            if (!empty($registers['middleware']['app'])) {
-                foreach ($registers['middleware']['app'] as $key => $middleware) {
-                    if (class_exists($middleware)) {
-                        $this->add($middleware);
-                    }
+            foreach ($middlewares as $key => $middleware) {
+                if (class_exists($middleware)) {
+                    $this->add($middleware);
                 }
             }
-            
-            return $this;
         }
         
         /**
@@ -258,32 +294,40 @@ namespace Core {
          */
         public function registerProviders()
         {
+            $providers = [];
             $registers = $this->loadRegistersFile();
-            $boots = [];
+            $registerProviders = (!empty($registers['providers']) ? $registers['providers'] : []);
+            $arrayProviders = [];
             
-            if (!empty($registers['providers'])) {
-                foreach ($registers['providers'] as $key => $providers) {
-                    foreach ($providers as $provider) {
-                        if (class_exists($provider)) {
-                            $provider = new $provider($this->getContainer());
-                            
-                            if (method_exists($provider, 'register')) {
-                                $provider->register();
-                            }
-                            
-                            array_push($boots, $provider);
-                        }
+            // Monta os serviços
+            foreach ($registerProviders as $provider) {
+                if (is_array($provider)) {
+                    foreach ($provider as $item) {
+                        $arrayProviders[] = $item;
                     }
-                }
-                
-                foreach ($boots as $provider) {
-                    if (method_exists($provider, 'boot')) {
-                        $provider->boot();
-                    }
+                } else {
+                    $arrayProviders[] = $provider;
                 }
             }
             
-            return $this;
+            // Percore os serviços
+            foreach ($arrayProviders as $provider) {
+                if (class_exists($provider)) {
+                    $provider = new $provider($this->getContainer());
+                    
+                    if (method_exists($provider, 'register')) {
+                        $provider->register();
+                    }
+                    
+                    array_push($providers, $provider);
+                }
+            }
+            
+            foreach ($providers as $provider) {
+                if (method_exists($provider, 'boot')) {
+                    $provider->boot();
+                }
+            }
         }
         
         /**
@@ -291,18 +335,20 @@ namespace Core {
          */
         public function registerRouter()
         {
-            // Router for web
-            if (file_exists(APP_FOLDER.'/routes/web.php')) {
-                $this->group('', function ($app) {
-                    include_once APP_FOLDER.'/routes/web.php';
-                });
-            }
+            $includeOnce = function ($file, $app, $api) {
+                if ($api !== false) {
+                    $this->group('/api', function ($app) use ($file) {
+                        include_once "{$file}";
+                    });
+                } else {
+                    include_once "{$file}";
+                }
+            };
             
-            // Router for api
-            if (file_exists(APP_FOLDER.'/routes/api.php')) {
-                $this->group('/api', function ($app) {
-                    include_once APP_FOLDER.'/routes/api.php';
-                });
+            foreach (glob_recursive(APP_FOLDER."/routes/**") as $file) {
+                if (is_file($file) && !is_dir($file)) {
+                    $includeOnce($file, $this, strpos($file, 'api.php'));
+                }
             }
         }
         

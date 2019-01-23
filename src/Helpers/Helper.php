@@ -1,13 +1,13 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * VCWeb Networks <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   VCWeb Networks
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2018 Vagner Cardoso
+ * @copyright 28/04/2017 Vagner Cardoso
  */
 
 namespace Core\Helpers {
@@ -24,7 +24,7 @@ namespace Core\Helpers {
          * Verifica os métodos antigo da classe e converte para o novo
          *
          * @param string $method
-         * @param mixed  $parameters
+         * @param mixed $parameters
          *
          * @return array|bool|string
          */
@@ -292,6 +292,22 @@ namespace Core\Helpers {
         }
         
         /**
+         * @param string $json
+         *
+         * @return bool|array
+         */
+        public static function checkJson($json)
+        {
+            $json = json_decode($json, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return false;
+            }
+            
+            return $json;
+        }
+        
+        /**
          * Recupera o IP Address do acesso ao sistema
          *
          * @return string
@@ -375,7 +391,7 @@ namespace Core\Helpers {
         /**
          * Gera os fields da requisição simulando o http_build_query()
          *
-         * @param array  $array
+         * @param array $array
          * @param string $prefix
          *
          * @return string|array
@@ -430,6 +446,27 @@ namespace Core\Helpers {
             }
             
             return number_format(round($bytes, $precision), 2, ',', '').' '.$units[$pow];
+        }
+        
+        /**
+         * @param object $object
+         * @param string|array $methods
+         *
+         * @return bool
+         */
+        public static function checkMethods($object, $methods)
+        {
+            if (!is_array($methods)) {
+                $methods = [$methods];
+            }
+            
+            foreach ($methods as $method) {
+                if (!empty($method) && method_exists($object, $method)) {
+                    return true;
+                }
+            }
+            
+            return false;
         }
     }
 }

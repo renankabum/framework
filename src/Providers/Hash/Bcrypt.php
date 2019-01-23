@@ -1,13 +1,13 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * VCWeb Networks <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   VCWeb Networks
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2018 Vagner Cardoso
+ * @copyright 28/04/2017 Vagner Cardoso
  */
 
 namespace Core\Providers\Hash {
@@ -31,7 +31,7 @@ namespace Core\Providers\Hash {
          * Cria um novo password hash usando um algoritmo forte de hash de via única
          *
          * @param string $value
-         * @param array $options
+         * @param array  $options
          *
          * @return bool|string
          */
@@ -67,7 +67,7 @@ namespace Core\Providers\Hash {
          * Se não, ela assume que o hash precisa ser regenerado.
          *
          * @param string $hashedValue
-         * @param array $options
+         * @param array  $options
          *
          * @return boolean
          */

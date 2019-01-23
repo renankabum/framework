@@ -1,13 +1,13 @@
 <?php
 
 /**
- * VCWeb <https://www.vagnercardosoweb.com.br/>
+ * VCWeb Networks <https://www.vagnercardosoweb.com.br/>
  *
- * @package   VCWeb
+ * @package   VCWeb Networks
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 2017-2018 Vagner Cardoso
+ * @copyright 28/04/2017 Vagner Cardoso
  */
 
 namespace Core\Providers\Session {
@@ -31,7 +31,7 @@ namespace Core\Providers\Session {
         {
             // Sessão
             $this->container['session'] = function () {
-                if (!is_php_cli() && config('app.session')) {
+                if (!is_php_cli() && env('APP_SESSION', true)) {
                     return new Session();
                 }
                 
@@ -40,7 +40,7 @@ namespace Core\Providers\Session {
             
             // Flash Message
             $this->container['flash'] = function () {
-                if (!is_php_cli() && config('app.session')) {
+                if (!is_php_cli() && env('APP_SESSION', true)) {
                     return new Flash();
                 }
                 
@@ -55,7 +55,7 @@ namespace Core\Providers\Session {
          */
         public function boot()
         {
-            if (!is_php_cli() && config('app.session')) {
+            if (!is_php_cli() && env('APP_SESSION', true)) {
                 $this->view->addGlobal('session', $this->session->all());
                 $this->view->addGlobal('flash', $this->flash->all());
             }
