@@ -247,9 +247,11 @@ namespace Core {
                 if (is_callable($container->get($name))) {
                     return call_user_func_array($container->get($name), $params);
                 }
+                
+                return $container->get($name);
             }
             
-            return $container->get($name);
+            return false;
         }
         
         /**
