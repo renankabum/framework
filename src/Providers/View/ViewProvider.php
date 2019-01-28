@@ -12,6 +12,7 @@
 
 namespace Core\Providers\View {
     
+    use Core\App;
     use Core\Contracts\Provider as BaseProvider;
     
     /**
@@ -44,6 +45,9 @@ namespace Core\Providers\View {
             // Ativa debug
             $this->view->addExtension(new \Twig_Extension_Debug());
             
+            // View providers
+            $this->defaults();
+            
             // Registra as funções e filtros
             foreach (config('view.registers') as $key => $items) {
                 foreach ($items as $name => $item) {
@@ -58,6 +62,12 @@ namespace Core\Providers\View {
                     }
                 }
             }
+        }
+        
+        protected function defaults()
+        {
+            // Verifica se existe o container
+            $this->view->addFunction('has_container', [App::getInstance(), 'resolve']);
         }
     }
 }
