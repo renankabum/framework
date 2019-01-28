@@ -12,16 +12,18 @@
 
 namespace Core\Providers\View {
     
+    use Core\App;
+    
     /**
      * Class TwigExtension
      *
      * @package Core\Providers\TwigProvider
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      *
-     * @property \Slim\Router                    router
-     * @property \Slim\Http\Request              request
+     * @property \Slim\Router router
+     * @property \Slim\Http\Request request
      * @property \Core\Providers\Session\Session session
-     * @property \Core\Providers\Session\Flash   flash
+     * @property \Core\Providers\Session\Flash flash
      */
     class  TwigExtension extends \Twig_Extension implements \Twig_Extension_GlobalsInterface
     {
@@ -50,6 +52,7 @@ namespace Core\Providers\View {
                 new \Twig_SimpleFunction('has_route', 'has_route', ['is_safe' => ['all']]),
                 new \Twig_SimpleFunction('is_route', 'is_route', ['is_safe' => ['all']]),
                 new \Twig_SimpleFunction('dd', 'dd', ['is_safe' => ['all']]),
+                new \Twig_SimpleFunction('has_container', [$this, 'has_container']),
             ];
         }
         
@@ -61,6 +64,16 @@ namespace Core\Providers\View {
         public function getGlobals()
         {
             return [];
+        }
+        
+        /**
+         * @param string $name
+         *
+         * @return mixed
+         */
+        public function has_container($name)
+        {
+            return App::getInstance()->resolve($name);
         }
     }
 }
