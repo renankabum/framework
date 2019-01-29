@@ -12,9 +12,6 @@
 
 namespace Core\Contracts {
     
-    use Core\App;
-    use Slim\Container;
-    
     /**
      * Class Provider
      *
@@ -38,23 +35,8 @@ namespace Core\Contracts {
      * @package Core\Contracts
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    abstract class Provider
+    abstract class Provider extends Container
     {
-        /**
-         * @var \Slim\Container
-         */
-        protected $container;
-        
-        /**
-         * Provider constructor.
-         *
-         * @param \Slim\Container $container
-         */
-        public function __construct(Container $container = null)
-        {
-            $this->container = ($container ?: App::getInstance()->getContainer());
-        }
-        
         /**
          * Registra novo(s) serviços. (container)
          *
@@ -69,18 +51,6 @@ namespace Core\Contracts {
          */
         public function boot()
         {
-        }
-        
-        /**
-         * Recupera o container cadastro
-         *
-         * @param string $name
-         *
-         * @return mixed
-         */
-        public function __get($name)
-        {
-            return App::getInstance()->resolve($name);
         }
     }
 }

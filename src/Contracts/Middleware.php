@@ -12,7 +12,6 @@
 
 namespace Core\Contracts {
     
-    use Core\App;
     use Slim\Http\Request;
     use Slim\Http\Response;
     
@@ -37,9 +36,9 @@ namespace Core\Contracts {
      * @property \Core\Providers\Database\Database db
      *
      * @package Core\Contracts
-     * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
+     * @author Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    abstract class Middleware
+    abstract class Middleware extends Container
     {
         /**
          * Registra uma nova middleware
@@ -51,17 +50,5 @@ namespace Core\Contracts {
          * @return \Slim\Http\Response
          */
         abstract public function __invoke(Request $request, Response $response, callable $next);
-        
-        /**
-         * Recupera o container cadastro
-         *
-         * @param string $name
-         *
-         * @return mixed
-         */
-        public function __get($name)
-        {
-            return App::getInstance()->resolve($name);
-        }
     }
 }

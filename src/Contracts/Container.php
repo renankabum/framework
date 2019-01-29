@@ -7,13 +7,16 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 23/01/19 Vagner Cardoso
  */
 
 namespace Core\Contracts {
     
+    use Core\App;
+    use Slim\Container as SlimContainer;
+    
     /**
-     * Class Model
+     * Class Container
      *
      * @property \Slim\Collection settings
      * @property \Slim\Http\Environment environment
@@ -33,9 +36,33 @@ namespace Core\Contracts {
      * @property \Core\Providers\Database\Database db
      *
      * @package Core\Contracts
-     * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
+     * @author Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    abstract class Model extends Container
+    abstract class Container
     {
+        /**
+         * @var \Slim\Container
+         */
+        protected $container;
+        
+        /**
+         * Container constructor.
+         *
+         * @param \Slim\Container|null $container
+         */
+        public function __construct(SlimContainer $container = null)
+        {
+            $this->container = ($container ?: App::getInstance()->getContainer());
+        }
+        
+        /**
+         * @param string $name
+         *
+         * @return mixed
+         */
+        public function __get($name)
+        {
+            return App::getInstance()->resolve($name);
+        }
     }
 }
