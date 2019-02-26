@@ -90,9 +90,11 @@ namespace Core {
                 error_reporting(E_ALL ^ E_NOTICE);
             }
             
-            set_error_handler(function ($code, $message, $file, $line) {
-                throw new \ErrorException($message, $code, 1, $file, $line);
-            });
+            if (env('APP_SET_ERROR_HANDLER', true)) {
+                set_error_handler(function ($code, $message, $file, $line) {
+                    throw new \ErrorException($message, $code, 1, $file, $line);
+                });
+            }
         }
         
         /**
