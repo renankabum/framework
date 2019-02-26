@@ -284,7 +284,7 @@ namespace Core {
             
             if (!empty($registers['functions'])) {
                 foreach ($registers['functions'] as $function) {
-                    include "{$function}";
+                    include_once "{$function}";
                 }
             }
         }
