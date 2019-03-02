@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 01/03/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Database {
@@ -18,30 +18,25 @@ namespace Core\Providers\Database {
      * @package Core\Providers\Database
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class Database
+    class Database extends \PDO
     {
-        /**
-         * @var
-         */
-        protected static $instance = null;
-        
         /**
          * @var \PDO
          */
-        protected $pdo;
+        private static $instance;
         
         /**
          * @var \PDOStatement
          */
-        protected $statement;
+        private $statement;
         
         /**
          * @var array
          */
-        protected $places = [];
+        private $places = [];
         
         /**
-         * Database constructor.
+         * Bloqueia a construção da classe
          *
          * @param string $driver
          *
@@ -49,43 +44,40 @@ namespace Core\Providers\Database {
          */
         public function __construct($driver = null)
         {
-            // Carrega configurações
-            $driver = (empty($driver) ? config('database.default') : $driver);
-            $connections = config('database.connections');
-            
             try {
+                // Carrega configurações
+                $driver = (empty($driver) ? config('database.default') : $driver);
+                $connections = config('database.connections');
+                
                 // Verifica driver
                 if (!array_key_exists($driver, $connections)) {
-                    throw new \InvalidArgumentException("Driver `{$driver}` is not configured in the application.", E_ERROR);
+                    throw new \InvalidArgumentException(
+                        "Driver `{$driver}` is not configured in the application.", E_ERROR
+                    );
                 }
                 
                 // Configuração do driver
                 $connection = $connections[$driver];
                 
                 // Verifica se os dados tão preenchidos
-                if (
-                    empty($connection['host']) ||
-                    empty($connection['username'])
-                ) {
-                    throw new \Exception("Connection setup is not complete.", E_ERROR);
+                if (empty($connection['host']) || empty($connection['username'])) {
+                    throw new \Exception(
+                        "Connection setup is not complete.", E_ERROR
+                    );
                 }
                 
                 // Connecta no banco
                 $dsn = (!empty($connection['dsn']) ? $connection['dsn'] : 'mysql:host=%s;dbname=%s');
                 
-                $this->pdo = new \PDO(
+                parent::__construct(
                     sprintf($dsn, $connection['host'], $connection['database']),
                     $connection['username'],
                     $connection['password'],
-                    config('database.options', [
-                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                        \PDO::ATTR_CASE => \PDO::CASE_NATURAL,
-                    ])
+                    config('database.options', [])
                 );
                 
                 // Usa a datanase
-                $this->pdo->exec("USE {$connection['database']};");
+                $this->exec("USE {$connection['database']};");
                 
                 // Verifica se tem o CHARSET e COLLATE configurado
                 if (!empty($connection['charset'])) {
@@ -95,36 +87,32 @@ namespace Core\Providers\Database {
                         $exec .= " COLLATE {$connection['collation']}";
                     }
                     
-                    $this->pdo->exec("{$exec};");
+                    $this->exec($exec);
                 }
             } catch (\PDOException $e) {
-                throw new \Exception("[DB] {$e->getMessage()}", (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode()));
+                throw new \Exception(
+                    "[DB] {$e->getMessage()}", (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
+                );
             }
         }
         
         /**
-         * @param null $driver
+         * Database constructor.
          *
-         * @return \Core\Providers\Database\Database
+         * @param string $driver
+         *
+         * @return $this
          * @throws \Exception
          */
-        public static function connect($driver = null)
+        public static function getInstance($driver = null)
         {
-            if (self::$instance === null) {
+            if (empty(self::$instance)) {
                 self::$instance = new self($driver);
             }
             
             return self::$instance;
         }
         
-        /**
-         * @return bool
-         */
-        public function inTransaction()
-        {
-            return $this->pdo->inTransaction();
-        }
-    
         /**
          * @param \Closure $callback
          *
@@ -144,38 +132,6 @@ namespace Core\Providers\Database {
                 
                 throw $e;
             }
-        }
-        
-        /**
-         * @return bool
-         */
-        public function beginTransaction()
-        {
-            return $this->pdo->beginTransaction();
-        }
-        
-        /**
-         * @return bool
-         */
-        public function commit()
-        {
-            return $this->pdo->commit();
-        }
-        
-        /**
-         * @return bool
-         */
-        public function rollBack()
-        {
-            return $this->pdo->rollBack();
-        }
-        
-        /**
-         * @return string
-         */
-        public function lastInsertId()
-        {
-            return $this->pdo->lastInsertId();
         }
         
         /**
@@ -247,12 +203,14 @@ namespace Core\Providers\Database {
          * @return $this
          * @throws \Exception
          */
-        public function query($sql, $places = null)
+        public function query($sql, $places = [])
         {
             $sql = (string) $sql;
             
             if (empty($sql)) {
-                throw new \InvalidArgumentException("It is not possible to execute the `->query` method without passing the sql.", E_ERROR);
+                throw new \InvalidArgumentException(
+                    "It is not possible to execute the `->query` method without passing the sql.", E_ERROR
+                );
             }
             
             // Atualiza os places
@@ -264,7 +222,9 @@ namespace Core\Providers\Database {
                 
                 return $this;
             } catch (\PDOException $e) {
-                throw new \Exception("[QUERY] {$e->getMessage()}", (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode()));
+                throw new \Exception(
+                    $e->getMessage(), (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
+                );
             }
         }
         
@@ -293,7 +253,7 @@ namespace Core\Providers\Database {
         protected function execute($sql, array $driverOptions = [])
         {
             // Statement
-            $this->statement = $this->pdo->prepare($sql, $driverOptions);
+            $this->statement = self::$instance->prepare($sql, $driverOptions);
             $this->bindValues();
             $this->statement->execute();
             
@@ -331,7 +291,7 @@ namespace Core\Providers\Database {
          * @return $this
          * @throws \Exception
          */
-        public function read($table, $condition = null, $places = null)
+        public function read($table, $condition = null, $places = [])
         {
             $table = (string) $table;
             $condition = (string) $condition;
@@ -341,11 +301,13 @@ namespace Core\Providers\Database {
             
             try {
                 // Execute
-                $this->execute("SELECT * FROM {$table} {$condition}");
+                $this->execute("SELECT {$table}.* FROM {$table} {$condition}");
                 
                 return $this;
             } catch (\PDOException $e) {
-                throw new \Exception("[READ] {$e->getMessage()}", (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode()));
+                throw new \Exception(
+                    $e->getMessage(), (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
+                );
             }
         }
         
@@ -387,7 +349,9 @@ namespace Core\Providers\Database {
                 
                 return $this;
             } catch (\PDOException $e) {
-                throw new \Exception("[CREATE] {$e->getMessage()}", (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode()));
+                throw new \Exception(
+                    $e->getMessage(), (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
+                );
             }
         }
         
@@ -400,14 +364,16 @@ namespace Core\Providers\Database {
          * @return $this
          * @throws \Exception
          */
-        public function update($table, array $data, $condition, $places = null)
+        public function update($table, array $data, $condition, $places = [])
         {
             $table = (string) $table;
             $condition = (string) $condition;
             $set = [];
             
             if (empty($condition)) {
-                throw new \InvalidArgumentException("It is not possible to execute the `->update` method without passing the condition.", E_ERROR);
+                throw new \InvalidArgumentException(
+                    "It is not possible to execute the `->update` method without passing the condition.", E_ERROR
+                );
             }
             
             // Atualiza os places
@@ -434,7 +400,9 @@ namespace Core\Providers\Database {
                 
                 return $this;
             } catch (\PDOException $e) {
-                throw new \Exception("[UPDATE] {$e->getMessage()}", (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode()));
+                throw new \Exception(
+                    $e->getMessage(), (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
+                );
             }
         }
         
@@ -446,13 +414,15 @@ namespace Core\Providers\Database {
          * @return $this
          * @throws \Exception
          */
-        public function delete($table, $condition, $places = null)
+        public function delete($table, $condition, $places = [])
         {
             $table = (string) $table;
             $condition = (string) $condition;
             
             if (empty($condition)) {
-                throw new \InvalidArgumentException("It is not possible to execute the `->delete` method without passing the condition.", E_ERROR);
+                throw new \InvalidArgumentException(
+                    "It is not possible to execute the `->delete` method without passing the condition.", E_ERROR
+                );
             }
             
             // Atualiza os places
@@ -464,7 +434,9 @@ namespace Core\Providers\Database {
                 
                 return $this;
             } catch (\PDOException $e) {
-                throw new \Exception("[DELETE] {$e->getMessage()}", (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode()));
+                throw new \Exception(
+                    $e->getMessage(), (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
+                );
             }
         }
     }
