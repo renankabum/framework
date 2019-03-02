@@ -27,7 +27,7 @@ namespace Core {
         /**
          * @var \Core\App
          */
-        protected static $instance;
+        private static $instance;
         
         /**
          * App constructor
@@ -80,65 +80,46 @@ namespace Core {
          */
         public function route($methods, $pattern, $callable, $name = null, $middlewares = null)
         {
-            /**
-             * Trata argumentos
-             */
-            
+            // Variavéis
             $methods = (is_string($methods) ? explode(',', mb_strtoupper($methods)) : $methods);
             $pattern = (string) $pattern;
             
-            /**
-             * Verifica se o callable e uma closure
-             */
-            
+            // Verifica se o callable e uma closure
             if ($callable instanceof \Closure) {
                 $route = $this->map($methods, $pattern, $callable);
             } else {
                 $route = $this->map($methods, $pattern, function (Request $request, Response $response, array $params) use ($callable) {
-                    /**
-                     * Separa o callable
-                     */
+                    // Separa o namespace e método
+                    list($namespace, $originalMethod) = (explode('@', $callable) + [1 => null]);
+                    $method = mb_strtolower($request->getMethod()).ucfirst($originalMethod);
                     
-                    if (mb_strpos($callable, '@')) {
-                        list($class, $method) = explode('@', $callable);
-                    } else {
-                        $class = $callable;
-                        $method = null;
+                    // Inicia controller
+                    $namespace = "App\\Controllers\\".str_ireplace('/', '\\', $namespace);
+                    $controller = new $namespace($request, $response, $this);
+                    
+                    // Verifica se existe o método
+                    if (!Helper::checkMethods($controller, [$method, '__call', '__callStatic'])) {
+                        // Verifica se o método original existe
+                        $method = ($originalMethod ?: 'index');
+                        
+                        if (!method_exists($controller, $method)) {
+                            throw new \BadMethodCallException(
+                                sprintf("Call to undefined method %s::%s()", get_class($controller), $method), E_ERROR
+                            );
+                        }
                     }
                     
-                    /**
-                     * Inicia o controller
-                     */
-                    
-                    $method = mb_strtolower($request->getMethod()).ucfirst($method);
-                    $class = "App\\Controllers\\".str_ireplace('/', '\\', $class);
-                    $classObject = new $class($request, $response, $this);
-                    
-                    /**
-                     * Verifica método
-                     */
-                    
-                    if (!Helper::checkMethods($classObject, [$method, '__call', '__callStatic'])) {
-                        throw new \BadMethodCallException(sprintf("Call to undefined method %s::%s()", get_class($classObject), $method), E_ERROR);
-                    }
-                    
-                    return call_user_func_array([$classObject, $method], $params);
+                    return call_user_func_array([$controller, $method], $params);
                 });
             }
             
-            /**
-             * Verifica se foi passado o nome
-             */
-            
+            // Adiciona o nome na rota
             if (!empty($name)) {
                 $name = mb_strtolower($name);
                 $route->setName($name);
             }
             
-            /**
-             * Verifica se foi passado a middleware
-             */
-            
+            // Adiciona middlewares na rota
             if (!empty($middlewares)) {
                 $middlewaresManual = config('app.middlewares.manual', []);
                 
@@ -206,10 +187,7 @@ namespace Core {
              * Configurações básicas da aplicação
              */
             
-            ini_set('display_errors', 'On');
-            ini_set('display_startup_errors', 'On');
             ini_set('default_charset', 'UTF-8');
-            
             mb_internal_encoding('UTF-8');
             date_default_timezone_set(env('APP_TIMEZONE', 'America/Sao_Paulo'));
             setlocale(LC_ALL, env('APP_LOCALE'), env('APP_LOCALE').'utf-8');
@@ -220,14 +198,21 @@ namespace Core {
              * Controle de erro do sistema
              */
             
-            if (env('APP_ENV') === 'development') {
-                error_reporting(E_ALL);
+            ini_set('display_errors', 'On');
+            ini_set('display_startup_errors', 'On');
+            
+            if (env('APP_ENV', 'development') === 'development') {
+                error_reporting(E_ALL ^ E_DEPRECATED);
             } else {
-                error_reporting(E_ALL ^ E_NOTICE);
+                error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
             }
             
-            if (env('APP_SET_ERROR_HANDLER', true)) {
+            if (env('APP_SET_ERROR_HANDLER', true) == 'true') {
                 set_error_handler(function ($code, $message, $file, $line) {
+                    if (!(error_reporting() & $code)) {
+                        return;
+                    }
+                    
                     throw new \ErrorException($message, $code, 1, $file, $line);
                 });
             }
@@ -257,15 +242,6 @@ namespace Core {
         }
         
         /**
-         * Verifica os métodos antigo da classe e converte para o novo
-         *
-         * @param string $method
-         * @param mixed $parameters
-         *
-         * @return array|bool|string
-         */
-        
-        /**
          * Inicia as rotas padrão da aplicação
          */
         public function initRoutes()
@@ -283,77 +259,47 @@ namespace Core {
         
         /**
          * Inicia os serviços da aplicação
+         *
+         * @param array $providers
          */
-        public function initProviders()
+        public function initProviders($providers = [])
         {
-            $providers = [];
+            // Providers padrões ou passados por parametro
+            $providers = $providers ?: config('app.providers', []);
             
-            foreach (config('app.providers', []) as $provider) {
+            // Percorre os providers
+            foreach ($providers as $provider) {
                 if (class_exists($provider)) {
                     $provider = new $provider($this->getContainer());
                     
+                    // Verifica método `register`
                     if (method_exists($provider, 'register')) {
                         $provider->register();
                     }
                     
-                    array_push($providers, $provider);
-                }
-            }
-            
-            foreach ($providers as $provider) {
-                if (method_exists($provider, 'boot')) {
-                    $provider->boot();
+                    // Verifica método `boot`
+                    if (method_exists($provider, 'boot')) {
+                        $provider->boot();
+                    }
                 }
             }
         }
         
         /**
          * Inicia as middleware da aplicação
+         *
+         * @param array $middlewares
          */
-        public function initMiddlewares()
+        public function initMiddlewares($middlewares = [])
         {
-            foreach (config('app.middlewares.automatic', []) as $name => $middleware) {
+            // Middlewares padrões ou passadas por parametro
+            $middlewares = $middlewares ?: config('app.middlewares.automatic', []);
+            
+            // Percorre as middlewares
+            foreach ($middlewares as $name => $middleware) {
                 if (class_exists($middleware)) {
                     $this->add($middleware);
                 }
-            }
-        }
-        
-        /**
-         * @param string $method
-         * @param mixed $parameters
-         *
-         * @return array|bool|string
-         */
-        public function __call($method, $parameters)
-        {
-            $parameter = null;
-            
-            /*if (!empty($parameters[0])) {
-                $parameter = $parameters[0];
-            }*/
-            
-            switch ($method) {
-                case 'registerRouter':
-                    return $this->initRoutes();
-                    break;
-                
-                case 'registerProviders':
-                    return $this->initProviders();
-                    break;
-                
-                case 'registerMiddleware':
-                    return $this->initMiddlewares();
-                    break;
-                
-                case 'registerFunctions':
-                case 'loadRegistersFile':
-                    return '';
-                    break;
-            }
-            
-            if (!method_exists(get_class(), $method)) {
-                throw new \BadMethodCallException(sprintf("Call to undefined method %s::%s()", get_class($this), $method), E_ERROR);
             }
         }
     }
