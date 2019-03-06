@@ -7,11 +7,12 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 01/03/2019 Vagner Cardoso
+ * @copyright 06/03/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Database {
     
+    use Core\App;
     use Core\Helpers\Obj;
     
     /**
@@ -198,6 +199,14 @@ namespace Core\Providers\Database {
             $columns = (!empty($data[0]) ? $data[0] : $data);
             $columns = implode(', ', array_keys($columns));
             
+            // Dispara evento tbName:creating
+            // Verifica eventos
+            if (config('database.events', false) == 'true') {
+                if ($event = App::getInstance()->resolve('event')) {
+                    $event->emit("{$table}:creating", $data);
+                }
+            }
+            
             // Monta os valores conforme se é um array multimensional ou um array simples
             if (!empty($data[0])) {
                 foreach ($data as $i => $item) {
@@ -216,8 +225,17 @@ namespace Core\Providers\Database {
             
             // Executa a query
             $statement = "INSERT INTO {$table} ({$columns}) VALUES {$values}";
+            $statement = $this->query($statement);
             
-            return $this->query($statement);
+            // Verifica eventos
+            if (config('database.events', false) == 'true') {
+                // Dispara evento tbName:created
+                if ($event = App::getInstance()->resolve('event')) {
+                    $event->emit("{$table}:created", $this->lastInsertId());
+                }
+            }
+            
+            return $statement;
         }
         
         /**
@@ -237,6 +255,14 @@ namespace Core\Providers\Database {
             $condition = (string) $condition;
             $set = [];
             
+            // Verifica eventos
+            if (config('database.events', false) == 'true') {
+                // Dispara evento tbName:updating
+                if ($event = App::getInstance()->resolve('event')) {
+                    $event->emit("{$table}:updating", $data);
+                }
+            }
+            
             // Trata os dados passado para atualzar
             foreach ($data as $key => $value) {
                 $bind = $key;
@@ -255,8 +281,17 @@ namespace Core\Providers\Database {
             
             // Executa a query
             $statement = "UPDATE {$table} SET {$set} {$condition}";
+            $statement = $this->query($statement, $bindings);
             
-            return $this->query($statement, $bindings);
+            // Verifica eventos
+            if (config('database.events', false) == 'true') {
+                // Dispara evento tbName:updated
+                if ($event = App::getInstance()->resolve('event')) {
+                    $event->emit("{$table}:updated", $this->read($table, $condition, $bindings)->fetch());
+                }
+            }
+            
+            return $statement;
         }
         
         /**
@@ -272,10 +307,31 @@ namespace Core\Providers\Database {
             // Variávies
             $table = (string) $table;
             $condition = (string) $condition;
-            $statement = "DELETE FROM {$table} {$condition}";
+            
+            // Verifica eventos
+            if (config('database.events', false) == 'true') {
+                // Recupera o registro a ser deletado
+                $row = $this->read($table, $condition, $bindings)->fetch();
+                
+                // Dispara evento tbName:deleting
+                if ($event = App::getInstance()->resolve('event')) {
+                    $event->emit("{$table}:deleting", $row);
+                }
+            }
             
             // Executa a query
-            return $this->query($statement, $bindings);
+            $statement = "DELETE FROM {$table} {$condition}";
+            $statement = $this->query($statement, $bindings);
+            
+            // Verifica eventos
+            if (config('database.events', false) == 'true') {
+                // Dispara evento tbName:deleted
+                if ($event = App::getInstance()->resolve('event')) {
+                    $event->emit("{$table}:deleted", (!empty($row) ? $row : []));
+                }
+            }
+            
+            return $statement;
         }
         
         /**
