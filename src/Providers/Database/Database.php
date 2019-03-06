@@ -12,6 +12,8 @@
 
 namespace Core\Providers\Database {
     
+    use Core\Helpers\Obj;
+    
     /**
      * Class Database
      *
@@ -26,14 +28,14 @@ namespace Core\Providers\Database {
         private static $instance;
         
         /**
-         * @var \PDOStatement
+         * @var Statement
          */
         private $statement;
         
         /**
          * @var array
          */
-        private $places = [];
+        private $bindings = [];
         
         /**
          * Bloqueia a construção da classe
@@ -76,6 +78,9 @@ namespace Core\Providers\Database {
                     config('database.options', [])
                 );
                 
+                // Muda a classe statement
+                $this->setAttribute(\PDO::ATTR_STATEMENT_CLASS, [Statement::class, [$this]]);
+                
                 // Usa a datanase
                 $this->exec("USE {$connection['database']};");
                 
@@ -90,9 +95,7 @@ namespace Core\Providers\Database {
                     $this->exec($exec);
                 }
             } catch (\PDOException $e) {
-                throw new \Exception(
-                    "[DB] {$e->getMessage()}", (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
-                );
+                throw $e;
             }
         }
         
@@ -135,309 +138,211 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @param int $fetch_style
+         * @param string $statement
+         * @param string|array $bindings
+         * @param array $driverOptions
          *
-         * @return mixed
-         */
-        public function fetch($fetch_style = null)
-        {
-            return $this->statement->fetch($fetch_style);
-        }
-        
-        /**
-         * @return string
-         */
-        public function queryString()
-        {
-            return $this->statement->queryString;
-        }
-        
-        /**
-         * @param string|object $class_name
-         *
-         * @return mixed
-         */
-        public function fetchObject($class_name = 'stdClass')
-        {
-            return $this->statement->fetchObject($class_name);
-        }
-        
-        /**
-         * @return int
-         */
-        public function rowCount()
-        {
-            $rowCount = $this->statement->rowCount();
-            
-            if ($rowCount === -1) {
-                $rowCount = count($this->fetchAll());
-            }
-            
-            return $rowCount;
-        }
-        
-        /**
-         * @param int $fetch_style
-         * @param mixed $fetch_argument
-         * @param array $ctor_args
-         *
-         * @return array
-         */
-        public function fetchAll($fetch_style = \PDO::FETCH_ASSOC, $fetch_argument = null, array $ctor_args = [])
-        {
-            if ($fetch_style === \PDO::FETCH_BOTH) {
-                return $this->statement->fetchAll();
-            } else if ($fetch_style === \PDO::FETCH_CLASS) {
-                return $this->statement->fetchAll($fetch_style, $fetch_argument, $ctor_args);
-            } else if (in_array($fetch_style, [\PDO::FETCH_ASSOC, \PDO::FETCH_NUM, \PDO::FETCH_OBJ])) {
-                return $this->statement->fetchAll($fetch_style);
-            } else {
-                return $this->statement->fetchAll($fetch_style, $fetch_argument);
-            }
-        }
-        
-        /**
-         * @param string $sql
-         * @param string|array $places
-         *
-         * @return $this
+         * @return Statement
          * @throws \Exception
          */
-        public function query($sql, $places = [])
+        public function query($statement, $bindings = null, $driverOptions = [])
         {
-            $sql = (string) $sql;
-            
-            if (empty($sql)) {
-                throw new \InvalidArgumentException(
-                    "It is not possible to execute the `->query` method without passing the sql.", E_ERROR
-                );
-            }
-            
-            // Atualiza os places
-            $this->setPlaces($places);
-            
             try {
-                // Execute
-                $this->execute($sql);
-                
-                return $this;
-            } catch (\PDOException $e) {
-                throw new \Exception(
-                    $e->getMessage(), (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
-                );
-            }
-        }
-        
-        /**
-         * @param string|array $places
-         */
-        protected function setPlaces($places)
-        {
-            if (!empty($places)) {
-                if (!is_array($places)) {
-                    if (function_exists('mb_parse_str')) {
-                        mb_parse_str($places, $this->places);
-                    } else {
-                        parse_str($places, $this->places);
-                    }
-                } else {
-                    $this->places = (array) $places;
-                }
-            }
-        }
-        
-        /**
-         * @param string $sql
-         * @param array $driverOptions
-         */
-        protected function execute($sql, array $driverOptions = [])
-        {
-            // Statement
-            $this->statement = self::$instance->prepare($sql, $driverOptions);
-            $this->bindValues();
-            $this->statement->execute();
-            
-            // Clear places
-            $this->places = [];
-        }
-        
-        /**
-         *
-         */
-        protected function bindValues()
-        {
-            if ($this->statement instanceof \PDOStatement) {
-                foreach ($this->places as $field => $value) {
-                    if (in_array($field, ['limit', 'offset', 'l', 'o'])) {
-                        $value = (int) $value;
-                    }
-                    
-                    $value = ((empty($value) && $value != '0') ? null : $value);
-                    
-                    $this->statement->bindValue(
-                        (is_string($field) ? ":{$field}" : ((int) $field + 1)),
-                        $value,
-                        (is_int($value) ? \PDO::PARAM_INT : \PDO::PARAM_STR)
+                if (empty($statement)) {
+                    throw new \InvalidArgumentException(
+                        'Query para execução `$statement` não pode ser vázia.', E_ERROR
                     );
                 }
+                
+                // Execute
+                $this->statement = $this->prepare($statement, $driverOptions);
+                $this->setBindings($bindings);
+                $this->execBindings();
+                $this->statement->execute();
+                
+                return $this->statement;
+            } catch (\PDOException $e) {
+                throw $e;
             }
         }
         
         /**
          * @param string $table
          * @param string $condition
-         * @param string|array $places
+         * @param string|array $bindings
          *
-         * @return $this
+         * @return Statement
          * @throws \Exception
          */
-        public function read($table, $condition = null, $places = [])
+        public function read($table, $condition = null, $bindings = null)
         {
-            $table = (string) $table;
-            $condition = (string) $condition;
+            // Executa a query
+            $statement = "SELECT {$table}.* FROM {$table} {$condition}";
             
-            // Atualiza os places
-            $this->setPlaces($places);
-            
-            try {
-                // Execute
-                $this->execute("SELECT {$table}.* FROM {$table} {$condition}");
-                
-                return $this;
-            } catch (\PDOException $e) {
-                throw new \Exception(
-                    $e->getMessage(), (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
-                );
-            }
+            return $this->query($statement, $bindings);
         }
         
         /**
          * @param string $table
-         * @param array $data
+         * @param array|object $data
          *
-         * @return $this
+         * @return Statement
          * @throws \Exception
          */
-        public function create($table, array $data)
+        public function create($table, $data)
         {
+            // Variávies
             $table = (string) $table;
+            $data = (is_object($data) ? Obj::toArray($data) : $data);
             $values = [];
-            
-            // Monta as colunas
             $columns = (!empty($data[0]) ? $data[0] : $data);
             $columns = implode(', ', array_keys($columns));
             
             // Monta os valores conforme se é um array multimensional ou um array simples
             if (!empty($data[0])) {
                 foreach ($data as $i => $item) {
-                    $values[] = ':'.implode("{$i}, :", array_keys($item)).$i;
+                    $values[] = ':'.implode("_{$i}, :", array_keys($item))."_{$i}";
                     
                     foreach ($item as $k => $v) {
-                        $this->places["{$k}{$i}"] = $v;
+                        $this->setBindings(["{$k}_{$i}" => $v]);
                     }
                 }
                 
                 $values = '('.implode("), (", $values).')';
             } else {
-                $this->setPlaces($data);
+                $this->setBindings($data);
                 $values = '(:'.implode(', :', array_keys($data)).')';
             }
             
-            try {
-                // Execute
-                $this->execute("INSERT INTO {$table} ({$columns}) VALUES {$values}");
-                
-                return $this;
-            } catch (\PDOException $e) {
-                throw new \Exception(
-                    $e->getMessage(), (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
-                );
-            }
+            // Executa a query
+            $statement = "INSERT INTO {$table} ({$columns}) VALUES {$values}";
+            
+            return $this->query($statement);
         }
         
         /**
          * @param string $table
-         * @param array $data
+         * @param array|object $data
          * @param string $condition
-         * @param string|array $places
+         * @param string|array $bindings
          *
-         * @return $this
+         * @return Statement
          * @throws \Exception
          */
-        public function update($table, array $data, $condition, $places = [])
+        public function update($table, $data, $condition, $bindings = null)
         {
+            // Variávies
             $table = (string) $table;
+            $data = (is_object($data) ? Obj::toArray($data) : $data);
             $condition = (string) $condition;
             $set = [];
             
-            if (empty($condition)) {
-                throw new \InvalidArgumentException(
-                    "It is not possible to execute the `->update` method without passing the condition.", E_ERROR
-                );
-            }
-            
-            // Atualiza os places
-            $this->setPlaces($places);
-            
             // Trata os dados passado para atualzar
-            foreach ($data as $field => $value) {
-                $time = '';
+            foreach ($data as $key => $value) {
+                $bind = $key;
                 
-                if (!empty($this->places[$field])) {
-                    $time = time();
+                // Verifica se já existe algum bind igual
+                if (!empty($this->bindings[$bind])) {
+                    $uniqid = mt_rand(1, time());
+                    $bind = "{$bind}_{$uniqid}";
                 }
                 
-                $set[] = "{$field} = :{$field}{$time}";
-                
-                $this->places["{$field}{$time}"] = $value;
+                $set[] = "{$key} = :{$bind}";
+                $this->bindings[$bind] = filter_var($value, FILTER_DEFAULT);
             }
             
             $set = implode(', ', $set);
             
-            try {
-                // Execute
-                $this->execute("UPDATE {$table} SET {$set} {$condition}");
-                
-                return $this;
-            } catch (\PDOException $e) {
-                throw new \Exception(
-                    $e->getMessage(), (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
-                );
-            }
+            // Executa a query
+            $statement = "UPDATE {$table} SET {$set} {$condition}";
+            
+            return $this->query($statement, $bindings);
         }
         
         /**
          * @param string $table
          * @param string $condition
-         * @param string|array $places
+         * @param string|array $bindings
          *
-         * @return $this
+         * @return Statement
          * @throws \Exception
          */
-        public function delete($table, $condition, $places = [])
+        public function delete($table, $condition, $bindings = null)
         {
+            // Variávies
             $table = (string) $table;
             $condition = (string) $condition;
+            $statement = "DELETE FROM {$table} {$condition}";
             
-            if (empty($condition)) {
-                throw new \InvalidArgumentException(
-                    "It is not possible to execute the `->delete` method without passing the condition.", E_ERROR
-                );
+            // Executa a query
+            return $this->query($statement, $bindings);
+        }
+        
+        /**
+         * @return bool
+         */
+        public function isChangeFetch()
+        {
+            if (in_array($this->getAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE), [\PDO::FETCH_OBJ, \PDO::FETCH_CLASS])) {
+                return true;
             }
             
-            // Atualiza os places
-            $this->setPlaces($places);
-            
-            try {
-                // Execute
-                $this->execute("DELETE FROM {$table} {$condition}");
+            return false;
+        }
+        
+        /**
+         * @param string|array $bindings
+         */
+        public function setBindings($bindings)
+        {
+            if (!empty($bindings)) {
+                // Se for string da o parse e transforma em array
+                if (is_string($bindings)) {
+                    if (function_exists('mb_parse_str')) {
+                        mb_parse_str($bindings, $bindings);
+                    } else {
+                        parse_str($bindings, $bindings);
+                    }
+                }
                 
-                return $this;
-            } catch (\PDOException $e) {
-                throw new \Exception(
-                    $e->getMessage(), (is_string($e->getCode()) ? E_USER_ERROR : $e->getCode())
+                // Filtra os valores dos bindings
+                foreach ($bindings as $key => $value) {
+                    $this->bindings[$key] = filter_var($value, FILTER_DEFAULT);
+                }
+            }
+        }
+        
+        /**
+         * Executa os bindings e trata os valores
+         */
+        protected function execBindings()
+        {
+            if (!$this->statement instanceof Statement) {
+                throw new \RuntimeException(
+                    "Propriedade `statement` não é uma instância de `\PDOStatement`.", E_USER_ERROR
                 );
             }
+            
+            if (!empty($this->bindings) && is_array($this->bindings)) {
+                foreach ($this->bindings as $key => $value) {
+                    if (is_string($key) && in_array($key, ['limit', 'offset', 'l', 'o'])) {
+                        $value = (int) $value;
+                    }
+                    
+                    $value = ((empty($value) && $value != '0')
+                        ? null
+                        : filter_var($value, FILTER_DEFAULT));
+                    
+                    $this->statement->bindValue(
+                        (is_string($key) ? ":{$key}" : ((int) $key + 1)),
+                        $value,
+                        (is_int($value) ? \PDO::PARAM_INT : \PDO::PARAM_STR)
+                    );
+                }
+            }
+            
+            // Reseta os binds
+            $this->bindings = [];
         }
     }
 }
