@@ -47,7 +47,7 @@ namespace Core\Contracts {
         /**
          * @var string
          */
-        protected $primaryKey = 'id';
+        protected $primaryKey;
         
         /**
          * @var array
@@ -80,6 +80,11 @@ namespace Core\Contracts {
         protected $order = [];
         
         /**
+         * @var array
+         */
+        protected $bindings = [];
+        
+        /**
          * @var int
          */
         protected $limit = null;
@@ -105,12 +110,10 @@ namespace Core\Contracts {
          */
         public function fetch()
         {
-            // Verifica o tipo padrão do fetch
-            if ($this->db->isChangeFetch()) {
-                $result = $this->execute()->fetchObject(get_called_class());
-            } else {
-                $result = $this->execute()->fetch();
-            }
+            // Resultado
+            $result = $this->execute()->fetch(
+                $this->db->isChangeFetch() ? get_called_class() : null
+            );
             
             if (!empty($result)) {
                 if (method_exists($this, '_row')) {
@@ -161,7 +164,7 @@ namespace Core\Contracts {
         public function fetchById($id)
         {
             // Executa a query
-            return $this->where("AND {$this->table}.{$this->primaryKey} = :pkbyid")
+            return $this->where("AND {$this->table}.{$this->primaryKey()} = :pkbyid")
                 ->bindings(['pkbyid' => filter_var($id, FILTER_DEFAULT)])
                 ->limit(1)->fetch();
         }
@@ -343,7 +346,21 @@ namespace Core\Contracts {
          */
         public function bindings($bindings)
         {
-            $this->db->setBindings($bindings);
+            if (!empty($bindings)) {
+                // Se for string da o parse e transforma em array
+                if (is_string($bindings)) {
+                    if (function_exists('mb_parse_str')) {
+                        mb_parse_str($bindings, $bindings);
+                    } else {
+                        parse_str($bindings, $bindings);
+                    }
+                }
+                
+                // Filtra os valores dos bindings
+                foreach ($bindings as $key => $value) {
+                    $this->bindings[$key] = filter_var($value, FILTER_DEFAULT);
+                }
+            }
             
             return $this;
         }
@@ -381,40 +398,42 @@ namespace Core\Contracts {
         }
         
         /**
-         * @return array|$this
+         * @return bool|array|$this
          * @throws \Exception
          */
         public function save()
         {
-            // Verifica o id se está preenchido
-            $id = (!empty($this->{$this->primaryKey}) ? $this->{$this->primaryKey} : null);
+            // Variávéis
+            $where = $this->where;
+            $bindings = $this->bindings;
+            $primaryKey = $this->{$this->primaryKey()};
+            $primaryWhere = "AND {$this->table}.{$this->primaryKey()} = :pkid ";
             
-            // Atualiza
-            if (!empty($id)) {
-                // Where
-                $condition = "WHERE {$this->table}.{$this->primaryKey} = :updid ";
-                
-                if (!empty($this->where) && is_array($this->where)) {
-                    $condition .= implode(' ', $this->where);
+            // Verifica registro
+            if ($updated = $this->reset()->fetchById($primaryKey)) {
+                if (!empty($where) && is_array($where)) {
+                    $primaryWhere .= implode(' ', $where);
                 }
                 
                 // Atualiza
                 $this->db->update(
-                    $this->table,
-                    $this->data,
-                    $condition,
-                    ['updid' => $id]
+                    $this->table, $this->data,
+                    "WHERE ".$this->normalizePropertyValue($primaryWhere),
+                    array_merge($bindings, ['pkid' => $primaryKey])
                 );
             } else {
                 // Adiciona
                 $this->db->create($this->table, $this->data);
-                $id = $this->db->lastInsertId();
-                
-                // Reseta as propriedades
-                $this->clearProperties();
+                $primaryKey = $this->db->lastInsertId();
             }
             
-            return $this->reset()->fetchById($id);
+            if (!empty($primaryKey)) {
+                return $this->reset()
+                    ->where($where, $bindings)
+                    ->fetchById($primaryKey);
+            }
+            
+            return true;
         }
         
         /**
@@ -423,26 +442,26 @@ namespace Core\Contracts {
          */
         public function delete()
         {
-            // Verifica o id se está preenchido
-            $id = (!empty($this->{$this->primaryKey}) ? $this->{$this->primaryKey} : null);
+            // Variávéis
+            $where = $this->where;
+            $bindings = $this->bindings;
+            $primaryKey = $this->{$this->primaryKey()};
+            $primaryWhere = "AND {$this->table}.{$this->primaryKey()} = :pkid ";
             
-            // Remove
-            if (!empty($id)) {
-                // Where
-                $condition = "WHERE {$this->table}.{$this->primaryKey} = :delid ";
-                
-                if (!empty($this->where) && is_array($this->where)) {
-                    $condition .= implode(' ', $this->where);
+            // Verifica registro
+            if ($deleted = $this->reset()->fetchById($primaryKey)) {
+                if (!empty($where) && is_array($where)) {
+                    $primaryWhere .= implode(' ', $where);
                 }
                 
-                // Remove
+                // Atualiza
                 $this->db->delete(
                     $this->table,
-                    $condition,
-                    ['delid' => $id]
+                    "WHERE ".$this->normalizePropertyValue($primaryWhere),
+                    array_merge($bindings, ['pkid' => $primaryKey])
                 );
                 
-                return $this->reset()->fetchById($id);
+                return $deleted;
             }
             
             return false;
@@ -598,12 +617,26 @@ namespace Core\Contracts {
             }
             
             // Executa a query
-            $statement = $this->db->query($sql);
+            $statement = $this->db->query($sql, $this->bindings);
             
             // Limpa as propriedades da classe
             $this->clearProperties();
             
             return $statement;
+        }
+        
+        /**
+         * @return string
+         */
+        private function primaryKey()
+        {
+            if (empty($this->primaryKey)) {
+                throw new \InvalidArgumentException(
+                    'Propriedade `$this->primaryKey` não pode ser vázia.', E_USER_ERROR
+                );
+            }
+            
+            return $this->primaryKey;
         }
         
         /**
@@ -618,6 +651,7 @@ namespace Core\Contracts {
             $this->group = [];
             $this->having = [];
             $this->order = [];
+            $this->bindings = [];
             $this->limit = null;
             $this->offset = null;
             $this->reset = [];

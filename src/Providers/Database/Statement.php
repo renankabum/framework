@@ -68,11 +68,31 @@ namespace Core\Providers\Database {
         }
         
         /**
+         * @param mixed $fetchStyle
+         * @param int $cursorOrientation
+         * @param int $cursorOffset
+         *
+         * @return array|object
+         */
+        public function fetch($fetchStyle = null, $cursorOrientation = \PDO::FETCH_ORI_NEXT, $cursorOffset = 0)
+        {
+            if ($this->db->isChangeFetch()) {
+                return parent::fetchObject(
+                    !empty($fetchStyle) ? $fetchStyle : 'stdClass'
+                );
+            }
+            
+            return parent::fetch(
+                $fetchStyle, $cursorOrientation, $cursorOffset
+            );
+        }
+        
+        /**
          * @param int $fetchStyle
          * @param mixed $fetchArgument
          * @param array $ctorArgs
          *
-         * @return array
+         * @return array|object
          */
         public function fetchAll($fetchStyle = null, $fetchArgument = null, $ctorArgs = null)
         {

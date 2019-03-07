@@ -352,7 +352,7 @@ namespace Core\Providers\Database {
         /**
          * @param string|array $bindings
          */
-        public function setBindings($bindings)
+        protected function setBindings($bindings)
         {
             if (!empty($bindings)) {
                 // Se for string da o parse e transforma em array
