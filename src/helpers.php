@@ -250,13 +250,14 @@ if (!function_exists('json')) {
      * Retorna a o resultado em JSON
      *
      * @param mixed $data
+     * @param int $options
      * @param int $status
      *
      * @return \Slim\Http\Response
      */
-    function json($data, $status = 200)
+    function json($data, $options = 0, $status = 200)
     {
-        return App::getInstance()->resolve('response')->withJson($data, $status, JSON_PRETTY_PRINT);
+        return App::getInstance()->resolve('response')->withJson($data, $status, $options);
     }
 }
 
