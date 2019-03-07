@@ -13,7 +13,6 @@
 namespace Core\Contracts {
     
     use Core\App;
-    use Core\Helpers\Obj;
     
     /**
      * Class Model
@@ -115,7 +114,7 @@ namespace Core\Contracts {
             
             // Dispara evento
             if (method_exists($this, '_row')) {
-                $this->{'_row'}($result);
+                $this->_row($result);
             }
             
             return $result;
@@ -141,7 +140,7 @@ namespace Core\Contracts {
             
             foreach ($results as $index => $row) {
                 if (method_exists($this, '_row')) {
-                    $this->{'_row'}($row);
+                    $this->_row($row);
                 }
                 
                 $results[$index] = $row;
@@ -384,23 +383,23 @@ namespace Core\Contracts {
          */
         public function save()
         {
+            // Verifica o id se está preenchido
             $id = (!empty($this->{$this->primaryKey}) ? $this->{$this->primaryKey} : null);
             
+            // Atualiza
             if (!empty($id)) {
+                // Where
+                $condition = "WHERE {$this->table}.{$this->primaryKey} = :updid ";
+                
+                if (!empty($this->where) && is_array($this->where)) {
+                    $condition .= implode(' ', $this->where);
+                }
+                
                 // Verifica registro
                 if (!$row = $this->reset()->fetchById($id)) {
                     throw new \Exception(
                         sprintf("Registro (#%d) não encontrado.", $id), E_USER_ERROR
                     );
-                }
-                
-                // Where
-                $condition = "WHERE {$this->table}.{$this->primaryKey} = :updid";
-                
-                if (!empty($this->where) && is_array($this->where)) {
-                    $this->where = $this->normalizePropertyValue(implode(' ', $this->where));
-                    $condition .= " {$this->where} ";
-                    $this->where = [];
                 }
                 
                 // Atualiza
@@ -412,7 +411,11 @@ namespace Core\Contracts {
                 );
             } else {
                 // Adiciona
-                $id = $this->db->create($this->table, $this->data)->lastInsertId();
+                $this->db->create($this->table, $this->data);
+                $id = $this->db->lastInsertId();
+                
+                // Reseta as propriedades
+                $this->clearProperties();
             }
             
             return $this->reset()->fetchById($id);
@@ -424,9 +427,18 @@ namespace Core\Contracts {
          */
         public function delete()
         {
+            // Verifica o id se está preenchido
             $id = (!empty($this->{$this->primaryKey}) ? $this->{$this->primaryKey} : null);
             
+            // Remove
             if (!empty($id)) {
+                // Where
+                $condition = "WHERE {$this->table}.{$this->primaryKey} = :updid ";
+                
+                if (!empty($this->where) && is_array($this->where)) {
+                    $condition .= implode(' ', $this->where);
+                }
+                
                 // Verifica registro
                 if (!$row = $this->reset()->fetchById($id)) {
                     throw new \Exception(
@@ -434,16 +446,7 @@ namespace Core\Contracts {
                     );
                 }
                 
-                // Where
-                $condition = "WHERE {$this->table}.{$this->primaryKey} = :delid";
-                
-                if (!empty($this->where) && is_array($this->where)) {
-                    $this->where = $this->normalizePropertyValue(implode(' ', $this->where));
-                    $condition .= " {$this->where} ";
-                    $this->where = [];
-                }
-                
-                // Atualiza
+                // Remove
                 $this->db->delete(
                     $this->table,
                     $condition,
@@ -471,11 +474,9 @@ namespace Core\Contracts {
             
             // Monta a propriedade data com
             // os dados já tratados
-            if ($this->db->isChangeFetch()) {
-                $data = Obj::set($data);
+            foreach ($data as $key => $value) {
+                $this->{$key} = $value;
             }
-            
-            $this->data = $data;
             
             return $this;
         }
@@ -559,7 +560,7 @@ namespace Core\Contracts {
             
             // Verifica se o método está criado e executa
             if (method_exists($this, '_conditions')) {
-                $this->{'_conditions'}();
+                $this->_conditions();
             }
             
             // Select
