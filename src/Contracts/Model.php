@@ -398,7 +398,7 @@ namespace Core\Contracts {
         }
         
         /**
-         * @return bool|array|$this
+         * @return array|$this
          * @throws \Exception
          */
         public function save()
@@ -433,7 +433,7 @@ namespace Core\Contracts {
                     ->fetchById($primaryKey);
             }
             
-            return true;
+            return $this->data;
         }
         
         /**
