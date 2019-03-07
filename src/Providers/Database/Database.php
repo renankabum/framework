@@ -207,6 +207,9 @@ namespace Core\Providers\Database {
                 }
             }
             
+            // Previne os binds caso exista
+            $this->bindings = [];
+            
             // Monta os valores conforme se é um array multimensional ou um array simples
             if (!empty($data[0])) {
                 foreach ($data as $i => $item) {
