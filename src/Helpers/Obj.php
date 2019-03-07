@@ -21,13 +21,13 @@ namespace Core\Helpers {
     class Obj
     {
         /**
-         * Converte um array em um objecto
+         * Converte um array em um objeto
          *
          * @param array $array
          *
          * @return \stdClass
          */
-        public static function set(array $array)
+        public static function fromArray(array $array)
         {
             $object = new \stdClass();
             
@@ -37,7 +37,7 @@ namespace Core\Helpers {
             
             foreach ($array as $key => $value) {
                 if (is_array($value)) {
-                    $object->{$key} = self::set($value);
+                    $object->{$key} = self::fromArray($value);
                 } else {
                     $object->{$key} = isset($value) ? $value : '';
                 }
@@ -47,11 +47,23 @@ namespace Core\Helpers {
         }
         
         /**
+         * Adiciona elemento em um objeto
+         *
+         * @param array $array
+         *
+         * @return \stdClass
+         */
+        public static function set(array $array)
+        {
+            return self::fromArray($array);
+        }
+        
+        /**
          * Recupera o valor do objeto
          *
          * @param object $object
          * @param string $name
-         * @param mixed  $default
+         * @param mixed $default
          *
          * @return mixed
          */
