@@ -426,7 +426,7 @@ namespace Core\Contracts {
             // Remove
             if (!empty($id)) {
                 // Where
-                $condition = "WHERE {$this->table}.{$this->primaryKey} = :updid ";
+                $condition = "WHERE {$this->table}.{$this->primaryKey} = :delid ";
                 
                 if (!empty($this->where) && is_array($this->where)) {
                     $condition .= implode(' ', $this->where);
