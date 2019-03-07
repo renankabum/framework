@@ -395,13 +395,6 @@ namespace Core\Contracts {
                     $condition .= implode(' ', $this->where);
                 }
                 
-                // Verifica registro
-                if (!$row = $this->reset()->fetchById($id)) {
-                    throw new \Exception(
-                        sprintf("Registro (#%d) não encontrado.", $id), E_USER_ERROR
-                    );
-                }
-                
                 // Atualiza
                 $this->db->update(
                     $this->table,
@@ -439,13 +432,6 @@ namespace Core\Contracts {
                     $condition .= implode(' ', $this->where);
                 }
                 
-                // Verifica registro
-                if (!$row = $this->reset()->fetchById($id)) {
-                    throw new \Exception(
-                        sprintf("Registro (#%d) não encontrado.", $id), E_USER_ERROR
-                    );
-                }
-                
                 // Remove
                 $this->db->delete(
                     $this->table,
@@ -453,7 +439,7 @@ namespace Core\Contracts {
                     ['delid' => $id]
                 );
                 
-                return $row;
+                return $this->reset()->fetchById($id);
             }
             
             return false;
