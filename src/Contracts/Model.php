@@ -112,9 +112,10 @@ namespace Core\Contracts {
                 $result = $this->execute()->fetch();
             }
             
-            // Dispara evento
-            if (method_exists($this, '_row')) {
-                $this->_row($result);
+            if (!empty($result)) {
+                if (method_exists($this, '_row')) {
+                    $this->_row($result);
+                }
             }
             
             return $result;
@@ -138,12 +139,14 @@ namespace Core\Contracts {
             // Executa a query e percorre os resultados
             $results = $this->execute()->fetchAll($fetchStyle, $fetchArgument);
             
-            foreach ($results as $index => $row) {
-                if (method_exists($this, '_row')) {
-                    $this->_row($row);
+            if (!empty($results)) {
+                foreach ($results as $index => $row) {
+                    if (method_exists($this, '_row')) {
+                        $this->_row($row);
+                    }
+                    
+                    $results[$index] = $row;
                 }
-                
-                $results[$index] = $row;
             }
             
             return $results;
