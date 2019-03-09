@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 08/03/2018 Vagner Cardoso
  */
 
 namespace Core {
@@ -46,7 +46,7 @@ namespace Core {
                     'responseChunkSize' => 4096,
                     'outputBuffering' => 'append',
                     'determineRouteBeforeAppMiddleware' => true,
-                    'displayErrorDetails' => (env('APP_ENV', 'development') === 'development'),
+                    'displayErrorDetails' => (env('APP_ENV', 'development') == 'development'),
                     'addContentLengthHeader' => true,
                     'routerCacheFile' => false,
                 ],
@@ -65,6 +65,117 @@ namespace Core {
             }
             
             return self::$instance;
+        }
+        
+        /**
+         * Inicia as configurações padrões da aplicação
+         */
+        public function initConfigs()
+        {
+            /**
+             * PHP Basic Config
+             *
+             * Configurações básicas da aplicação
+             */
+            
+            $charset = env('APP_CHARSET', 'UTF-8');
+            $locale = env('APP_LOCALE', 'pt_BR');
+            
+            ini_set('default_charset', $charset);
+            mb_internal_encoding($charset);
+            date_default_timezone_set(env('APP_TIMEZONE', 'America/Sao_Paulo'));
+            setlocale(LC_ALL, $locale, "{$locale}.{$charset}");
+            
+            /**
+             * Errors
+             *
+             * Controle de erro do sistema
+             */
+            
+            ini_set('log_errors', (env('INI_LOG_ERRORS', true) == 'true'));
+            ini_set('error_log', sprintf(env('INI_ERROR_LOG', APP_FOLDER.'/storage/logs/php-%s.log'), date('dmY')));
+            ini_set('display_errors', env('INI_DISPLAY_ERRORS', 'On'));
+            ini_set('display_startup_errors', env('INI_DISPLAY_STARTUP_ERRORS', 'On'));
+            
+            if (env('APP_ENV', 'development') == 'development') {
+                error_reporting(E_ALL ^ E_DEPRECATED);
+            } else {
+                error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
+            }
+            
+            if (env('APP_SET_ERROR_HANDLER', true) == 'true') {
+                set_error_handler(function ($code, $message, $file, $line) {
+                    if (!(error_reporting() & $code)) {
+                        return;
+                    }
+                    
+                    throw new \ErrorException(
+                        $message, $code, 1, $file, $line
+                    );
+                });
+            }
+        }
+        
+        /**
+         * Inicia os serviços da aplicação
+         *
+         * @param array $providers
+         */
+        public function initProviders($providers = [])
+        {
+            // Providers padrões ou passados por parametro
+            $providers = $providers ?: config('app.providers', []);
+            
+            // Percorre os providers
+            foreach ($providers as $provider) {
+                if (class_exists($provider)) {
+                    $provider = new $provider($this->getContainer());
+                    
+                    // Verifica método `register`
+                    if (method_exists($provider, 'register')) {
+                        $provider->register();
+                    }
+                    
+                    // Verifica método `boot`
+                    if (method_exists($provider, 'boot')) {
+                        $provider->boot();
+                    }
+                }
+            }
+        }
+        
+        /**
+         * Inicia as middleware da aplicação
+         *
+         * @param array $middlewares
+         */
+        public function initMiddlewares($middlewares = [])
+        {
+            // Middlewares padrões ou passadas por parametro
+            $middlewares = $middlewares ?: config('app.middlewares.automatic', []);
+            
+            // Percorre as middlewares
+            foreach ($middlewares as $name => $middleware) {
+                if (class_exists($middleware)) {
+                    $this->add($middleware);
+                }
+            }
+        }
+        
+        /**
+         * Inicia as rotas padrão da aplicação
+         */
+        public function initRoutes()
+        {
+            $include = function ($file, $app) {
+                include_once "{$file}";
+            };
+            
+            foreach (glob_recursive(APP_FOLDER."/routes/**") as $file) {
+                if (is_file($file) && !is_dir($file)) {
+                    $include($file, $this);
+                }
+            }
         }
         
         /**
@@ -177,44 +288,27 @@ namespace Core {
         }
         
         /**
-         * Inicia as configurações padrões da aplicação
+         * @param array $resources
          */
-        public function initConfigs()
+        public function resources(array $resources)
         {
-            /**
-             * PHP Basic Config
-             *
-             * Configurações básicas da aplicação
-             */
-            
-            ini_set('default_charset', 'UTF-8');
-            mb_internal_encoding('UTF-8');
-            date_default_timezone_set(env('APP_TIMEZONE', 'America/Sao_Paulo'));
-            setlocale(LC_ALL, env('APP_LOCALE'), env('APP_LOCALE').'utf-8');
-            
-            /**
-             * Errors
-             *
-             * Controle de erro do sistema
-             */
-            
-            ini_set('display_errors', 'On');
-            ini_set('display_startup_errors', 'On');
-            
-            if (env('APP_ENV', 'development') === 'development') {
-                error_reporting(E_ALL ^ E_DEPRECATED);
-            } else {
-                error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
-            }
-            
-            if (env('APP_SET_ERROR_HANDLER', true) == 'true') {
-                set_error_handler(function ($code, $message, $file, $line) {
-                    if (!(error_reporting() & $code)) {
-                        return;
+            if (!empty($resources)) {
+                foreach ($resources as $pattern => $item) {
+                    // Variávies
+                    $name = null;
+                    $controller = $item;
+                    $middlewares = null;
+                    
+                    // Caso seja um array, trate.
+                    if (is_array($item)) {
+                        $name = (!empty($item[1]) ? $item[1] : null);
+                        $controller = (!empty($item[0]) ? $item[0] : null);
+                        $middlewares = (!empty($item[2]) ? $item[2] : null);
                     }
                     
-                    throw new \ErrorException($message, $code, 1, $file, $line);
-                });
+                    // Cria as rotas
+                    $this->resource($pattern, $controller, $name, $middlewares);
+                }
             }
         }
         
@@ -232,75 +326,15 @@ namespace Core {
             
             if ($container->has($name)) {
                 if (is_callable($container->get($name))) {
-                    return call_user_func_array($container->get($name), $params);
+                    return call_user_func_array(
+                        $container->get($name), $params
+                    );
                 }
                 
                 return $container->get($name);
             }
             
             return false;
-        }
-        
-        /**
-         * Inicia as rotas padrão da aplicação
-         */
-        public function initRoutes()
-        {
-            $includeOnce = function ($file, $app) {
-                include_once "{$file}";
-            };
-            
-            foreach (glob_recursive(APP_FOLDER."/routes/**") as $file) {
-                if (is_file($file) && !is_dir($file)) {
-                    $includeOnce($file, $this);
-                }
-            }
-        }
-        
-        /**
-         * Inicia os serviços da aplicação
-         *
-         * @param array $providers
-         */
-        public function initProviders($providers = [])
-        {
-            // Providers padrões ou passados por parametro
-            $providers = $providers ?: config('app.providers', []);
-            
-            // Percorre os providers
-            foreach ($providers as $provider) {
-                if (class_exists($provider)) {
-                    $provider = new $provider($this->getContainer());
-                    
-                    // Verifica método `register`
-                    if (method_exists($provider, 'register')) {
-                        $provider->register();
-                    }
-                    
-                    // Verifica método `boot`
-                    if (method_exists($provider, 'boot')) {
-                        $provider->boot();
-                    }
-                }
-            }
-        }
-        
-        /**
-         * Inicia as middleware da aplicação
-         *
-         * @param array $middlewares
-         */
-        public function initMiddlewares($middlewares = [])
-        {
-            // Middlewares padrões ou passadas por parametro
-            $middlewares = $middlewares ?: config('app.middlewares.automatic', []);
-            
-            // Percorre as middlewares
-            foreach ($middlewares as $name => $middleware) {
-                if (class_exists($middleware)) {
-                    $this->add($middleware);
-                }
-            }
         }
     }
 }
