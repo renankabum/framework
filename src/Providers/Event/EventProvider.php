@@ -51,7 +51,9 @@ namespace Core\Providers\Event {
                 $arguments = func_get_args();
                 array_shift($arguments);
                 
-                $this->event->emit((string) $event, ...$arguments);
+                return $this->event->emit(
+                    (string) $event, ...$arguments
+                );
             });
             
             /**
@@ -62,7 +64,9 @@ namespace Core\Providers\Event {
                     return false;
                 }
                 
-                return $this->event->events($event);
+                return $this->event->events(
+                    $event
+                );
             });
         }
     }
