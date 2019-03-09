@@ -34,6 +34,7 @@ namespace Core\Contracts {
      * @property \Core\Providers\Hash\Bcrypt hash
      * @property \Core\Providers\Encryption\Encryption encryption
      * @property \Core\Providers\Jwt\Jwt jwt
+     * @property \Core\Providers\Logger\Logger logger
      * @property \Core\Providers\Event\Event event
      *
      * @property \Core\Providers\Database\Database db
@@ -132,7 +133,9 @@ namespace Core\Contracts {
          */
         public function logger($message, array $context = [], $file = null, $type = 'info')
         {
-            return logger($message, $context, $type, $file);
+            return logger(
+                $message, $context, $type, $file
+            );
         }
         
         /**

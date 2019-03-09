@@ -31,6 +31,7 @@ namespace Core\Contracts {
      * @property \Core\Providers\Hash\Bcrypt hash
      * @property \Core\Providers\Encryption\Encryption encryption
      * @property \Core\Providers\Jwt\Jwt jwt
+     * @property \Core\Providers\Logger\Logger logger
      * @property \Core\Providers\Event\Event event
      *
      * @property \Core\Providers\Database\Database db

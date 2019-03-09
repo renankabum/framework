@@ -212,14 +212,13 @@ if (!function_exists('logger')) {
      */
     function logger($message, array $context = array(), $type = 'info', $file = null)
     {
-        if (!is_object(App::getInstance()->resolve('logger'))) {
-            return false;
+        if (!empty($file)) {
+            return App::getInstance()->resolve('logger')->filename($file)
+                ->{$type}($message, $context);
         }
         
-        $type = strtolower($type);
-        $type = strtoupper(substr($type, 0, 1)).substr($type, 1);
-        
-        return App::getInstance()->resolve('logger', [$file])->{"add{$type}"}($message, $context);
+        return App::getInstance()->resolve('logger')
+            ->{$type}($message, $context);
     }
 }
 
