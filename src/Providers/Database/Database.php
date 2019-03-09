@@ -200,11 +200,8 @@ namespace Core\Providers\Database {
             $columns = implode(', ', array_keys($columns));
             
             // Dispara evento tbName:creating
-            // Verifica eventos
-            if (config('database.events', false) == 'true') {
-                if ($event = App::getInstance()->resolve('event')) {
-                    $event->emit("{$table}:creating", $data);
-                }
+            if ($this->event()) {
+                $data = ($this->event("{$table}:creating", $data) ?: $data);
             }
             
             // Previne os binds caso exista
@@ -230,12 +227,9 @@ namespace Core\Providers\Database {
             $statement = "INSERT INTO {$table} ({$columns}) VALUES {$values}";
             $statement = $this->query($statement);
             
-            // Verifica eventos
-            if (config('database.events', false) == 'true') {
-                // Dispara evento tbName:created
-                if ($event = App::getInstance()->resolve('event')) {
-                    $event->emit("{$table}:created", $this->lastInsertId());
-                }
+            // Dispara evento tbName:created
+            if ($this->event()) {
+                $this->event("{$table}:created", $this->lastInsertId());
             }
             
             return $statement;
@@ -258,12 +252,9 @@ namespace Core\Providers\Database {
             $condition = (string) $condition;
             $set = [];
             
-            // Verifica eventos
-            if (config('database.events', false) == 'true') {
-                // Dispara evento tbName:updating
-                if ($event = App::getInstance()->resolve('event')) {
-                    $event->emit("{$table}:updating", $data);
-                }
+            // Dispara evento tbName:updating
+            if ($this->event()) {
+                $data = ($this->event("{$table}:updating", $data) ?: $data);
             }
             
             // Trata os dados passado para atualzar
@@ -286,12 +277,11 @@ namespace Core\Providers\Database {
             $statement = "UPDATE {$table} SET {$set} {$condition}";
             $statement = $this->query($statement, $bindings);
             
-            // Verifica eventos
-            if (config('database.events', false) == 'true') {
-                // Dispara evento tbName:updated
-                if ($event = App::getInstance()->resolve('event')) {
-                    $event->emit("{$table}:updated", $this->read($table, $condition, $bindings)->fetch());
-                }
+            // Dispara evento tbName:updated
+            if ($this->event()) {
+                $this->event(
+                    "{$table}:updated", $this->read($table, $condition, $bindings)->fetch()
+                );
             }
             
             return $statement;
@@ -311,27 +301,22 @@ namespace Core\Providers\Database {
             $table = (string) $table;
             $condition = (string) $condition;
             
-            // Verifica eventos
-            if (config('database.events', false) == 'true') {
-                // Recupera o registro a ser deletado
-                $row = $this->read($table, $condition, $bindings)->fetch();
-                
-                // Dispara evento tbName:deleting
-                if ($event = App::getInstance()->resolve('event')) {
-                    $event->emit("{$table}:deleting", $row);
-                }
+            // Dispara evento tbName:deleting
+            if ($this->event()) {
+                $this->event(
+                    "{$table}:deleting", $row = $this->read($table, $condition, $bindings)->fetch()
+                );
             }
             
             // Executa a query
             $statement = "DELETE FROM {$table} {$condition}";
             $statement = $this->query($statement, $bindings);
             
-            // Verifica eventos
-            if (config('database.events', false) == 'true') {
-                // Dispara evento tbName:deleted
-                if ($event = App::getInstance()->resolve('event')) {
-                    $event->emit("{$table}:deleted", (!empty($row) ? $row : []));
-                }
+            // Dispara evento tbName:deleted
+            if ($this->event()) {
+                $this->event(
+                    "{$table}:deleted", (!empty($row) ? $row : [])
+                );
             }
             
             return $statement;
@@ -350,9 +335,34 @@ namespace Core\Providers\Database {
         }
         
         /**
+         * @param string $name
+         * @param mixed ... (Opcional) Argumento(s)
+         *
+         * @return mixed
+         */
+        private function event($name = null)
+        {
+            if (config('database.events', false) == 'true' && $event = App::getInstance()->resolve('event')) {
+                if (is_null($name)) {
+                    return true;
+                }
+                
+                // Retorna o evento emitido
+                $arguments = func_get_args();
+                array_shift($arguments);
+                
+                return $event->emit(
+                    (string) $name, ...$arguments
+                );
+            }
+            
+            return false;
+        }
+        
+        /**
          * @param string|array $bindings
          */
-        protected function setBindings($bindings)
+        private function setBindings($bindings)
         {
             if (!empty($bindings)) {
                 // Se for string da o parse e transforma em array
@@ -374,7 +384,7 @@ namespace Core\Providers\Database {
         /**
          * Executa os bindings e trata os valores
          */
-        protected function execBindings()
+        private function execBindings()
         {
             if (!$this->statement instanceof Statement) {
                 throw new \RuntimeException(
