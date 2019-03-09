@@ -1,8 +1,10 @@
 <?php
 
 use Core\App;
+use Core\Helpers\Arr;
 use Core\Helpers\Debug;
 use Core\Helpers\Str;
+use Slim\Http\StatusCode;
 
 if (!function_exists('dd')) {
     /**
@@ -33,7 +35,9 @@ if (!function_exists('onlyNumber')) {
     function onlyNumber($value)
     {
         if (!empty($value)) {
-            return preg_replace('/[^0-9]/', '', $value);
+            return preg_replace(
+                '/[^0-9]/', '', $value
+            );
         }
     }
 }
@@ -90,16 +94,18 @@ if (!function_exists('asset')) {
      */
     function asset($file, $baseUrl = false, $version = false)
     {
-        if (!Str::startsWith($file, '/')) {
-            $file = "/{$file}";
-        }
+        // Variávéis
+        $file = ((!empty($file[0]) && $file[0] !== '/') ? "/{$file}" : $file);
+        $path = PUBLIC_FOLDER."{$file}";
+        $baseUrl = ($baseUrl ? BASE_URL : '');
+        $version = ($version ? '?v='.substr(md5_file($path), 0, 15) : '');
+        $basePath = rtrim(
+            str_ireplace(
+                'index.php', '', App::getInstance()->resolve('request')->getUri()->getBasePath()
+            ), '/'
+        );
         
-        $basePath = rtrim(str_ireplace('index.php', '', App::getInstance()->resolve('request')->getUri()->getBasePath()), '/');
-        
-        if (file_exists(PUBLIC_FOLDER."{$file}")) {
-            $baseUrl = ($baseUrl === true ? BASE_URL : '');
-            $version = ($version ? '?v='.substr(md5_file(PUBLIC_FOLDER."{$file}"), 0, 15) : '');
-            
+        if (file_exists($path)) {
             return "{$baseUrl}{$basePath}{$file}{$version}";
         }
         
@@ -117,6 +123,7 @@ if (!function_exists('asset_source')) {
      */
     function asset_source($files)
     {
+        // Variávies
         $contents = [];
         
         if (!is_array($files)) {
@@ -124,12 +131,14 @@ if (!function_exists('asset_source')) {
         }
         
         foreach ($files as $file) {
-            if (!Str::startsWith($file, '/')) {
-                $file = "/{$file}";
-            }
+            // Variávies
+            $file = ((!empty($file[0]) && $file[0] !== '/') ? "/{$file}" : $file);
+            $filePath = PUBLIC_FOLDER."{$file}";
             
-            if (file_exists(PUBLIC_FOLDER."{$file}")) {
-                $contents[] = file_get_contents(PUBLIC_FOLDER."{$file}");
+            if (file_exists($filePath)) {
+                $contents[] = file_get_contents(
+                    $filePath
+                );
             }
         }
         
@@ -179,23 +188,9 @@ if (!function_exists('config')) {
             }
         }
         
-        if (is_null($name)) {
-            return $config;
-        }
-        
-        if (array_key_exists($name, $config)) {
-            return $config[$name];
-        }
-        
-        foreach (explode('.', $name) as $key) {
-            if (is_array($config) && array_key_exists($key, $config)) {
-                $config = $config[$key];
-            } else {
-                return $default;
-            }
-        }
-        
-        return $config;
+        return Arr::get(
+            $config, $name, $default
+        );
     }
 }
 
@@ -232,7 +227,7 @@ if (!function_exists('view')) {
      *
      * @return mixed
      */
-    function view($template, array $array = [], $code = null)
+    function view($template, array $array = [], $code = StatusCode::HTTP_OK)
     {
         $response = App::getInstance()->resolve('response');
         
@@ -240,7 +235,11 @@ if (!function_exists('view')) {
             $response = $response->withStatus($code);
         }
         
-        return App::getInstance()->resolve('view')->render($response, $template, $array);
+        return App::getInstance()
+            ->resolve('view')
+            ->render(
+                $response, $template, $array
+            );
     }
 }
 
@@ -249,14 +248,16 @@ if (!function_exists('json')) {
      * Retorna a o resultado em JSON
      *
      * @param mixed $data
-     * @param int $options
      * @param int $status
+     * @param int $options
      *
      * @return \Slim\Http\Response
      */
-    function json($data, $options = 0, $status = 200)
+    function json($data, $status = StatusCode::HTTP_OK, $options = 0)
     {
-        return App::getInstance()->resolve('response')->withJson($data, $status, $options);
+        return App::getInstance()
+            ->resolve('response')
+            ->withJson($data, $status, $options);
     }
 }
 
@@ -273,11 +274,23 @@ if (!function_exists('path_for')) {
      */
     function path_for($name, array $data = [], array $queryParams = [], $hash = null)
     {
+        // Variavéis
+        $name = strtolower($name);
+        $baseUrl = '';
+        
+        // Verifica se irá ser toda url
+        if ($name[0] === ':') {
+            $name = substr($name, 1);
+            $baseUrl = BASE_URL;
+        }
+        
+        // Hash
         if (!empty($hash)) {
             $hash = "#{$hash}";
         }
         
-        return App::getInstance()->resolve('router')->pathFor(strtolower($name), $data, $queryParams).$hash;
+        return $baseUrl.App::getInstance()->resolve('router')
+                ->pathFor($name, $data, $queryParams).$hash;
     }
 }
 
@@ -309,17 +322,20 @@ if (!function_exists('redirect')) {
      */
     function redirect($name, array $data = [], array $queryParams = [], $hash = null)
     {
-        $uri = path_for($name, $data, $queryParams, $hash);
+        $uri = path_for(
+            $name, $data, $queryParams, $hash
+        );
         
         // Return location ajax
         if (App::getInstance()->resolve('request')->isXhr()) {
             return json([
                 'location' => $uri,
-            ]);
+            ], StatusCode::HTTP_FOUND);
         }
         
         // Return redirect
-        return App::getInstance()->resolve('response')->withRedirect($uri);
+        return App::getInstance()->resolve('response')
+            ->withRedirect($uri, StatusCode::HTTP_FOUND);
     }
 }
 
@@ -517,24 +533,20 @@ if (!function_exists('is_route')) {
      * Verifica se está em determinada rota
      *
      * @param string $route
-     * @param string $active
      *
      * @return bool|string
      */
-    function is_route($route, $active = null)
+    function is_route($route)
     {
-        $current = App::getInstance()->resolve('request')->getUri()->getPath();
+        $current = App::getInstance()->resolve('request')
+            ->getUri()->getPath();
         
         if (substr($current, 0, 1) !== '/') {
             $current = "/{$current}";
         }
         
-        if (path_for($route) === $current) {
-            if (!empty($active)) {
-                return 'active';
-            }
-            
-            return true;
+        if (str_replace(BASE_URL, '', path_for($route)) === $current) {
+            return 'active';
         }
         
         return false;
@@ -551,9 +563,14 @@ if (!function_exists('has_route')) {
      */
     function has_route($routes)
     {
-        $current = App::getInstance()->resolve('request')->getUri()->getPath();
+        $current = App::getInstance()->resolve('request')
+            ->getUri()->getPath();
         
-        return Str::contains($current, $routes);
+        if (Str::contains($current, $routes)) {
+            return 'active';
+        }
+        
+        return false;
     }
 }
 
