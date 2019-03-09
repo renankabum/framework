@@ -25,7 +25,7 @@ namespace Core\Helpers {
          *
          * @param array $array
          *
-         * @return \stdClass
+         * @return bool|\stdClass
          */
         public static function fromArray(array $array)
         {
@@ -108,7 +108,7 @@ namespace Core\Helpers {
             $array = [];
             
             if (!is_object($object)) {
-                return $array;
+                return (array) $object;
             }
             
             foreach ($object as $key => $value) {
