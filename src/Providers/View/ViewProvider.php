@@ -31,7 +31,9 @@ namespace Core\Providers\View {
         public function register()
         {
             $this->container['view'] = function () {
-                return new Twig(config('view.templates'), config('view.options'));
+                return new Twig(
+                    config('view.templates'), config('view.options')
+                );
             };
         }
         
@@ -64,6 +66,9 @@ namespace Core\Providers\View {
             }
         }
         
+        /**
+         * Funções e filtros padrão
+         */
         protected function defaults()
         {
             // Verifica se existe o container

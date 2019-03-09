@@ -22,7 +22,7 @@ namespace Core\Helpers {
     {
         /**
          * @param string $string
-         * @param int    $limit
+         * @param int $limit
          * @param string $end
          *
          * @return string
@@ -33,7 +33,11 @@ namespace Core\Helpers {
                 return $string;
             }
             
-            return self::substr($string, 0, strrpos(self::substr($string, 0, $limit), ' ')).$end;
+            return self::substr(
+                    $string, 0, strrpos(
+                        self::substr($string, 0, $limit), ' '
+                    )
+                ).$end;
         }
         
         /**
@@ -73,7 +77,7 @@ namespace Core\Helpers {
         public static function randomBytes($lenght = 32)
         {
             $lenght = (intval($lenght) <= 8 ? 32 : $lenght);
-        
+            
             if (function_exists('random_bytes')) {
                 $hashed = bin2hex(random_bytes($lenght));
             } else if (function_exists('mcrypt_create_iv')) {
@@ -81,7 +85,7 @@ namespace Core\Helpers {
             } else {
                 $hashed = bin2hex(openssl_random_pseudo_bytes($lenght));
             }
-        
+            
             return mb_substr(Base64::encode($hashed), 0, $lenght);
         }
     }
