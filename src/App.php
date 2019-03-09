@@ -34,12 +34,10 @@ namespace Core {
          */
         public function __construct()
         {
-            /**
-             * Slim
-             *
-             * Configurações padrões
-             */
+            // Dotenv
+            $this->initDotenv();
             
+            // Configuraçoes do slim
             parent::__construct([
                 'settings' => [
                     'httpVersion' => '1.1',
@@ -51,6 +49,9 @@ namespace Core {
                     'routerCacheFile' => false,
                 ],
             ]);
+    
+            // Configuração da aplicação
+            $this->initConfigs();
         }
         
         /**
@@ -65,6 +66,29 @@ namespace Core {
             }
             
             return self::$instance;
+        }
+        
+        /**
+         * Inicia as configurações de environment
+         */
+        public function initDotenv()
+        {
+            $pathEnv = APP_FOLDER.'/.env';
+            
+            if (file_exists($pathEnv)) {
+                \Dotenv\Dotenv::create(APP_FOLDER, '.env', new \Dotenv\Environment\DotenvFactory([
+                    new \Dotenv\Environment\Adapter\EnvConstAdapter(),
+                    new \Dotenv\Environment\Adapter\PutenvAdapter(),
+                ]))->overload();
+            } else {
+                $pathExample = APP_FOLDER.'/.env-example';
+                
+                if (!file_exists($pathEnv) && (file_exists($pathExample) && !is_dir($pathExample))) {
+                    file_put_contents(
+                        $pathEnv, file_get_contents($pathExample), FILE_APPEND
+                    );
+                }
+            }
         }
         
         /**
@@ -92,7 +116,7 @@ namespace Core {
              * Controle de erro do sistema
              */
             
-            ini_set('log_errors', (env('INI_LOG_ERRORS', true) == 'true'));
+            ini_set('log_errors', (env('INI_LOG_ERRORS', 'true') == 'true'));
             ini_set('error_log', sprintf(env('INI_ERROR_LOG', APP_FOLDER.'/storage/logs/php-%s.log'), date('dmY')));
             ini_set('display_errors', env('INI_DISPLAY_ERRORS', 'On'));
             ini_set('display_startup_errors', env('INI_DISPLAY_STARTUP_ERRORS', 'On'));
@@ -103,15 +127,13 @@ namespace Core {
                 error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
             }
             
-            if (env('APP_SET_ERROR_HANDLER', true) == 'true') {
-                set_error_handler(function ($code, $message, $file, $line) {
-                    if (!(error_reporting() & $code)) {
-                        return;
+            if (env('APP_SET_ERROR_HANDLER', 'true') == 'true') {
+                set_error_handler(function ($level, $message, $file = '', $line = 0) {
+                    if (error_reporting() & $level) {
+                        throw new \ErrorException(
+                            $message, 0, $level, $file, $line
+                        );
                     }
-                    
-                    throw new \ErrorException(
-                        $message, $code, 1, $file, $line
-                    );
                 });
             }
         }
