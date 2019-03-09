@@ -68,10 +68,10 @@ namespace Core\Providers\Mailer {
         /**
          * Monta e envia o e-mail
          *
-         * @param string   $view
-         * @param array    $params
+         * @param string $view
+         * @param array $params
          * @param callable $callback
-         * @param bool     $SMTPKeepAlive
+         * @param bool $SMTPKeepAlive
          *
          * @return $this
          * @throws \Exception

@@ -67,7 +67,7 @@ namespace Core\Providers\Session {
         
         /**
          * @param string $key
-         * @param mixed  $value
+         * @param mixed $value
          *
          * @return void
          */
@@ -94,7 +94,7 @@ namespace Core\Providers\Session {
         
         /**
          * @param string $key
-         * @param mixed  $default
+         * @param mixed $default
          *
          * @return mixed
          */

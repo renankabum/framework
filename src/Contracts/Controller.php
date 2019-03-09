@@ -17,6 +17,7 @@ namespace Core\Contracts {
     use Slim\Exception\NotFoundException;
     use Slim\Http\Request;
     use Slim\Http\Response;
+    use Slim\Http\StatusCode;
     
     /**
      * Class Controller
@@ -34,13 +35,10 @@ namespace Core\Contracts {
      * @property \Core\Providers\Hash\Bcrypt hash
      * @property \Core\Providers\Encryption\Encryption encryption
      * @property \Core\Providers\Jwt\Jwt jwt
+     * @property \Core\Providers\Logger\Logger logger
      * @property \Core\Providers\Event\Event event
      *
-     * @property \Core\Database\Connect db
-     * @property \Core\Database\Statement\Create create
-     * @property \Core\Database\Statement\Read read
-     * @property \Core\Database\Statement\Update update
-     * @property \Core\Database\Statement\Delete delete
+     * @property \Core\Providers\Database\Database db
      *
      * @package Core\Contracts
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
@@ -106,9 +104,11 @@ namespace Core\Contracts {
          *
          * @return Response
          */
-        public function view($view, array $array = [], $code = null)
+        public function view($view, array $array = [], $code = StatusCode::HTTP_OK)
         {
-            return view($view, $array, $code);
+            return view(
+                $view, $array, $code
+            );
         }
         
         /**
@@ -121,7 +121,9 @@ namespace Core\Contracts {
          */
         public function config($name = null, $default = null)
         {
-            return config($name, $default);
+            return config(
+                $name, $default
+            );
         }
         
         /**
@@ -136,7 +138,9 @@ namespace Core\Contracts {
          */
         public function logger($message, array $context = [], $file = null, $type = 'info')
         {
-            return logger($message, $context, $type, $file);
+            return logger(
+                $message, $context, $type, $file
+            );
         }
         
         /**
@@ -152,7 +156,9 @@ namespace Core\Contracts {
          */
         public function redirect($name = null, array $data = [], array $queryParams = [], $hash = null)
         {
-            return redirect($name, $data, $queryParams, $hash);
+            return redirect(
+                $name, $data, $queryParams, $hash
+            );
         }
         
         /**
@@ -168,7 +174,9 @@ namespace Core\Contracts {
          */
         public function pathFor($name = null, array $data = [], array $queryParams = [], $hash = null)
         {
-            return path_for($name, $data, $queryParams, $hash);
+            return path_for(
+                $name, $data, $queryParams, $hash
+            );
         }
         
         /**
@@ -176,12 +184,15 @@ namespace Core\Contracts {
          *
          * @param mixed $data
          * @param int $status
+         * @param int $options
          *
          * @return Response
          */
-        public function json($data, $status = 200)
+        public function json($data, $status = StatusCode::HTTP_OK, $options = 0)
         {
-            return json($data, $status);
+            return json(
+                $data, $status, $options
+            );
         }
         
         /**
@@ -191,7 +202,9 @@ namespace Core\Contracts {
          */
         public function notFound()
         {
-            throw new NotFoundException($this->request, $this->response);
+            throw new NotFoundException(
+                $this->request, $this->response
+            );
         }
         
         /**

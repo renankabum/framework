@@ -57,9 +57,9 @@ namespace Core\Providers\Jwt {
         /**
          * Converts and signs a string in jwt.
          *
-         * @param array  $payload
+         * @param array $payload
          * @param string $algorithm
-         * @param array  $header
+         * @param array $header
          *
          * @return string
          */

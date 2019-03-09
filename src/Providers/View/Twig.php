@@ -42,12 +42,6 @@ namespace Core\Providers\View {
         {
             $this->loader = $this->createLoader(is_string($path) ? [$path] : $path);
             $this->environment = new \Twig_Environment($this->loader, $options);
-            
-            /**
-             * Add default extension debug
-             */
-            $this->addExtension(new \Twig_Extension_Debug());
-            $this->addExtension(new TwigExtension());
         }
         
         /**

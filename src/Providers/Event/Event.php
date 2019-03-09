@@ -65,7 +65,7 @@ namespace Core\Providers\Event {
          * @param string $event
          * @param mixed ... (Opcional) Argument(s)
          *
-         * @return void
+         * @return mixed
          */
         public function emit($event)
         {
@@ -86,7 +86,9 @@ namespace Core\Providers\Event {
                 foreach ($this->events[$event] as $priority) {
                     if (!empty($priority)) {
                         foreach ($priority as $callable) {
-                            call_user_func_array($callable, $arguments);
+                            return call_user_func_array(
+                                $callable, $arguments
+                            );
                         }
                     }
                 }

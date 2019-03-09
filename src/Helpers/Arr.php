@@ -22,7 +22,7 @@ namespace Core\Helpers {
     {
         /**
          * @param array $array
-         * @param int   $mode
+         * @param int $mode
          *
          * @return int
          */

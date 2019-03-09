@@ -27,9 +27,9 @@ namespace Core\Middlewares {
         /**
          * Registra middleware para guardar o parsedBody na view
          *
-         * @param \Slim\Http\Request  $request  PSR7 request
+         * @param \Slim\Http\Request $request PSR7 request
          * @param \Slim\Http\Response $response PSR7 response
-         * @param callable            $next     Next middleware
+         * @param callable $next Next middleware
          *
          * @return \Slim\Http\Response
          */
