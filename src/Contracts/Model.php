@@ -175,6 +175,8 @@ namespace Core\Contracts {
                     $this->where(sprintf(
                         "AND {$this->table}.{$this->primaryKey} IN (%s)", implode(',', $id)
                     ));
+                    
+                    return $this->fetchAll();
                 } else {
                     $this->where("AND {$this->table}.{$this->primaryKey} = :pkbyid", [
                         'pkbyid' => filter_var($id, FILTER_DEFAULT),
@@ -187,7 +189,7 @@ namespace Core\Contracts {
                 return false;
             }
             
-            return $this->limit(1)->fetch();
+            return $this->fetch();
         }
         
         /**
