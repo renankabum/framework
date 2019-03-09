@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 08/03/2018 Vagner Cardoso
  */
 
 namespace Core\Contracts {
@@ -529,12 +529,12 @@ namespace Core\Contracts {
             }
             
             // array
-            if (is_array($this->data) && !empty($this->data[$name])) {
+            if (!empty($this->data[$name])) {
                 return $this->data[$name];
             }
             
             // object
-            if (is_object($this->data) && isset($this->data->{$name})) {
+            if (isset($this->data->{$name})) {
                 return $this->data->{$name};
             }
             
