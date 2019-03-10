@@ -60,7 +60,7 @@ namespace Core\Providers\Session {
          * Adiciona uma nova mensagem
          *
          * @param string $name
-         * @param mixed  $value
+         * @param mixed $value
          */
         public function add($name, $value)
         {

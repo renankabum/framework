@@ -49,7 +49,7 @@ namespace Core {
                     'routerCacheFile' => false,
                 ],
             ]);
-    
+            
             // Configuração da aplicação
             $this->initConfigs();
         }

@@ -67,7 +67,7 @@ namespace Core\Providers\Encryption {
          * Encrypt the given value.
          *
          * @param  mixed $value
-         * @param  bool  $serialize
+         * @param  bool $serialize
          *
          * @return string
          */
@@ -102,7 +102,7 @@ namespace Core\Providers\Encryption {
          * Create a MAC for the given value.
          *
          * @param  string $iv
-         * @param  mixed  $value
+         * @param  mixed $value
          *
          * @return string
          */
@@ -128,7 +128,7 @@ namespace Core\Providers\Encryption {
          * Decrypt the given value.
          *
          * @param  mixed $payload
-         * @param  bool  $unserialize
+         * @param  bool $unserialize
          *
          * @return string|bool
          */
@@ -199,7 +199,7 @@ namespace Core\Providers\Encryption {
         /**
          * Calculate the hash of the given payload.
          *
-         * @param  array  $payload
+         * @param  array $payload
          * @param  string $bytes
          *
          * @return string

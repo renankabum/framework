@@ -728,7 +728,7 @@ namespace Core\Providers\Database {
                 $this->data[$name] = $value;
             }
         }
-        
+    
         /**
          * @param string $name
          *
@@ -740,12 +740,12 @@ namespace Core\Providers\Database {
             if (is_array($this->data) && !empty($this->data[$name])) {
                 return $this->data[$name];
             }
-            
+        
             // object
             if (is_object($this->data) && isset($this->data->{$name})) {
                 return $this->data->{$name};
             }
-            
+        
             return App::getInstance()
                 ->resolve($name);
         }

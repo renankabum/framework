@@ -57,8 +57,8 @@ namespace Core\Providers\View {
          * Renderiza a view
          *
          * @param Response $response
-         * @param string   $template
-         * @param array    $context
+         * @param string $template
+         * @param array $context
          *
          * @return Response
          * @throws \Exception
@@ -81,7 +81,7 @@ namespace Core\Providers\View {
          * Cria o render
          *
          * @param string $template
-         * @param array  $context
+         * @param array $context
          *
          * @return string
          * @throws \Exception

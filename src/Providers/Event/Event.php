@@ -23,7 +23,7 @@ namespace Core\Providers\Event {
         /**
          * @var Event
          */
-        protected static $instance = null;
+        private static $instance;
         
         /**
          * @var array
@@ -44,10 +44,10 @@ namespace Core\Providers\Event {
         
         /**
          * @param string $event
-         * @param \Closure $callable
+         * @param callable $callable
          * @param int $priority
          */
-        public function on($event, \Closure $callable, $priority = 10)
+        public function on($event, $callable, $priority = 10)
         {
             $event = (string) $event;
             $priority = (int) $priority;

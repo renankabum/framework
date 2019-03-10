@@ -46,12 +46,12 @@ namespace Core\Helpers {
         public static function decode($encoded)
         {
             $remainder = strlen($encoded) % 4;
-    
+            
             if ($remainder) {
                 $padlen = 4 - $remainder;
                 $encoded .= str_repeat('=', $padlen);
             }
-    
+            
             return base64_decode(
                 strtr($encoded, '-_', '+/')
             );
