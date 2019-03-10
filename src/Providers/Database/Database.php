@@ -1,7 +1,7 @@
 <?php
 
 /**
- * VCWeb Networks <https://www.vagnercardosoweb.com.br/>.
+ * VCWeb Networks <https://www.vagnercardosoweb.com.br/>
  *
  * @package   VCWeb Networks
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
@@ -43,17 +43,16 @@ namespace Core\Providers\Database {
          *
          * @throws \Exception
          */
-        public function __construct($driver = null)
+        public function __construct($driver)
         {
             try {
                 // Carrega configurações
-                $driver = (empty($driver) ? config('database.default') : $driver);
                 $connections = config('database.connections');
                 
                 // Verifica driver
-                if (!array_key_exists($driver, $connections)) {
+                if (empty($connections[$driver]) || !in_array($driver, \PDO::getAvailableDrivers())) {
                     throw new \InvalidArgumentException(
-                        "Driver `{$driver}` is not configured in the application.", E_ERROR
+                        "Driver `{$driver}` is not configured or installed in the application.", E_ERROR
                     );
                 }
                 
@@ -108,11 +107,28 @@ namespace Core\Providers\Database {
          */
         public static function getInstance($driver = null)
         {
-            if (empty(self::$instance)) {
-                self::$instance = new self($driver);
+            $driver = ($driver ?: config('database.default'));
+            
+            if (empty(self::$instance[$driver])) {
+                self::$instance[$driver] = new self($driver);
             }
             
-            return self::$instance;
+            return self::$instance[$driver];
+        }
+        
+        /**
+         * @param string $driver mysql|dblib|sqlsrv
+         *
+         * @return $this
+         * @throws \Exception
+         */
+        public function driver($driver)
+        {
+            if (!empty($driver)) {
+                return Database::getInstance($driver);
+            }
+            
+            return $this;
         }
         
         /**
@@ -192,15 +208,10 @@ namespace Core\Providers\Database {
         {
             // Variávies
             $table = (string) $table;
-            $data = (is_object($data) ? Obj::toArray($data) : $data);
+            $data = $this->toData($data);
             $values = [];
             $columns = (!empty($data[0]) ? $data[0] : $data);
             $columns = implode(', ', array_keys($columns));
-            
-            // Dispara evento tbName:creating
-            if ($this->event()) {
-                $data = ($this->event("{$table}:creating", $data) ?: $data);
-            }
             
             // Previne os binds caso exista
             $this->bindings = [];
@@ -208,6 +219,7 @@ namespace Core\Providers\Database {
             // Monta os valores conforme se é um array multimensional ou um array simples
             if (!empty($data[0])) {
                 foreach ($data as $i => $item) {
+                    $item = ($this->emitEvent("{$table}:creating", $item) ?: $item);
                     $values[] = ':'.implode("_{$i}, :", array_keys($item))."_{$i}";
                     
                     foreach ($item as $k => $v) {
@@ -217,6 +229,7 @@ namespace Core\Providers\Database {
                 
                 $values = '('.implode("), (", $values).')';
             } else {
+                $data = ($this->emitEvent("{$table}:creating", $data) ?: $data);
                 $this->setBindings($data);
                 $values = '(:'.implode(', :', array_keys($data)).')';
             }
@@ -225,10 +238,8 @@ namespace Core\Providers\Database {
             $statement = "INSERT INTO {$table} ({$columns}) VALUES {$values}";
             $statement = $this->query($statement);
             
-            // Dispara evento tbName:created
-            if ($this->event()) {
-                $this->event("{$table}:created", $this->lastInsertId());
-            }
+            // Evento tbName:created
+            $this->emitEvent("{$table}:created", $this->lastInsertId());
             
             return $statement;
         }
@@ -239,25 +250,37 @@ namespace Core\Providers\Database {
          * @param string $condition
          * @param string|array $bindings
          *
-         * @return Statement
+         * @return mixed
          * @throws \Exception
          */
         public function update($table, $data, $condition, $bindings = null)
         {
             // Variávies
             $table = (string) $table;
-            $data = (is_object($data) ? Obj::toArray($data) : $data);
+            $data = $this->toData($data);
             $condition = (string) $condition;
             $set = [];
             
-            // Dispara evento tbName:updating
-            if ($this->event()) {
-                $data = ($this->event("{$table}:updating", $data) ?: $data);
+            // Verifica registro
+            $updated = $this->read($table, $condition, $bindings)->fetch();
+            if (empty($this->toData($updated))) {
+                return false;
             }
+            
+            // Evento tbName:updating
+            $data = ($this->emitEvent("{$table}:updating", $data) ?: $data);
             
             // Trata os dados passado para atualzar
             foreach ($data as $key => $value) {
                 $bind = $key;
+                $value = filter_var($value, FILTER_DEFAULT);
+                
+                // Atualiza os dados do updated
+                if ($this->isChangeFetch()) {
+                    $updated->{$key} = $value;
+                } else {
+                    $updated[$key] = $value;
+                }
                 
                 // Verifica se já existe algum bind igual
                 if (!empty($this->bindings[$bind])) {
@@ -266,24 +289,19 @@ namespace Core\Providers\Database {
                 }
                 
                 $set[] = "{$key} = :{$bind}";
-                $this->bindings[$bind] = filter_var($value, FILTER_DEFAULT);
+                $this->bindings[$bind] = $value;
             }
             
             $set = implode(', ', $set);
             
             // Executa a query
             $statement = "UPDATE {$table} SET {$set} {$condition}";
-            $statement = $this->query($statement, $bindings);
+            $this->query($statement, $bindings);
             
-            // Dispara evento tbName:updated
-            if ($this->event()) {
-                $this->event(
-                    "{$table}:updated",
-                    $this->read($table, $condition, $bindings)->fetch()
-                );
-            }
+            // Evento tbName:updated
+            $this->emitEvent("{$table}:updated", $updated);
             
-            return $statement;
+            return $updated;
         }
         
         /**
@@ -291,7 +309,7 @@ namespace Core\Providers\Database {
          * @param string $condition
          * @param string|array $bindings
          *
-         * @return Statement
+         * @return mixed
          * @throws \Exception
          */
         public function delete($table, $condition, $bindings = null)
@@ -300,27 +318,23 @@ namespace Core\Providers\Database {
             $table = (string) $table;
             $condition = (string) $condition;
             
-            // Dispara evento tbName:deleting
-            if ($this->event()) {
-                $this->event(
-                    "{$table}:deleting",
-                    $row = $this->read($table, $condition, $bindings)->fetch()
-                );
+            // Verifica registro
+            $deleted = $this->read($table, $condition, $bindings)->fetch();
+            if (empty($this->toData($deleted))) {
+                return false;
             }
+            
+            // Evento tbName:deleting
+            $this->emitEvent("{$table}:deleting", $deleted);
             
             // Executa a query
             $statement = "DELETE FROM {$table} {$condition}";
-            $statement = $this->query($statement, $bindings);
+            $this->query($statement, $bindings);
             
-            // Dispara evento tbName:deleted
-            if ($this->event()) {
-                $this->event(
-                    "{$table}:deleted",
-                    (!empty($row) ? $row : [])
-                );
-            }
+            // Evento tbName:deleted
+            $this->emitEvent("{$table}:deleted", $deleted);
             
-            return $statement;
+            return $deleted;
         }
         
         /**
@@ -328,11 +342,41 @@ namespace Core\Providers\Database {
          */
         public function isChangeFetch()
         {
-            if (in_array($this->getAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE), [\PDO::FETCH_OBJ, \PDO::FETCH_CLASS])) {
+            $allowed = [\PDO::FETCH_OBJ, \PDO::FETCH_CLASS];
+            
+            if (in_array($this->getAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE), $allowed)) {
                 return true;
             }
             
             return false;
+        }
+        
+        /**
+         * @param mixed $data
+         * @param string $type
+         *
+         * @return array
+         */
+        public function toData($data, $type = 'array')
+        {
+            // Variávies
+            $type = (string) ($type ?: 'array');
+            
+            switch ($type) {
+                case 'array':
+                    if (is_object($data)) {
+                        $data = Obj::toArray($data);
+                    }
+                    break;
+                
+                case 'object':
+                    if (is_array($data)) {
+                        $data = Obj::fromArray($data);
+                    }
+                    break;
+            }
+            
+            return $data;
         }
         
         /**
@@ -341,9 +385,9 @@ namespace Core\Providers\Database {
          *
          * @return mixed
          */
-        private function event($name = null)
+        private function emitEvent($name = null)
         {
-            if (config('database.events', false) == 'true' && $event = App::getInstance()->resolve('event')) {
+            if ($event = App::getInstance()->resolve('event')) {
                 if (is_null($name)) {
                     return true;
                 }

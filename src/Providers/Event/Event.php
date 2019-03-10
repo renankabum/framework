@@ -53,7 +53,7 @@ namespace Core\Providers\Event {
             $priority = (int) $priority;
             
             if (!isset($this->events[$event])) {
-                $this->events[$event] = [[]];
+                $this->events[$event] = [];
             }
             
             if (is_callable($callable)) {
@@ -80,18 +80,21 @@ namespace Core\Providers\Event {
                     ksort($this->events[$event]);
                 }
                 
+                $executed = [];
                 $arguments = func_get_args();
                 array_shift($arguments);
                 
                 foreach ($this->events[$event] as $priority) {
                     if (!empty($priority)) {
                         foreach ($priority as $callable) {
-                            return call_user_func_array(
+                            $executed[] = call_user_func_array(
                                 $callable, $arguments
                             );
                         }
                     }
                 }
+                
+                return array_shift($executed);
             }
         }
         

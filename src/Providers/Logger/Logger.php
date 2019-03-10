@@ -77,16 +77,18 @@ namespace Core\Providers\Logger {
         {
             // Variávies
             if (empty($this->directory)) {
-                $this->directory = APP_FOLDER.'/storage/logs';
+                $this->directory = APP_FOLDER."/storage/logs";
             }
             
             // Cria o diretório
             if (!is_dir($this->directory)) {
-                mkdir($this->directory, 0755, true);
+                mkdir(
+                    $this->directory, 0755, true
+                );
             }
             
             return sprintf(
-                '%s/%s-%s.log',
+                "%s/%s-%s.log",
                 $this->directory,
                 $this->filename,
                 date('Ymd')
@@ -94,7 +96,7 @@ namespace Core\Providers\Logger {
         }
         
         /**
-         * {@inheritdoc}
+         * @inheritdoc
          */
         protected function initProcessor()
         {
@@ -108,7 +110,7 @@ namespace Core\Providers\Logger {
         }
         
         /**
-         * {@inheritdoc}
+         * @inheritdoc
          */
         protected function initHandler()
         {
@@ -126,7 +128,7 @@ namespace Core\Providers\Logger {
         }
         
         /**
-         * {@inheritdoc}
+         * @inheritdoc
          */
         public function __clone()
         {

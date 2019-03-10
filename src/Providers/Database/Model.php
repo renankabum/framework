@@ -43,6 +43,11 @@ namespace Core\Providers\Database {
         /**
          * @var string
          */
+        protected $driver;
+        
+        /**
+         * @var string
+         */
         protected $table;
         
         /**
@@ -159,15 +164,32 @@ namespace Core\Providers\Database {
         /**
          * @param int $id
          *
-         * @return array|$this
+         * @return bool|array|$this
          * @throws \Exception
          */
         public function fetchById($id)
         {
-            // Executa a query
-            return $this->where("AND {$this->table}.{$this->primaryKey()} = :pkbyid")
-                ->bindings(['pkbyid' => filter_var($id, FILTER_DEFAULT)])
-                ->limit(1)->fetch();
+            // Verifica id
+            if (!empty($id)) {
+                if (is_array($id)) {
+                    $this->where(sprintf(
+                        "AND {$this->table}.{$this->primaryKey} IN (%s)", implode(',', $id)
+                    ));
+                    
+                    return $this->fetchAll();
+                } else {
+                    $this->where("AND {$this->table}.{$this->primaryKey} = :pkbyid", [
+                        'pkbyid' => filter_var($id, FILTER_DEFAULT),
+                    ]);
+                }
+            }
+            
+            // Verifica where
+            if (empty($this->where)) {
+                return false;
+            }
+            
+            return $this->fetch();
         }
         
         /**
@@ -201,6 +223,22 @@ namespace Core\Providers\Database {
                 
                 return (int) $result['count'];
             }
+        }
+        
+        /**
+         * @param string $driver mysql|dblib|sqlsrv
+         *
+         * @return $this|string
+         */
+        public function driver($driver = null)
+        {
+            if (!empty($driver)) {
+                $this->driver = (string) $driver;
+                
+                return $this;
+            }
+            
+            return $this->driver;
         }
         
         /**
@@ -379,7 +417,13 @@ namespace Core\Providers\Database {
                     
                     foreach ($reflection->getProperties() as $property) {
                         $notReset = (!empty($this->notReset) ? $this->notReset : []);
-                        if (!in_array($property->getName(), array_merge(['table', 'primaryKey', 'reset', 'data'], $notReset))) {
+                        if (!in_array($property->getName(), array_merge([
+                            'driver',
+                            'table',
+                            'primaryKey',
+                            'reset',
+                            'data',
+                        ], $notReset))) {
                             $this->reset[$property->getName()] = true;
                         }
                     }
@@ -404,29 +448,29 @@ namespace Core\Providers\Database {
          */
         public function save()
         {
-            // Variávéis
-            $where = $this->where;
+            // Variáveis
+            $where = implode(' ', $this->where);
             $bindings = $this->bindings;
             $primaryKey = $this->{$this->primaryKey()};
-            $primaryWhere = "AND {$this->table}.{$this->primaryKey()} = :pkid ";
+            $this->reset();
             
-            // Verifica registro
-            if ($updated = $this->reset()->fetchById($primaryKey)) {
-                if (!empty($where) && is_array($where)) {
-                    $primaryWhere .= implode(' ', $where);
+            // Se existir o registro, atualiza
+            if ($this->fetchById($primaryKey)) {
+                if ($primaryKey) {
+                    $where = "{$this->table}.{$this->primaryKey()} = :pkid {$where}";
+                    $bindings['pkid'] = $primaryKey;
                 }
                 
-                // Atualiza
-                $this->db->update(
+                return $this->db->update(
                     $this->table, $this->data,
-                    "WHERE ".$this->normalizePropertyValue($primaryWhere),
-                    array_merge($bindings, ['pkid' => $primaryKey])
+                    "WHERE ".$this->normalizeProperty($where),
+                    $bindings
                 );
-            } else {
-                // Adiciona
-                $this->db->create($this->table, $this->data);
-                $primaryKey = $this->db->lastInsertId();
             }
+            
+            // Adiciona registro
+            $this->db->create($this->table, $this->data);
+            $primaryKey = $this->db->lastInsertId();
             
             if (!empty($primaryKey)) {
                 return $this->reset()
@@ -443,29 +487,35 @@ namespace Core\Providers\Database {
          */
         public function delete()
         {
-            // Variávéis
-            $where = $this->where;
-            $bindings = $this->bindings;
-            $primaryKey = $this->{$this->primaryKey()};
-            $primaryWhere = "AND {$this->table}.{$this->primaryKey()} = :pkid ";
-            
-            // Verifica registro
-            if ($deleted = $this->reset()->fetchById($primaryKey)) {
-                if (!empty($where) && is_array($where)) {
-                    $primaryWhere .= implode(' ', $where);
-                }
-                
-                // Atualiza
-                $this->db->delete(
-                    $this->table,
-                    "WHERE ".$this->normalizePropertyValue($primaryWhere),
-                    array_merge($bindings, ['pkid' => $primaryKey])
-                );
-                
-                return $deleted;
+            // Verifica primaryKey
+            if (!empty($this->{$this->primaryKey()})) {
+                $this->where[] = "AND {$this->table}.{$this->primaryKey()} = :pkid ";
+                $this->bindings['pkid'] = $this->{$this->primaryKey()};
             }
             
-            return false;
+            // Monta where
+            if (is_array($this->where)) {
+                $this->where = $this->normalizeProperty(
+                    implode(' ', $this->where)
+                );
+            }
+            
+            if (empty($this->where)) {
+                throw new \InvalidArgumentException(
+                    sprintf("[delete] `%s::where()` is empty.", get_called_class()),
+                    E_USER_ERROR
+                );
+            }
+            
+            // Remove
+            $deleted = $this->db->delete(
+                $this->table, "WHERE {$this->where}", $this->bindings
+            );
+            
+            // Limpa propriedades
+            $this->clearProperties();
+            
+            return $deleted;
         }
         
         /**
@@ -476,6 +526,9 @@ namespace Core\Providers\Database {
          */
         public function data(array $data, $validate = true)
         {
+            // Junta os dados
+            $data = array_merge($this->db->toData($this->data), $data);
+            
             // Validações e tratamento dos dados
             if (method_exists($this, '_data')) {
                 $this->_data($data, $validate);
@@ -488,6 +541,166 @@ namespace Core\Providers\Database {
             }
             
             return $this;
+        }
+        
+        /**
+         * @return \Core\Providers\Database\Statement
+         * @throws \Exception
+         */
+        protected function execute()
+        {
+            if (empty($this->table)) {
+                throw new \InvalidArgumentException(
+                    sprintf("[execute] `%s::table` is empty.", get_called_class()),
+                    E_USER_ERROR
+                );
+            }
+            
+            // Verifica se o método está criado e executa
+            if (method_exists($this, '_conditions')) {
+                $this->_conditions();
+            }
+            
+            // Select
+            $this->select = implode(', ', ($this->select ?: ["{$this->table}.*"]));
+            $sql = "SELECT {$this->select} FROM {$this->table} ";
+            
+            // Join
+            if (!empty($this->join) && is_array($this->join)) {
+                $this->join = implode(' ', $this->join);
+                $sql .= "{$this->join} ";
+            }
+            
+            // Where
+            if (!empty($this->where) && is_array($this->where)) {
+                $this->where = $this->normalizeProperty(implode(' ', $this->where));
+                $sql .= "WHERE {$this->where} ";
+            }
+            
+            // Group BY
+            if (!empty($this->group) && is_array($this->group)) {
+                $this->group = implode(', ', $this->group);
+                $sql .= "GROUP BY {$this->group} ";
+            }
+            
+            // Having
+            if (!empty($this->having) && is_array($this->having)) {
+                $this->having = $this->normalizeProperty(implode(' ', $this->having));
+                $sql .= "HAVING {$this->having} ";
+            }
+            
+            // Order By
+            if (!empty($this->order) && is_array($this->order)) {
+                $this->order = implode(', ', $this->order);
+                $sql .= "ORDER BY {$this->order} ";
+            }
+            
+            // Limit & Offset
+            if (!empty($this->limit) && is_int($this->limit)) {
+                $this->offset = $this->offset ?: '0';
+                
+                if (in_array(config('database.default'), ['dblib', 'sqlsrv'])) {
+                    $sql .= "OFFSET {$this->offset} ROWS FETCH NEXT {$this->limit} ROWS ONLY";
+                } else {
+                    $sql .= "LIMIT {$this->limit} OFFSET {$this->offset}";
+                }
+            }
+            
+            // Executa a query
+            $statement = $this->db->driver($this->driver)
+                ->query($sql, $this->bindings);
+            
+            // Limpa as propriedades da classe
+            $this->clearProperties();
+            
+            return $statement;
+        }
+        
+        /**
+         * @return string
+         */
+        protected function primaryKey()
+        {
+            if (empty($this->primaryKey)) {
+                throw new \InvalidArgumentException(
+                    sprintf('`%s::primaryKey` is empty.', get_called_class()), E_USER_ERROR
+                );
+            }
+            
+            return $this->primaryKey;
+        }
+        
+        /**
+         * Monta os array
+         *
+         * @param string|array|null $conditions
+         * @param string $property
+         */
+        protected function mountProperty($conditions, $property)
+        {
+            if (!is_array($this->{$property})) {
+                $this->{$property} = [];
+            }
+            
+            foreach ((array) $conditions as $condition) {
+                if (!empty($condition) && !array_search($condition, $this->{$property})) {
+                    $this->{$property}[] = trim((string) $condition);
+                }
+            }
+        }
+        
+        /**
+         * Remove caracteres no começo da string
+         *
+         * @param $string
+         *
+         * @return string
+         */
+        protected function normalizeProperty($string)
+        {
+            $chars = ['and', 'AND', 'or', 'OR'];
+            
+            foreach ($chars as $char) {
+                $len = mb_strlen($char);
+                
+                if (mb_substr($string, 0, $len) === (string) $char) {
+                    $string = trim(mb_substr($string, $len));
+                }
+            }
+            
+            return $string;
+        }
+        
+        /**
+         * Limpa as propriedade da classe para
+         * uma nova consulta
+         */
+        protected function clearProperties()
+        {
+            $this->select = [];
+            $this->join = [];
+            $this->where = [];
+            $this->group = [];
+            $this->having = [];
+            $this->order = [];
+            $this->bindings = [];
+            $this->limit = null;
+            $this->offset = null;
+            $this->reset = [];
+        }
+        
+        /**
+         * @param string $name
+         *
+         * @return bool
+         */
+        public function __isset($name)
+        {
+            if (is_object($this->data)) {
+                return isset($this->data->{$name});
+            }
+            
+            return isset($this->data[$name]);
         }
         
         /**
@@ -523,11 +736,6 @@ namespace Core\Providers\Database {
          */
         public function __get($name)
         {
-            // Providers da aplicação
-            if ($provider = App::getInstance()->resolve($name)) {
-                return $provider;
-            }
-            
             // array
             if (is_array($this->data) && !empty($this->data[$name])) {
                 return $this->data[$name];
@@ -538,168 +746,8 @@ namespace Core\Providers\Database {
                 return $this->data->{$name};
             }
             
-            return false;
-        }
-        
-        /**
-         * @param string $name
-         *
-         * @return bool
-         */
-        public function __isset($name)
-        {
-            if (is_object($this->data)) {
-                return isset($this->data->{$name});
-            }
-            
-            return isset($this->data[$name]);
-        }
-        
-        /**
-         * @return \Core\Providers\Database\Statement
-         * @throws \Exception
-         */
-        protected function execute()
-        {
-            if (empty($this->table)) {
-                throw new \InvalidArgumentException(
-                    'Propriedade `$this->table` não pode ser vázia.', E_USER_ERROR
-                );
-            }
-            
-            // Verifica se o método está criado e executa
-            if (method_exists($this, '_conditions')) {
-                $this->_conditions();
-            }
-            
-            // Select
-            $this->select = implode(', ', ($this->select ?: ["{$this->table}.*"]));
-            $sql = "SELECT {$this->select} FROM {$this->table} ";
-            
-            // Join
-            if (!empty($this->join) && is_array($this->join)) {
-                $this->join = implode(' ', $this->join);
-                $sql .= "{$this->join} ";
-            }
-            
-            // Where
-            if (!empty($this->where) && is_array($this->where)) {
-                $this->where = $this->normalizePropertyValue(implode(' ', $this->where));
-                $sql .= "WHERE {$this->where} ";
-            }
-            
-            // Group BY
-            if (!empty($this->group) && is_array($this->group)) {
-                $this->group = implode(', ', $this->group);
-                $sql .= "GROUP BY {$this->group} ";
-            }
-            
-            // Having
-            if (!empty($this->having) && is_array($this->having)) {
-                $this->having = $this->normalizePropertyValue(implode(' ', $this->having));
-                $sql .= "HAVING {$this->having} ";
-            }
-            
-            // Order By
-            if (!empty($this->order) && is_array($this->order)) {
-                $this->order = implode(', ', $this->order);
-                $sql .= "ORDER BY {$this->order} ";
-            }
-            
-            // Limit & Offset
-            if (!empty($this->limit) && is_int($this->limit)) {
-                $this->offset = $this->offset ?: '0';
-                
-                if (in_array(config('database.default'), ['dblib', 'sqlsrv'])) {
-                    $sql .= "OFFSET {$this->offset} ROWS FETCH NEXT {$this->limit} ROWS ONLY";
-                } else {
-                    $sql .= "LIMIT {$this->limit} OFFSET {$this->offset}";
-                }
-            }
-            
-            // Executa a query
-            $statement = $this->db->query($sql, $this->bindings);
-            
-            // Limpa as propriedades da classe
-            $this->clearProperties();
-            
-            return $statement;
-        }
-        
-        /**
-         * @return string
-         */
-        private function primaryKey()
-        {
-            if (empty($this->primaryKey)) {
-                throw new \InvalidArgumentException(
-                    'Propriedade `$this->primaryKey` não pode ser vázia.', E_USER_ERROR
-                );
-            }
-            
-            return $this->primaryKey;
-        }
-        
-        /**
-         * Limpa as propriedade da classe para
-         * uma nova consulta
-         */
-        protected function clearProperties()
-        {
-            $this->select = [];
-            $this->join = [];
-            $this->where = [];
-            $this->group = [];
-            $this->having = [];
-            $this->order = [];
-            $this->bindings = [];
-            $this->limit = null;
-            $this->offset = null;
-            $this->reset = [];
-        }
-        
-        /**
-         * Monta os array
-         *
-         * @param string|array|null $conditions
-         * @param string $property
-         */
-        protected function mountProperty($conditions, $property)
-        {
-            if (!is_array($this->{$property})) {
-                $this->{$property} = [];
-            }
-            
-            foreach ((array) $conditions as $condition) {
-                if (!empty($condition) &&
-                    !array_search($condition, $this->{$property}) &&
-                    !array_search("{$this->table}.{$condition}", $this->{$property})
-                ) {
-                    $this->{$property}[] = trim((string) $condition);
-                }
-            }
-        }
-        
-        /**
-         * Remove caracteres no começo da string
-         *
-         * @param $string
-         *
-         * @return string
-         */
-        protected function normalizePropertyValue($string)
-        {
-            $chars = ['and', 'AND', 'or', 'OR'];
-            
-            foreach ($chars as $char) {
-                $strlenChar = mb_strlen($char);
-                
-                if (mb_substr($string, 0, $strlenChar) === (string) $char) {
-                    $string = trim(mb_substr($string, $strlenChar));
-                }
-            }
-            
-            return $string;
+            return App::getInstance()
+                ->resolve($name);
         }
     }
 }
