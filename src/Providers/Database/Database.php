@@ -212,8 +212,6 @@ namespace Core\Providers\Database {
             $table = (string) $table;
             $data = $this->toData($data);
             $values = [];
-            $columns = (!empty($data[0]) ? $data[0] : $data);
-            $columns = implode(', ', array_keys($columns));
             
             // Previne os binds caso exista
             $this->bindings = [];
@@ -221,10 +219,10 @@ namespace Core\Providers\Database {
             // Monta os valores conforme se é um array multimensional ou um array simples
             if (!empty($data[0])) {
                 foreach ($data as $i => $item) {
-                    $item = ($this->emitEvent("{$table}:creating", $item) ?: $item);
-                    $values[] = ':'.implode("_{$i}, :", array_keys($item))."_{$i}";
+                    $data = ($this->emitEvent("{$table}:creating", $item) ?: $item);
+                    $values[] = ':'.implode("_{$i}, :", array_keys($data))."_{$i}";
                     
-                    foreach ($item as $k => $v) {
+                    foreach ($data as $k => $v) {
                         $this->setBindings(["{$k}_{$i}" => $v]);
                     }
                 }
@@ -232,11 +230,12 @@ namespace Core\Providers\Database {
                 $values = '('.implode("), (", $values).')';
             } else {
                 $data = ($this->emitEvent("{$table}:creating", $data) ?: $data);
-                $this->setBindings($data);
                 $values = '(:'.implode(', :', array_keys($data)).')';
+                $this->setBindings($data);
             }
             
             // Executa a query
+            $columns = implode(', ', array_keys($data));
             $statement = "INSERT INTO {$table} ({$columns}) VALUES {$values}";
             $statement = $this->query($statement);
             
