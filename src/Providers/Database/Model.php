@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 08/03/2018 Vagner Cardoso
+ * @copyright 14/03/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Database {
@@ -118,7 +118,7 @@ namespace Core\Providers\Database {
         {
             // Resultado
             $result = $this->execute()->fetch(
-                $this->db->isChangeFetch() ? get_called_class() : null
+                $this->db->isFetchObject() ? get_called_class() : null
             );
             
             if (!empty($result)) {
@@ -140,7 +140,7 @@ namespace Core\Providers\Database {
         public function fetchAll($fetchStyle = null, $fetchArgument = null)
         {
             // Verifica o tipo padrão do fetch
-            if ($this->db->isChangeFetch()) {
+            if ($this->db->isFetchObject()) {
                 $fetchStyle = \PDO::FETCH_CLASS;
                 $fetchArgument = get_called_class();
             }
@@ -214,7 +214,7 @@ namespace Core\Providers\Database {
                 ->order('count DESC')->limit(1)
                 ->execute();
             
-            if ($this->db->isChangeFetch()) {
+            if ($this->db->isFetchObject()) {
                 $result = $statement->fetchObject(get_called_class());
                 
                 return (int) $result->count;
@@ -397,7 +397,9 @@ namespace Core\Providers\Database {
                 
                 // Filtra os valores dos bindings
                 foreach ($bindings as $key => $value) {
-                    $this->bindings[$key] = filter_var($value, FILTER_DEFAULT);
+                    $this->bindings[$key] = filter_var(
+                        $value, FILTER_DEFAULT
+                    );
                 }
             }
             
@@ -451,13 +453,13 @@ namespace Core\Providers\Database {
             // Variáveis
             $where = implode(' ', $this->where);
             $bindings = $this->bindings;
-            $primaryKey = $this->{$this->primaryKey()};
+            $primaryKey = $this->getPrimaryValue();
             $this->reset();
             
             // Se existir o registro, atualiza
             if ($this->fetchById($primaryKey)) {
                 if ($primaryKey) {
-                    $where = "{$this->table}.{$this->primaryKey()} = :pkid {$where}";
+                    $where = "{$this->table}.{$this->getPrimaryKey()} = :pkid {$where}";
                     $bindings['pkid'] = $primaryKey;
                 }
                 
@@ -472,6 +474,11 @@ namespace Core\Providers\Database {
             $this->db->create($this->table, $this->data);
             $primaryKey = $this->db->lastInsertId();
             
+            // Limpa propriedades
+            $this->clearProperties();
+            
+            // Caso tenha a chave única criada
+            // retorne os dados referente a ela
             if (!empty($primaryKey)) {
                 return $this->reset()
                     ->where($where, $bindings)
@@ -488,9 +495,9 @@ namespace Core\Providers\Database {
         public function delete()
         {
             // Verifica primaryKey
-            if (!empty($this->{$this->primaryKey()})) {
-                $this->where[] = "AND {$this->table}.{$this->primaryKey()} = :pkid ";
-                $this->bindings['pkid'] = $this->{$this->primaryKey()};
+            if (!empty($this->getPrimaryValue())) {
+                $this->where[] = "AND {$this->table}.{$this->getPrimaryKey()} = :pkid ";
+                $this->bindings['pkid'] = $this->getPrimaryValue();
             }
             
             // Monta where
@@ -527,15 +534,18 @@ namespace Core\Providers\Database {
         public function data(array $data, $validate = true)
         {
             // Junta os dados
-            $data = array_merge($this->db->toData($this->data), $data);
+            $data = array_merge(
+                $this->db->toData($this->data), $data
+            );
             
-            // Validações e tratamento dos dados
+            // Verifica se existe o método para
+            // tratar os dados antes de usa-los
             if (method_exists($this, '_data')) {
                 $this->_data($data, $validate);
             }
             
-            // Monta a propriedade data com
-            // os dados já tratados
+            // Remonta a propriedade já com os
+            // dados devidamente tratados
             foreach ($data as $key => $value) {
                 $this->{$key} = $value;
             }
@@ -619,7 +629,7 @@ namespace Core\Providers\Database {
         /**
          * @return string
          */
-        protected function primaryKey()
+        protected function getPrimaryKey()
         {
             if (empty($this->primaryKey)) {
                 throw new \InvalidArgumentException(
@@ -628,6 +638,14 @@ namespace Core\Providers\Database {
             }
             
             return $this->primaryKey;
+        }
+        
+        /**
+         * @return string
+         */
+        protected function getPrimaryValue()
+        {
+            return $this->{$this->getPrimaryKey()};
         }
         
         /**
@@ -691,20 +709,6 @@ namespace Core\Providers\Database {
         
         /**
          * @param string $name
-         *
-         * @return bool
-         */
-        public function __isset($name)
-        {
-            if (is_object($this->data)) {
-                return isset($this->data->{$name});
-            }
-            
-            return isset($this->data[$name]);
-        }
-        
-        /**
-         * @param string $name
          * @param mixed $value
          */
         public function __set($name, $value)
@@ -728,7 +732,7 @@ namespace Core\Providers\Database {
                 $this->data[$name] = $value;
             }
         }
-    
+        
         /**
          * @param string $name
          *
@@ -740,14 +744,40 @@ namespace Core\Providers\Database {
             if (is_array($this->data) && !empty($this->data[$name])) {
                 return $this->data[$name];
             }
-        
+            
             // object
             if (is_object($this->data) && isset($this->data->{$name})) {
                 return $this->data->{$name};
             }
-        
+            
             return App::getInstance()
                 ->resolve($name);
+        }
+        
+        /**
+         * @param string $name
+         *
+         * @return bool
+         */
+        public function __isset($name)
+        {
+            if (is_object($this->data)) {
+                return isset($this->data->{$name});
+            }
+            
+            return isset($this->data[$name]);
+        }
+        
+        /**
+         * @param string $name
+         */
+        public function __unset($name)
+        {
+            if (is_object($this->data)) {
+                unset($this->data->{$name});
+            }
+            
+            unset($this->data[$name]);
         }
     }
 }
