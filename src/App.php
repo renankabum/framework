@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 08/03/2018 Vagner Cardoso
+ * @copyright 14/03/2019 Vagner Cardoso
  */
 
 namespace Core {
@@ -28,6 +28,11 @@ namespace Core {
          * @var \Core\App
          */
         private static $instance;
+        
+        /**
+         * @var array
+         */
+        private $namespaces = [];
         
         /**
          * App constructor
@@ -254,17 +259,29 @@ namespace Core {
             // Variavéis
             $methods = (is_string($methods) ? explode(',', mb_strtoupper($methods)) : $methods);
             $pattern = (string) $pattern;
+            $namespaces = $this->namespaces;
             
             // Verifica se o callable e uma closure
             if ($callable instanceof \Closure) {
                 $route = $this->map($methods, $pattern, $callable);
             } else {
-                $route = $this->map($methods, $pattern, function (Request $request, Response $response, array $params) use ($callable) {
+                $route = $this->map($methods, $pattern, function (Request $request, Response $response, array $params) use ($callable, $namespaces) {
                     // Separa o namespace e método
                     list($namespace, $originalMethod) = (explode('@', $callable) + [1 => null]);
                     $method = mb_strtolower($request->getMethod()).ucfirst($originalMethod);
                     
-                    // Inicia controller
+                    // Valida os namespace
+                    if (!empty($namespaces)) {
+                        foreach (array_reverse($namespaces) as $n) {
+                            if ($n[strlen($n) - 1] !== '/') {
+                                $n = "{$n}/";
+                            }
+                            
+                            $namespace = "{$n}{$namespace}";
+                        }
+                    }
+                    
+                    // Inicia o controller
                     $namespace = "App\\Controllers\\".str_ireplace('/', '\\', $namespace);
                     $controller = new $namespace($request, $response, $this);
                     
@@ -371,6 +388,42 @@ namespace Core {
                     $this->resource($pattern, $controller, $name, $middlewares);
                 }
             }
+        }
+        
+        /**
+         * @param string $namespace
+         * @param callable $callable
+         *
+         * @return $this
+         */
+        public function namespace($namespace, $callable)
+        {
+            // Verifica variávies
+            if (empty($namespace) || empty($callable)) {
+                throw new \InvalidArgumentException(
+                    sprintf('(%s) there are empty parameters', __METHOD__), E_USER_ERROR
+                );
+            }
+            
+            // Atribuí o namespace
+            $this->namespaces[] = $namespace;
+            
+            // Verifica se o $callable é uma \Closure
+            if (!$callable instanceof \Closure) {
+                throw new \InvalidArgumentException(
+                    sprintf(
+                        '(%s) parameter ($callable) must be a \Closure.', __METHOD__
+                    ), E_USER_ERROR
+                );
+            }
+            
+            // Executa \Closure
+            call_user_func($callable, $this);
+            
+            // Resta os namespaces
+            $this->namespaces = [];
+            
+            return $this;
         }
         
         /**

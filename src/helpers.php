@@ -98,7 +98,6 @@ if (!function_exists('asset')) {
         $file = ((!empty($file[0]) && $file[0] !== '/') ? "/{$file}" : $file);
         $path = PUBLIC_FOLDER."{$file}";
         $baseUrl = ($baseUrl ? BASE_URL : '');
-        $version = ($version ? '?v='.substr(md5_file($path), 0, 15) : '');
         $basePath = rtrim(
             str_ireplace(
                 'index.php', '', App::getInstance()->resolve('request')->getUri()->getBasePath()
@@ -106,6 +105,8 @@ if (!function_exists('asset')) {
         );
         
         if (file_exists($path)) {
+            $version = ($version ? '?v='.substr(md5_file($path), 0, 15) : '');
+            
             return "{$baseUrl}{$basePath}{$file}{$version}";
         }
         

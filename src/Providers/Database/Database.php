@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 06/03/2019 Vagner Cardoso
+ * @copyright 14/03/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Database {
@@ -17,6 +17,23 @@ namespace Core\Providers\Database {
     
     /**
      * Class Database
+     *
+     * @method Statement getPdo()
+     * @method Statement fetch($fetchStyle = null, $cursorOrientation = 0, $cursorOffset = 0)
+     * @method Statement fetchColumn($column_number = 0)
+     * @method Statement fetchObject($class_name = "stdClass", $ctor_args = array())
+     * @method Statement fetchAll($fetchStyle = null, $fetchArgument = null, $ctorArgs = null)
+     * @method Statement rowCount()
+     * @method Statement errorCode()
+     * @method Statement errorInfo()
+     * @method Statement setAttribute($attribute, $value)
+     * @method Statement getAttribute($attribute)
+     * @method Statement columnCount()
+     * @method Statement getColumnMeta($column)
+     * @method Statement setFetchMode($mode, $params)
+     * @method Statement nextRowset()
+     * @method Statement closeCursor()
+     * @method Statement debugDumpParams()
      *
      * @package Core\Providers\Database
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
@@ -172,7 +189,7 @@ namespace Core\Providers\Database {
                 // Execute
                 $this->statement = $this->prepare($statement, $driverOptions);
                 $this->setBindings($bindings);
-                $this->execBindings();
+                $this->bindValues();
                 $this->statement->execute();
                 
                 return $this->statement;
@@ -210,8 +227,6 @@ namespace Core\Providers\Database {
             $table = (string) $table;
             $data = $this->toData($data);
             $values = [];
-            $columns = (!empty($data[0]) ? $data[0] : $data);
-            $columns = implode(', ', array_keys($columns));
             
             // Previne os binds caso exista
             $this->bindings = [];
@@ -219,10 +234,10 @@ namespace Core\Providers\Database {
             // Monta os valores conforme se é um array multimensional ou um array simples
             if (!empty($data[0])) {
                 foreach ($data as $i => $item) {
-                    $item = ($this->emitEvent("{$table}:creating", $item) ?: $item);
-                    $values[] = ':'.implode("_{$i}, :", array_keys($item))."_{$i}";
+                    $data = ($this->emitEvent("{$table}:creating", $item) ?: $item);
+                    $values[] = ':'.implode("_{$i}, :", array_keys($data))."_{$i}";
                     
-                    foreach ($item as $k => $v) {
+                    foreach ($data as $k => $v) {
                         $this->setBindings(["{$k}_{$i}" => $v]);
                     }
                 }
@@ -230,11 +245,12 @@ namespace Core\Providers\Database {
                 $values = '('.implode("), (", $values).')';
             } else {
                 $data = ($this->emitEvent("{$table}:creating", $data) ?: $data);
-                $this->setBindings($data);
                 $values = '(:'.implode(', :', array_keys($data)).')';
+                $this->setBindings($data);
             }
             
             // Executa a query
+            $columns = implode(', ', array_keys($data));
             $statement = "INSERT INTO {$table} ({$columns}) VALUES {$values}";
             $statement = $this->query($statement);
             
@@ -276,7 +292,7 @@ namespace Core\Providers\Database {
                 $value = filter_var($value, FILTER_DEFAULT);
                 
                 // Atualiza os dados do updated
-                if ($this->isChangeFetch()) {
+                if ($this->isFetchObject()) {
                     $updated->{$key} = $value;
                 } else {
                     $updated[$key] = $value;
@@ -340,11 +356,12 @@ namespace Core\Providers\Database {
         /**
          * @return bool
          */
-        public function isChangeFetch()
+        public function isFetchObject()
         {
             $allowed = [\PDO::FETCH_OBJ, \PDO::FETCH_CLASS];
+            $fetchMode = $this->getAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE);
             
-            if (in_array($this->getAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE), $allowed)) {
+            if (in_array($fetchMode, $allowed)) {
                 return true;
             }
             
@@ -387,11 +404,10 @@ namespace Core\Providers\Database {
          */
         private function emitEvent($name = null)
         {
-            if ($event = App::getInstance()->resolve('event')) {
-                if (is_null($name)) {
-                    return true;
-                }
+            $event = App::getInstance()
+                ->resolve('event');
                 
+            if (!empty($name) && $event) {
                 // Retorna o evento emitido
                 $arguments = func_get_args();
                 array_shift($arguments);
@@ -429,7 +445,7 @@ namespace Core\Providers\Database {
         /**
          * Executa os bindings e trata os valores
          */
-        private function execBindings()
+        private function bindValues()
         {
             if (!$this->statement instanceof Statement) {
                 throw new \RuntimeException(
@@ -457,6 +473,23 @@ namespace Core\Providers\Database {
             
             // Reseta os binds
             $this->bindings = [];
+        }
+        
+        /**
+         * @param string $method
+         * @param mixed ...$arguments
+         *
+         * @return mixed
+         */
+        public function __call($method, $arguments)
+        {
+            if ($this->statement && method_exists($this->statement, $method)) {
+                return $this->statement->{$method}(...$arguments);
+            }
+            
+            throw new \BadMethodCallException(
+                sprintf("Call to undefined method %s::%s()", get_class(), $method), E_USER_ERROR
+            );
         }
     }
 }

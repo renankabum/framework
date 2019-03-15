@@ -33,7 +33,7 @@ namespace Core\Providers\Event {
              * @return \Core\Providers\Event\Event
              */
             $this->container['event'] = function () {
-                return new Event();
+                return Event::getInstance();
             };
         }
         

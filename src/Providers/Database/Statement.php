@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 05/03/2019 Vagner Cardoso
+ * @copyright 14/03/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Database {
@@ -36,7 +36,7 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @return \Core\Providers\Database\Database
+         * @return Database
          */
         public function getPdo()
         {
@@ -76,7 +76,7 @@ namespace Core\Providers\Database {
          */
         public function fetch($fetchStyle = null, $cursorOrientation = \PDO::FETCH_ORI_NEXT, $cursorOffset = 0)
         {
-            if ($this->db->isChangeFetch()) {
+            if ($this->db->isFetchObject()) {
                 return parent::fetchObject(
                     !empty($fetchStyle) ? $fetchStyle : 'stdClass'
                 );
@@ -96,8 +96,14 @@ namespace Core\Providers\Database {
          */
         public function fetchAll($fetchStyle = null, $fetchArgument = null, $ctorArgs = null)
         {
-            if (is_null($fetchStyle)) {
-                $fetchStyle = \PDO::FETCH_ASSOC;
+            if (empty($fetchStyle)) {
+                $fetchStyle = $this->db->getAttribute(
+                    \PDO::ATTR_DEFAULT_FETCH_MODE
+                );
+            }
+            
+            if ($fetchStyle === \PDO::FETCH_CLASS && empty($fetchArgument)) {
+                $fetchArgument = 'stdClass';
             }
             
             if ($fetchStyle === \PDO::FETCH_BOTH) {

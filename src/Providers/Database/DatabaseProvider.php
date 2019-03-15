@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 01/03/2019 Vagner Cardoso
+ * @copyright 14/03/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Database {
@@ -30,7 +30,7 @@ namespace Core\Providers\Database {
         public function register()
         {
             /**
-             * @return \Core\Providers\Database\Database
+             * @return Database
              */
             $this->container['db'] = function () {
                 return Database::getInstance();

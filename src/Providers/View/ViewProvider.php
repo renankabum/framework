@@ -40,7 +40,9 @@ namespace Core\Providers\View {
         }
         
         /**
-         * Registra outros serviços no escopo do provider.
+         * Registra outros serviços no escopo do provider
+         *
+         * @return void
          */
         public function boot()
         {
