@@ -391,39 +391,33 @@ namespace Core {
         }
         
         /**
-         * @param string $namespace
-         * @param callable $callable
+         * @param string|array $pattern
+         * @param callable|\Closure $callable
          *
-         * @return $this
+         * @return \Slim\Interfaces\RouteGroupInterface
          */
-        public function namespace($namespace, $callable)
+        public function group($pattern, $callable)
         {
-            // Verifica variávies
-            if (empty($namespace) || empty($callable)) {
-                throw new \InvalidArgumentException(
-                    sprintf('(%s) there are empty parameters', __METHOD__), E_USER_ERROR
-                );
+            // Verifica o pattern e caso
+            // seja um array, trata o
+            // namespace e pattern
+            if (!empty($pattern) && is_array($pattern)) {
+                if (!empty($pattern['namespace'])) {
+                    $this->namespaces[] = $pattern['namespace'];
             }
             
-            // Atribuí o namespace
-            $this->namespaces[] = $namespace;
-            
-            // Verifica se o $callable é uma \Closure
-            if (!$callable instanceof \Closure) {
-                throw new \InvalidArgumentException(
-                    sprintf(
-                        '(%s) parameter ($callable) must be a \Closure.', __METHOD__
-                    ), E_USER_ERROR
-                );
+                $pattern = (!empty($pattern['prefix'])
+                    ? $pattern['prefix']
+                    : '');
             }
             
-            // Executa \Closure
-            call_user_func($callable, $this);
+            // Executa o group
+            $group = parent::group($pattern, $callable);
             
             // Resta os namespaces
             $this->namespaces = [];
             
-            return $this;
+            return $group;
         }
         
         /**
