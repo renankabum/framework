@@ -457,9 +457,11 @@ namespace Core\Providers\Database {
             $this->reset();
             
             // Se existir o registro, atualiza
-            if (!empty($primaryValue) && $this->fetchById($primaryValue)) {
-                $where = "{$this->table}.{$this->getPrimaryKey()} = :pkid {$where}";
-                $bindings['pkid'] = $primaryValue;
+            if ($this->fetchById($primaryValue)) {
+                if (!empty($primaryValue)) {
+                    $where = "{$this->table}.{$this->getPrimaryKey()} = :pkid {$where}";
+                    $bindings['pkid'] = $primaryValue;
+                }
                 
                 return $this->db->update(
                     $this->table, $this->data,
