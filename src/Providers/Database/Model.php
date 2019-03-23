@@ -451,15 +451,13 @@ namespace Core\Providers\Database {
             // Variáveis
             $where = implode(' ', $this->where);
             $bindings = $this->bindings;
-            $primaryKey = $this->getPrimaryValue();
+            $primaryValue = $this->getPrimaryValue();
             $this->reset();
             
             // Se existir o registro, atualiza
-            if ($this->fetchById($primaryKey)) {
-                if ($primaryKey) {
+            if (!empty($primaryValue) && $this->fetchById($primaryValue)) {
                     $where = "{$this->table}.{$this->getPrimaryKey()} = :pkid {$where}";
-                    $bindings['pkid'] = $primaryKey;
-                }
+                $bindings['pkid'] = $primaryValue;
                 
                 return $this->db->update(
                     $this->table, $this->data,
@@ -470,17 +468,17 @@ namespace Core\Providers\Database {
             
             // Adiciona registro
             $this->db->create($this->table, $this->data);
-            $primaryKey = $this->db->lastInsertId();
+            $primaryValue = $this->db->lastInsertId();
             
             // Limpa propriedades
             $this->clearProperties();
             
             // Caso tenha a chave única criada
             // retorne os dados referente a ela
-            if (!empty($primaryKey)) {
+            if (!empty($primaryValue)) {
                 return $this->reset()
                     ->where($where, $bindings)
-                    ->fetchById($primaryKey);
+                    ->fetchById($primaryValue);
             }
             
             return $this->data;
