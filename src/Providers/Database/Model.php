@@ -397,7 +397,9 @@ namespace Core\Providers\Database {
                 
                 // Filtra os valores dos bindings
                 foreach ($bindings as $key => $value) {
-                    $this->bindings[$key] = filter_var($value, FILTER_DEFAULT);
+                    $this->bindings[$key] = filter_var(
+                        $value, FILTER_DEFAULT
+                    );
                 }
             }
             
@@ -455,9 +457,11 @@ namespace Core\Providers\Database {
             $this->reset();
             
             // Se existir o registro, atualiza
-            if (!empty($primaryValue) && $this->fetchById($primaryValue)) {
+            if ($this->fetchById($primaryValue)) {
+                if (!empty($primaryValue)) {
                     $where = "{$this->table}.{$this->getPrimaryKey()} = :pkid {$where}";
-                $bindings['pkid'] = $primaryValue;
+                    $bindings['pkid'] = $primaryValue;
+                }
                 
                 return $this->db->update(
                     $this->table, $this->data,
@@ -530,7 +534,9 @@ namespace Core\Providers\Database {
         public function data(array $data, $validate = true)
         {
             // Junta os dados
-            $data = array_merge($this->db->toData($this->data), $data);
+            $data = array_merge(
+                $this->db->toData($this->data), $data
+            );
             
             // Verifica se existe o método para
             // tratar os dados antes de usa-los
