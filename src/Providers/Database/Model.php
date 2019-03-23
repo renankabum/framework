@@ -629,12 +629,6 @@ namespace Core\Providers\Database {
          */
         protected function getPrimaryKey()
         {
-            if (empty($this->primaryKey)) {
-                throw new \InvalidArgumentException(
-                    sprintf('`%s::primaryKey` is empty.', get_called_class()), E_USER_ERROR
-                );
-            }
-            
             return $this->primaryKey;
         }
         
