@@ -30,11 +30,6 @@ namespace Core {
         private static $instance;
         
         /**
-         * @var array
-         */
-        private $namespaces = [];
-        
-        /**
          * App constructor
          */
         public function __construct()
@@ -259,25 +254,35 @@ namespace Core {
             // Variavéis
             $methods = (is_string($methods) ? explode(',', mb_strtoupper($methods)) : $methods);
             $pattern = (string) $pattern;
-            $namespaces = $this->namespaces;
             
             // Verifica se o callable e uma closure
             if ($callable instanceof \Closure) {
                 $route = $this->map($methods, $pattern, $callable);
             } else {
-                $route = $this->map($methods, $pattern, function (Request $request, Response $response, array $params) use ($callable, $namespaces) {
+                $route = $this->map($methods, $pattern, function (Request $request, Response $response, array $params) use ($callable) {
                     // Separa o namespace e método
                     list($namespace, $originalMethod) = (explode('@', $callable) + [1 => null]);
                     $method = mb_strtolower($request->getMethod()).ucfirst($originalMethod);
                     
-                    // Valida os namespace
-                    if (!empty($namespaces)) {
-                        foreach (array_reverse($namespaces) as $n) {
-                            if ($n[strlen($n) - 1] !== '/') {
-                                $n = "{$n}/";
+                    // Valida se existe o `Controller` na string
+                    if (!strripos($namespace, 'Controller')) {
+                        $namespace = "{$namespace}Controller";
+                    }
+                    
+                    /**
+                     * Percorre os grupos procurando
+                     * por NAMESPACES para auto completar
+                     *
+                     * @var \Slim\Route $route
+                     */
+                    if ($route = $request->getAttribute('route')) {
+                        foreach (array_reverse($route->getGroups()) as $group) {
+                            if (property_exists($group, 'namespaces')) {
+                                foreach ($group->namespaces as $n) {
+                                    $n = (($n[strlen($n) - 1] !== '/') ? "{$n}/" : $n);
+                                    $namespace = "{$n}{$namespace}";
+                                }
                             }
-                            
-                            $namespace = "{$n}{$namespace}";
                         }
                     }
                     
@@ -398,14 +403,16 @@ namespace Core {
          */
         public function group($pattern, $callable)
         {
+            // Variávies
+            $namespace = null;
+            
             // Verifica o pattern e caso
-            // seja um array, trata o
-            // namespace e pattern
+            // seja um array, trata
             if (!empty($pattern) && is_array($pattern)) {
                 if (!empty($pattern['namespace'])) {
-                    $this->namespaces[] = $pattern['namespace'];
-            }
-            
+                    $namespace = $pattern['namespace'];
+                }
+                
                 $pattern = (!empty($pattern['prefix'])
                     ? $pattern['prefix']
                     : '');
@@ -414,8 +421,10 @@ namespace Core {
             // Executa o group
             $group = parent::group($pattern, $callable);
             
-            // Resta os namespaces
-            $this->namespaces = [];
+            // namespaces
+            if (!empty($namespace)) {
+                $group->namespaces[] = $namespace;
+            }
             
             return $group;
         }
