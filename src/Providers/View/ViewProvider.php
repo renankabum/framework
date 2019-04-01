@@ -46,20 +46,23 @@ namespace Core\Providers\View {
          */
         public function boot()
         {
-            // Ativa debug
-            $this->view->addExtension(new \Twig_Extension_Debug());
-            
-            // Registra as funções e filtros
-            foreach (config('view.registers') as $key => $items) {
-                foreach ($items as $name => $item) {
-                    switch ($key) {
-                        case 'functions':
-                            $this->view->addFunction($name, $item);
-                            break;
-                        
-                        case 'filters':
-                            $this->view->addFilter($name, $item);
-                            break;
+            // Percorre as views
+            foreach (['view', 'view-mail'] as $view) {
+                // Ativa debug
+                $this->{$view}->addExtension(new \Twig_Extension_Debug());
+                
+                // Registra as funções e filtros
+                foreach (config('view.registers') as $key => $items) {
+                    foreach ($items as $name => $item) {
+                        switch ($key) {
+                            case 'functions':
+                                $this->{$view}->addFunction($name, $item);
+                                break;
+                            
+                            case 'filters':
+                                $this->{$view}->addFilter($name, $item);
+                                break;
+                        }
                     }
                 }
             }
