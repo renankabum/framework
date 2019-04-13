@@ -103,6 +103,7 @@ namespace Core\Helpers {
             // Verifica o total de página passadas
             if (($this->total > 0 && $this->offset > 0) && ($this->offset >= $this->total)) {
                 header("Location: {$this->link}{$this->pages}", true, 301);
+                exit;
             }
         }
         
