@@ -7,34 +7,32 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 10/03/2019 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
-namespace Core\Contracts {
+namespace Core\Providers\Hash {
     
     /**
-     * Class Hasher
+     * Class Hash
      *
      * @package Core\Contracts
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    abstract class Hasher
+    abstract class Hash
     {
         /**
-         * Retorna a informações sobre o hash fornecido
-         *
          * @param string $hashedValue
          *
          * @return array
          */
         public function info($hashedValue)
         {
-            return password_get_info($hashedValue);
+            return password_get_info(
+                $hashedValue
+            );
         }
         
         /**
-         * Verifica se o hash fornecido corresponde com o password fornecido.
-         *
          * @param string $value
          * @param string $hashedValue
          *
@@ -46,7 +44,9 @@ namespace Core\Contracts {
                 return false;
             }
             
-            return password_verify($value, $hashedValue);
+            return password_verify(
+                $value, $hashedValue
+            );
         }
     }
 }

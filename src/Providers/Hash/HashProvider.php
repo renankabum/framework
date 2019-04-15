@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Hash {
@@ -18,7 +18,7 @@ namespace Core\Providers\Hash {
      * Class HashProvider
      *
      * @package Core\Providers\Hash
-     * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
+     * @author Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
     class HashProvider extends Provider
     {
@@ -30,15 +30,17 @@ namespace Core\Providers\Hash {
         public function register()
         {
             $this->container['hash'] = function () {
-                $driver = env('APP_HASH_DRIVER', 'bcrypt');
-                
-                switch ($driver) {
+                switch (env('APP_HASH_DRIVER', 'bcrypt')) {
                     case 'bcrypt':
                         return new Bcrypt();
                         break;
                     
                     case 'argon':
                         return new Argon();
+                        break;
+                    
+                    case 'argon2id':
+                        return new Argon2Id();
                         break;
                 }
             };
