@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Helpers {
@@ -77,16 +77,16 @@ namespace Core\Helpers {
                 
                 // Verifica se o retorno é xml
                 if ($xml = Helper::checkXml($response)) {
-                    $xml = json_decode(json_encode($xml), true);;
+                    if (version_compare(config('app.version.framework'), 'v2.1.0', '<=')) {
+                        $xml = json_decode(json_encode($xml), true);
+                    }
                     
                     return $xml;
                 }
                 
                 return $response;
             } catch (\Exception $e) {
-                $code = (is_int($e->getCode()) ? $e->getCode() : 500);
-                
-                throw new \Exception("[CURL] {$e->getMessage()}", $code);
+                throw $e;
             }
         }
         
@@ -104,12 +104,13 @@ namespace Core\Helpers {
         {
             $method = mb_strtoupper($method, 'UTF-8');
             
-            // Verifica se a data e array e está passada
+            // Verifica se os parametros foi passado
             if (!empty($params)) {
+                // Formato de array
                 if (is_array($params)) {
                     $params = Helper::buildQuery($params);
                 } else {
-                    // Verifica se é json
+                    // Formato de json
                     if (Helper::checkJson($params) && $method !== 'GET') {
                         $this->setHeaders("Content-Type: application/json");
                     }
