@@ -280,10 +280,7 @@ namespace Core\Providers\Database {
             $set = [];
             
             // Verifica registro
-            $updated = $this->read(
-                $table, $condition, $bindings
-            )->fetch();
-            
+            $updated = $this->read($table, $condition, $bindings)->fetch();
             if (empty($this->toData($updated))) {
                 return false;
             }
@@ -340,10 +337,7 @@ namespace Core\Providers\Database {
             $condition = (string) $condition;
             
             // Verifica registro
-            $deleted = $this->read(
-                $table, $condition, $bindings
-            )->fetch();
-            
+            $deleted = $this->read($table, $condition, $bindings)->fetch();
             if (empty($this->toData($deleted))) {
                 return false;
             }

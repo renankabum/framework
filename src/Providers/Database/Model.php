@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 14/03/2019 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Database {
@@ -184,11 +184,6 @@ namespace Core\Providers\Database {
                 }
             }
             
-            // Verifica where
-            if (empty($this->where)) {
-                return false;
-            }
-            
             return $this->fetch();
         }
         
@@ -209,36 +204,15 @@ namespace Core\Providers\Database {
          */
         public function count($column = '1')
         {
-            // Executa a query
-            $statement = $this->select("COUNT({$column}) AS count")
+            $this->db->setAttribute(
+                \PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_OBJ
+            );
+            
+            return (int) $this->select("COUNT({$column}) AS count")
                 ->order('count DESC')->limit(1)
-                ->execute();
-            
-            if ($this->db->isFetchObject()) {
-                $result = $statement->fetchObject(get_called_class());
-                
-                return (int) $result->count;
-            } else {
-                $result = $statement->fetch();
-                
-                return (int) $result['count'];
-            }
-        }
-        
-        /**
-         * @param string $driver mysql|dblib|sqlsrv
-         *
-         * @return $this|string
-         */
-        public function driver($driver = null)
-        {
-            if (!empty($driver)) {
-                $this->driver = (string) $driver;
-                
-                return $this;
-            }
-            
-            return $this->driver;
+                ->execute()
+                ->fetch()
+                ->count;
         }
         
         /**
@@ -711,7 +685,7 @@ namespace Core\Providers\Database {
             $value = filter_var($value, FILTER_DEFAULT);
             
             // Caso seja object
-            if ($this->db->getAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE) === \PDO::FETCH_OBJ) {
+            if ($this->db->isFetchObject()) {
                 if (!is_object($this->data)) {
                     $this->data = new \stdClass();
                 }
@@ -769,9 +743,9 @@ namespace Core\Providers\Database {
         {
             if (is_object($this->data)) {
                 unset($this->data->{$name});
+            } else {
+                unset($this->data[$name]);
             }
-            
-            unset($this->data[$name]);
         }
     }
 }
