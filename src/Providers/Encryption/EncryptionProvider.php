@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Encryption {
@@ -18,7 +18,7 @@ namespace Core\Providers\Encryption {
      * Class EncryptionProvider
      *
      * @package Core\Providers\Encryption
-     * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
+     * @author Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
     class EncryptionProvider extends BaseProvider
     {
@@ -30,7 +30,9 @@ namespace Core\Providers\Encryption {
         public function register()
         {
             $this->container['encryption'] = function () {
-                return new Encryption((env('APP_KEY') ?: md5(md5('VCWEBNETWORKS'))));
+                return new Encryption(
+                    (env('APP_KEY') ?: md5(md5('VCWEBNETWORKS')))
+                );
             };
         }
     }

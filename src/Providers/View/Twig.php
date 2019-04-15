@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\View {
@@ -33,8 +33,6 @@ namespace Core\Providers\View {
         protected $environment;
         
         /**
-         * TwigProvider constructor.
-         *
          * @param string|array $path
          * @param array $options
          */
@@ -65,8 +63,6 @@ namespace Core\Providers\View {
         }
         
         /**
-         * Render the template with the slim3 response
-         *
          * @param Response $response
          * @param string $template
          * @param array $data
@@ -81,8 +77,6 @@ namespace Core\Providers\View {
         }
         
         /**
-         * Render template view
-         *
          * @param string $template
          * @param array $data
          *

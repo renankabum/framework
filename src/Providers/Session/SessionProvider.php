@@ -40,7 +40,7 @@ namespace Core\Providers\Session {
             
             // Flash Message
             $this->container['flash'] = function () {
-                if (!is_php_cli() && env('APP_SESSION', true)) {
+                if ($this->session) {
                     return new Flash();
                 }
                 
