@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Helpers {
@@ -294,11 +294,12 @@ namespace Core\Helpers {
         /**
          * @param string $json
          *
-         * @return bool|array
+         * @return bool|array|string
          */
         public static function checkJson($json)
         {
-            $json = json_decode($json, true);
+            $assoc = version_compare(config('app.version.framework'), 'v2.1.0', '<=');
+            $json = json_decode($json, $assoc);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
                 return false;
@@ -436,16 +437,14 @@ namespace Core\Helpers {
         public static function convertBytes($bytes, $precision = 2)
         {
             $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-            
             $bytes = max($bytes, 0);
-            $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-            $pow = min($pow, count($units) - 1);
+            $base = floor(log($bytes) / log(1024));
+            $base = min($base, count($units) - 1);
+            $bytes = $bytes / pow(1000, $base);
             
-            for ($i = 1; $i <= $pow; $i++) {
-                $bytes /= 1000;
-            }
-            
-            return number_format(round($bytes, $precision), 2, ',', '').' '.$units[$pow];
+            return number_format(
+                    round($bytes, $precision), 2, ',', ''
+                ).' '.$units[$base];
         }
         
         /**
