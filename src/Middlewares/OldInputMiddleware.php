@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Middlewares {
@@ -36,7 +36,14 @@ namespace Core\Middlewares {
         public function __invoke(Request $request, Response $response, callable $next)
         {
             if (!$request->isXhr()) {
-                $this->view->addGlobal('oldInput', (!empty(params())) ? params() : '');
+                // Adiciona o parametro na global na view
+                $this->view->addGlobal('oldInput', ($this->session ? $this->session->get('oldInput') : []));
+                
+                // Verifica se está ativa a sessão
+                // e adiciona o parametro
+                if ($this->session) {
+                    $this->session->set('oldInput', params());
+                }
             }
             
             $response = $next($request, $response);
