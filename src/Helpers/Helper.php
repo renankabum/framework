@@ -293,13 +293,15 @@ namespace Core\Helpers {
         
         /**
          * @param string $json
+         * @param bool $assoc
+         * @param int $depth
+         * @param int $options
          *
          * @return bool|array|string
          */
-        public static function checkJson($json)
+        public static function checkJson($json, $assoc = false, $depth = 512, $options = 0)
         {
-            $assoc = version_compare(config('app.version.framework'), 'v2.1.0', '<=');
-            $json = json_decode($json, $assoc);
+            $json = json_decode($json, $assoc, $depth, $options);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
                 return false;
