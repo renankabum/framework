@@ -76,12 +76,17 @@ namespace Core\Providers\Database {
          */
         public function fetch($fetchStyle = null, $cursorOrientation = \PDO::FETCH_ORI_NEXT, $cursorOffset = 0)
         {
-            if ($this->db->isFetchObject() || class_exists($fetchStyle)) {
-                return parent::fetchObject(
-                    !empty($fetchStyle) ? $fetchStyle : 'stdClass'
-                );
+            if ($this->db->isFetchObject()) {
+                // Verifica o fetchStyle
+                if (empty($fetchStyle) || !class_exists($fetchStyle)) {
+                    $fetchStyle = 'stdClass';
+                }
+                
+                // Object style
+                return parent::fetchObject($fetchStyle);
             }
             
+            // Default style
             return parent::fetch(
                 $fetchStyle, $cursorOrientation, $cursorOffset
             );
@@ -102,7 +107,7 @@ namespace Core\Providers\Database {
                 );
             }
             
-            if ($fetchStyle === \PDO::FETCH_CLASS && empty($fetchArgument)) {
+            if ($fetchStyle === \PDO::FETCH_CLASS && !class_exists($fetchArgument)) {
                 $fetchArgument = 'stdClass';
             }
             
