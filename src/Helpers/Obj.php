@@ -109,16 +109,12 @@ namespace Core\Helpers {
         {
             $array = [];
             
-            if (!is_object($object)) {
-                return (array) $object;
-            }
-            
             foreach ($object as $key => $value) {
                 if (!isset($value) && trim($value) == '') {
                     return $array;
                 }
                 
-                if (is_object($value)) {
+                if (is_object($value) || is_array($value)) {
                     $array[$key] = self::toArray($value);
                 } else {
                     if (isset($key)) {
