@@ -46,7 +46,7 @@ namespace Core\Helpers {
          * @param string $endPoint
          * @param array $params
          *
-         * @return array
+         * @return mixed
          * @throws \Exception
          */
         public function get($endPoint, $params = [])
@@ -61,7 +61,7 @@ namespace Core\Helpers {
          * @param string $endPoint
          * @param array $params
          *
-         * @return array
+         * @return mixed
          * @throws \Exception
          */
         public function create($method, $endPoint, $params = [])
@@ -238,7 +238,7 @@ namespace Core\Helpers {
          * @param string $endPoint
          * @param array|string $params
          *
-         * @return array
+         * @return mixed
          * @throws \Exception
          */
         public function post($endPoint, $params = [])
@@ -252,7 +252,7 @@ namespace Core\Helpers {
          * @param string $endPoint
          * @param array $params
          *
-         * @return array
+         * @return mixed
          * @throws \Exception
          */
         public function put($endPoint, $params = [])
@@ -266,7 +266,7 @@ namespace Core\Helpers {
          * @param string $endPoint
          * @param array $params
          *
-         * @return array
+         * @return mixed
          * @throws \Exception
          */
         public function delete($endPoint, $params = [])
