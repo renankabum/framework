@@ -116,14 +116,25 @@ namespace Core\Providers\Database {
         protected $reset = [];
         
         /**
+         * @param int $fetchStyle
+         *
          * @return array|$this
          * @throws \Exception
          */
-        public function fetch()
+        public function fetch($fetchStyle = null)
         {
-            // Resultado
+            // Verifica o tipo padrão do fetch
+            if (empty($fetchStyle) && $this->fetchStyle) {
+                $fetchStyle = $this->fetchStyle;
+            }
+            
+            if ($this->db->isFetchObject($fetchStyle)) {
+                $fetchStyle = get_called_class();
+            }
+            
+            // Executa a query e percorre os resultados
             $result = $this->execute()->fetch(
-                $this->fetchStyle ?: ($this->db->isFetchObject() ? get_called_class() : null)
+                $fetchStyle
             );
             
             if (!empty($result)) {
@@ -145,14 +156,18 @@ namespace Core\Providers\Database {
         public function fetchAll($fetchStyle = null, $fetchArgument = null)
         {
             // Verifica o tipo padrão do fetch
-            if ($this->db->isFetchObject()) {
+            if (empty($fetchStyle) && $this->fetchStyle) {
+                $fetchStyle = $this->fetchStyle;
+            }
+            
+            if ($this->db->isFetchObject($fetchStyle)) {
                 $fetchStyle = \PDO::FETCH_CLASS;
                 $fetchArgument = get_called_class();
             }
             
             // Executa a query e percorre os resultados
             $results = $this->execute()->fetchAll(
-                ($this->fetchStyle ?: $fetchStyle), $fetchArgument
+                $fetchStyle, $fetchArgument
             );
             
             if (!empty($results)) {
@@ -216,14 +231,10 @@ namespace Core\Providers\Database {
          */
         public function count($column = '1')
         {
-            $this->db->setAttribute(
-                \PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_OBJ
-            );
-            
             return (int) $this->select("COUNT({$column}) AS count")
                 ->order('count DESC')->limit(1)
                 ->execute()
-                ->fetch()
+                ->fetch(\PDO::FETCH_OBJ)
                 ->count;
         }
         
@@ -698,7 +709,7 @@ namespace Core\Providers\Database {
             $value = filter_var($value, FILTER_DEFAULT);
             
             // Caso seja object
-            if ($this->db->isFetchObject()) {
+            if ($this->db->isFetchObject($this->fetchStyle)) {
                 if (!is_object($this->data)) {
                     $this->data = new \stdClass();
                 }
