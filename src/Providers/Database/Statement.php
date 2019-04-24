@@ -76,7 +76,7 @@ namespace Core\Providers\Database {
          */
         public function fetch($fetchStyle = null, $cursorOrientation = \PDO::FETCH_ORI_NEXT, $cursorOffset = 0)
         {
-            if ($this->db->isFetchObject() && $fetchStyle !== \PDO::FETCH_ASSOC) {
+            if ($this->db->isFetchObject() || class_exists($fetchStyle)) {
                 return parent::fetchObject(
                     !empty($fetchStyle) ? $fetchStyle : 'stdClass'
                 );

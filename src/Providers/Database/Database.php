@@ -356,12 +356,14 @@ namespace Core\Providers\Database {
         }
         
         /**
+         * @param int $style
+         *
          * @return bool
          */
-        public function isFetchObject()
+        public function isFetchObject($style = null)
         {
             $allowed = [\PDO::FETCH_OBJ, \PDO::FETCH_CLASS];
-            $fetchMode = $this->getAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE);
+            $fetchMode = $style ?: $this->getAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE);
             
             if (in_array($fetchMode, $allowed)) {
                 return true;
