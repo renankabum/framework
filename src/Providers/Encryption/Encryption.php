@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Encryption {
@@ -35,8 +35,6 @@ namespace Core\Providers\Encryption {
         protected $cipher;
         
         /**
-         * Create a new encrypter instance.
-         *
          * @param string $key
          * @param string $cipher
          */
@@ -46,14 +44,14 @@ namespace Core\Providers\Encryption {
             $this->cipher = $cipher;
             
             if (empty($this->key)) {
-                throw new \InvalidArgumentException('[ENCRYPTION] Empty key.', E_ERROR);
+                throw new \InvalidArgumentException(
+                    'Encryption empty key.', E_ERROR
+                );
             }
         }
         
         /**
-         * Encrypt a string without serialization.
-         *
-         * @param  string $value
+         * @param string $value
          *
          * @return string
          * @throws \Exception
@@ -64,10 +62,8 @@ namespace Core\Providers\Encryption {
         }
         
         /**
-         * Encrypt the given value.
-         *
-         * @param  mixed $value
-         * @param  bool $serialize
+         * @param mixed $value
+         * @param bool $serialize
          *
          * @return string
          */
@@ -101,8 +97,8 @@ namespace Core\Providers\Encryption {
         /**
          * Create a MAC for the given value.
          *
-         * @param  string $iv
-         * @param  mixed $value
+         * @param string $iv
+         * @param mixed $value
          *
          * @return string
          */
@@ -112,9 +108,7 @@ namespace Core\Providers\Encryption {
         }
         
         /**
-         * Decrypt the given string without unserialization.
-         *
-         * @param  string $payload
+         * @param string $payload
          *
          * @return string
          * @throws \Exception
@@ -125,10 +119,8 @@ namespace Core\Providers\Encryption {
         }
         
         /**
-         * Decrypt the given value.
-         *
-         * @param  mixed $payload
-         * @param  bool $unserialize
+         * @param mixed $payload
+         * @param bool $unserialize
          *
          * @return string|bool
          */
@@ -146,9 +138,7 @@ namespace Core\Providers\Encryption {
         }
         
         /**
-         * Get the JSON array from the given payload.
-         *
-         * @param  string $payload
+         * @param string $payload
          *
          * @return array|bool
          */
@@ -168,9 +158,7 @@ namespace Core\Providers\Encryption {
         }
         
         /**
-         * Verify that the encryption payload is valid.
-         *
-         * @param  mixed $payload
+         * @param mixed $payload
          *
          * @return bool
          */
@@ -181,9 +169,7 @@ namespace Core\Providers\Encryption {
         }
         
         /**
-         * Determine if the MAC for the given payload is valid.
-         *
-         * @param  array $payload
+         * @param array $payload
          *
          * @return bool
          */
@@ -197,10 +183,8 @@ namespace Core\Providers\Encryption {
         }
         
         /**
-         * Calculate the hash of the given payload.
-         *
-         * @param  array $payload
-         * @param  string $bytes
+         * @param array $payload
+         * @param string $bytes
          *
          * @return string
          */

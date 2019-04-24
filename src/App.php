@@ -7,12 +7,19 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 14/03/2019 Vagner Cardoso
+ * @copyright 14/04/2019 Vagner Cardoso
  */
 
 namespace Core {
     
+    use BadMethodCallException;
+    use Closure;
     use Core\Helpers\Helper;
+    use Dotenv\Dotenv;
+    use Dotenv\Environment\Adapter\EnvConstAdapter;
+    use Dotenv\Environment\Adapter\PutenvAdapter;
+    use Dotenv\Environment\DotenvFactory;
+    use ErrorException;
     use Slim\Http\Request;
     use Slim\Http\Response;
     
@@ -39,7 +46,7 @@ namespace Core {
             
             // Configuraçoes do slim
             parent::__construct([
-                'settings' => [
+                'settings' => array_merge([
                     'httpVersion' => '1.1',
                     'responseChunkSize' => 4096,
                     'outputBuffering' => 'append',
@@ -47,7 +54,7 @@ namespace Core {
                     'displayErrorDetails' => (env('APP_ENV', 'development') == 'development'),
                     'addContentLengthHeader' => true,
                     'routerCacheFile' => false,
-                ],
+                ], config('app.slim', [])),
             ]);
             
             // Configuração da aplicação
@@ -76,9 +83,9 @@ namespace Core {
             $pathEnv = APP_FOLDER.'/.env';
             
             if (file_exists($pathEnv)) {
-                \Dotenv\Dotenv::create(APP_FOLDER, '.env', new \Dotenv\Environment\DotenvFactory([
-                    new \Dotenv\Environment\Adapter\EnvConstAdapter(),
-                    new \Dotenv\Environment\Adapter\PutenvAdapter(),
+                Dotenv::create(APP_FOLDER, '.env', new DotenvFactory([
+                    new EnvConstAdapter(),
+                    new PutenvAdapter(),
                 ]))->overload();
             } else {
                 $pathExample = APP_FOLDER.'/.env-example';
@@ -130,7 +137,7 @@ namespace Core {
             if (env('APP_SET_ERROR_HANDLER', 'true') == 'true') {
                 set_error_handler(function ($level, $message, $file = '', $line = 0) {
                     if (error_reporting() & $level) {
-                        throw new \ErrorException(
+                        throw new ErrorException(
                             $message, 0, $level, $file, $line
                         );
                     }
@@ -256,7 +263,7 @@ namespace Core {
             $pattern = (string) $pattern;
             
             // Verifica se o callable e uma closure
-            if ($callable instanceof \Closure) {
+            if ($callable instanceof Closure) {
                 $route = $this->map($methods, $pattern, $callable);
             } else {
                 $route = $this->map($methods, $pattern, function (Request $request, Response $response, array $params) use ($callable) {
@@ -296,7 +303,7 @@ namespace Core {
                         $method = ($originalMethod ?: 'index');
                         
                         if (!method_exists($controller, $method)) {
-                            throw new \BadMethodCallException(
+                            throw new BadMethodCallException(
                                 sprintf("Call to undefined method %s::%s()", get_class($controller), $method), E_ERROR
                             );
                         }
@@ -324,7 +331,7 @@ namespace Core {
                 sort($middlewares);
                 
                 foreach ($middlewares as $middleware) {
-                    if ($middleware instanceof \Closure) {
+                    if ($middleware instanceof Closure) {
                         $route->add($middleware);
                     } else {
                         if (array_key_exists($middleware, $middlewaresManual)) {
@@ -437,7 +444,7 @@ namespace Core {
          *
          * @return mixed
          */
-        public function resolve($name = null, $params = [])
+        public function resolve($name, $params = [])
         {
             $container = $this->getContainer();
             

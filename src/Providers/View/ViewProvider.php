@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 09/03/2019 Vagner Cardoso
+ * @copyright 28/04/2017 Vagner Cardoso
  */
 
 namespace Core\Providers\View {
@@ -15,8 +15,9 @@ namespace Core\Providers\View {
     use Core\Contracts\Provider;
     
     /**
-     * Class ViewProvider.
+     * Class ViewProvider
      *
+     * @package Core\Providers\View
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
     class ViewProvider extends Provider

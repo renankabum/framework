@@ -50,7 +50,10 @@ namespace Core\Providers\Mailer {
             
             // SMTP Segurança
             $this->mail->SMTPAuth = config('mail.auth');
-            $this->mail->SMTPSecure = config('mail.secure');
+            
+            if (!empty(config('mail.secure'))) {
+                $this->mail->SMTPSecure = config('mail.secure');
+            }
             
             // Servidor de e-mail
             $this->mail->Host = (is_array(config('mail.host')) ? implode(';', config('mail.host')) : config('mail.host'));
@@ -61,7 +64,10 @@ namespace Core\Providers\Mailer {
             // Quem está enviando
             if (config('mail.from.mail')) {
                 $this->mail->From = config('mail.from.mail');
-                $this->mail->FromName = config('mail.from.name');
+                
+                if (!empty(config('mail.from.name'))) {
+                    $this->mail->FromName = config('mail.from.name');
+                }
             }
         }
         
@@ -107,7 +113,7 @@ namespace Core\Providers\Mailer {
             } catch (Exception $e) {
                 $this->error = $e->getMessage();
                 
-                throw new \Exception("[MAILER] {$e->getMessage()}", (is_int($e->getCode()) ? $e->getCode() : 500));
+                throw $e;
             }
         }
         

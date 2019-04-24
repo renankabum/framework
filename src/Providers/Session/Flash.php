@@ -26,7 +26,7 @@ namespace Core\Providers\Session {
         /**
          * @var string
          */
-        protected $key = 'vc_flash';
+        protected $key = '__flash__';
         
         /***
          * @var array

@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 26/02/2019 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Contracts {
@@ -26,7 +26,7 @@ namespace Core\Contracts {
         /**
          * @var string
          */
-        protected $table;
+        protected $table = '';
         
         /**
          * @var string
@@ -36,7 +36,7 @@ namespace Core\Contracts {
         /**
          * @var string
          */
-        protected $collation = 'utf8mb4_general_ci';
+        protected $collation = 'utf8_general_ci';
         
         /**
          * @var string|bool

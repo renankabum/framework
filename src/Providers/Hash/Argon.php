@@ -7,12 +7,12 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Hash {
     
-    use Core\Contracts\Hasher;
+    use RuntimeException;
     
     /**
      * Class Argon
@@ -20,7 +20,7 @@ namespace Core\Providers\Hash {
      * @package Core\Providers\Hash
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class Argon extends Hasher
+    class Argon extends Hash
     {
         /**
          * @var int
@@ -38,8 +38,6 @@ namespace Core\Providers\Hash {
         protected $threads = 2;
         
         /**
-         * Cria um novo password hash usando um algoritmo forte de hash de via única
-         *
          * @param string $value
          * @param array $options
          *
@@ -47,17 +45,27 @@ namespace Core\Providers\Hash {
          */
         public function make($value, array $options = [])
         {
-            $hashedValue = password_hash($value, PASSWORD_ARGON2I, [
+            $hashedValue = password_hash($value, $this->algorithm(), [
                 'memory_cost' => $this->memory($options),
                 'time_cost' => $this->time($options),
                 'threads' => $this->threads($options),
             ]);
             
             if ($hashedValue === false) {
-                return false;
+                throw new RuntimeException(
+                    "Argon2 hashing not supported"
+                );
             }
             
             return $hashedValue;
+        }
+        
+        /**
+         * @return int
+         */
+        protected function algorithm()
+        {
+            return PASSWORD_ARGON2I;
         }
         
         /**
@@ -97,9 +105,6 @@ namespace Core\Providers\Hash {
         }
         
         /**
-         * Esta função verifica se o hash fornecido implementa o algoritmo e as opções indicadas.
-         * Se não, ela assume que o hash precisa ser regenerado.
-         *
          * @param string $hashedValue
          * @param array $options
          *

@@ -7,12 +7,10 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Hash {
-    
-    use Core\Contracts\Hasher;
     
     /**
      * Class Bcrypt
@@ -20,7 +18,7 @@ namespace Core\Providers\Hash {
      * @package Core\Providers\Hash
      * @author  Vagner Cardoso <vagnercardosoweb@gmail.com>
      */
-    class Bcrypt extends Hasher
+    class Bcrypt extends Hash
     {
         /**
          * @var int
@@ -28,8 +26,6 @@ namespace Core\Providers\Hash {
         protected $rounds = 10;
         
         /**
-         * Cria um novo password hash usando um algoritmo forte de hash de via única
-         *
          * @param string $value
          * @param array $options
          *
@@ -42,30 +38,15 @@ namespace Core\Providers\Hash {
             ]);
             
             if ($hashedValue === false) {
-                return false;
+                throw new \RuntimeException(
+                    "Bcrypt hashing not supported"
+                );
             }
             
             return $hashedValue;
         }
         
         /**
-         * Extraia o valor de custo da matriz de opções.
-         *
-         * @param array $options
-         *
-         * @return int
-         */
-        protected function cost(array $options)
-        {
-            return isset($options['rounds'])
-                ? $options['rounds']
-                : $this->rounds;
-        }
-        
-        /**
-         * Esta função verifica se o hash fornecido implementa o algoritmo e as opções indicadas.
-         * Se não, ela assume que o hash precisa ser regenerado.
-         *
          * @param string $hashedValue
          * @param array $options
          *
@@ -79,8 +60,6 @@ namespace Core\Providers\Hash {
         }
         
         /**
-         * Defina o fator de trabalho de senha padrão.
-         *
          * @param int $rounds
          *
          * @return $this
@@ -90,6 +69,18 @@ namespace Core\Providers\Hash {
             $this->rounds = (int) $rounds;
             
             return $this;
+        }
+        
+        /**
+         * @param array $options
+         *
+         * @return int
+         */
+        protected function cost(array $options)
+        {
+            return isset($options['rounds'])
+                ? $options['rounds']
+                : $this->rounds;
         }
     }
 }

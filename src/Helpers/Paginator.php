@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 28/04/2017 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Helpers {
@@ -56,16 +56,6 @@ namespace Core\Helpers {
         protected $currentPage;
         
         /**
-         * @var string
-         */
-        protected $firts;
-        
-        /**
-         * @var string
-         */
-        protected $last;
-        
-        /**
          * Paginator constructor.
          *
          * @param int $total
@@ -103,13 +93,14 @@ namespace Core\Helpers {
             // Verifica o total de página passadas
             if (($this->total > 0 && $this->offset > 0) && ($this->offset >= $this->total)) {
                 header("Location: {$this->link}{$this->pages}", true, 301);
+                exit;
             }
         }
         
         /**
          * @return int
          */
-        public function total()
+        public function getTotal()
         {
             return $this->total;
         }
@@ -117,7 +108,7 @@ namespace Core\Helpers {
         /**
          * @return int
          */
-        public function limit()
+        public function getLimit()
         {
             return $this->limit;
         }
@@ -125,7 +116,7 @@ namespace Core\Helpers {
         /**
          * @return int
          */
-        public function offset()
+        public function getOffset()
         {
             return $this->offset;
         }
@@ -133,7 +124,7 @@ namespace Core\Helpers {
         /**
          * @return int
          */
-        public function pages()
+        public function getPages()
         {
             return $this->pages;
         }
@@ -141,7 +132,7 @@ namespace Core\Helpers {
         /**
          * @return int
          */
-        public function range()
+        public function getRange()
         {
             return $this->range;
         }
@@ -149,112 +140,223 @@ namespace Core\Helpers {
         /**
          * @return string
          */
-        public function link()
+        public function getLink()
         {
             return $this->link;
         }
         
         /**
-         * @return string
+         * @return bool|int
          */
-        public function currentPage()
+        public function getPrevPage()
         {
-            return $this->currentPage;
-        }
-        
-        /**
-         * @return bool
-         */
-        public function prev()
-        {
-            return ($this->currentPage > 1);
-        }
-        
-        /**
-         * @return bool
-         */
-        public function next()
-        {
-            return ($this->pages > $this->currentPage);
-        }
-        
-        /**
-         * Seta primeira página e ultima página
-         *
-         * @param string $first
-         * @param string $last
-         *
-         * @return $this
-         */
-        public function setFirstAndLast($first, $last)
-        {
-            $this->firts = (string) $first;
-            $this->last = (string) $last;
-            
-            return $this;
-        }
-        
-        /**
-         * Gera o html da paginação
-         *
-         * @param string $classCss
-         *
-         * @return string
-         */
-        public function links($classCss = 'pagination')
-        {
-            $html = '';
-            
-            // Cria html da paginação
-            if ($this->total > $this->limit) {
-                $html .= "<ul class='{$classCss}'>";
-                $html .= $this->before();
-                $html .= "<li class='active'><a href='javascript:void(0);'>{$this->currentPage}</a></li>";
-                $html .= $this->after();
-                $html .= "</ul>";
+            if ($this->currentPage > 1) {
+                $prevPage = (int) ($this->currentPage - 1);
+                
+                return "{$this->link}{$prevPage}";
             }
             
-            return $html;
+            return false;
         }
         
         /**
-         * @return string
+         * @return bool|int
          */
-        protected function before()
+        public function getNextPage()
         {
-            $html = '';
-            
-            if ($this->firts) {
-                $html .= "<li><a href='{$this->link}1'>{$this->firts}</a></li>";
+            if ($this->pages > $this->currentPage) {
+                $nextPage = (int) ($this->currentPage + 1);
+                
+                return "{$this->link}{$nextPage}";
             }
             
-            for ($i = $this->currentPage - $this->range; $i <= $this->currentPage - 1; $i++) {
-                if ($i >= 1) {
-                    $html .= "<li><a href='{$this->link}{$i}'>{$i}</a></li>";
+            return false;
+        }
+        
+        /**
+         * @return int
+         */
+        public function getCurrentPage()
+        {
+            return (int) $this->currentPage;
+        }
+        
+        /**
+         * @return bool|int
+         */
+        public function getCurrentPageLastItem()
+        {
+            if (!$first = $this->getCurrentPageFirstItem()) {
+                return false;
+            }
+            
+            $last = $first + $this->limit - 1;
+            
+            return $last > $this->total
+                ? (int) $this->total
+                : (int) $last;
+        }
+        
+        /**
+         * @return bool|int
+         */
+        public function getCurrentPageFirstItem()
+        {
+            $first = ($this->currentPage - 1) * $this->limit + 1;
+            
+            return $first <= $this->total
+                ? (int) $first
+                : false;
+        }
+        
+        /**
+         * @return array
+         */
+        public function getItems()
+        {
+            $items = [];
+            
+            if ($this->getPages() <= 1) {
+                return $items;
+            }
+            
+            if ($this->getPages() <= $this->getRange()) {
+                for ($i = 1; $i <= $this->getPages(); $i++) {
+                    $items[] = $this->createItem($i, $this->getCurrentPage() == $i);
+                }
+            } else {
+                $startPage = ($this->getCurrentPage() - $this->getRange()) > 0 ? $this->getCurrentPage() - $this->getRange() : 1;
+                $endPage = ($this->getCurrentPage() + $this->getRange()) < $this->getPages() ? $this->getCurrentPage() + $this->getRange() : $this->getPages();
+                
+                if ($startPage > 1) {
+                    $items[] = $this->createItem(1, $this->getCurrentPage() == 1);
+                    $items[] = $this->createItem();
+                }
+                
+                for ($i = $startPage; $i <= $endPage; $i++) {
+                    $items[] = $this->createItem($i, $this->getCurrentPage() == $i);
+                }
+                
+                if ($endPage < $this->getPages()) {
+                    $items[] = $this->createItem();
+                    $items[] = $this->createItem($this->getPages(), $this->getCurrentPage() == $this->getPages());
                 }
             }
             
+            return $items;
+        }
+        
+        /**
+         * @param string $class
+         *
+         * @return string
+         */
+        public function toHtml($class = 'pagination')
+        {
+            if ($this->getPages() <= 1) {
+                return false;
+            }
+            
+            $html = "<ul class='{$class}'>";
+            
+            foreach ($this->getItems() as $item) {
+                if (!empty($item['pattern'])) {
+                    $html .= sprintf(
+                        "<li class='%s-item %s'><a href='%s'>%s</a></li>",
+                        htmlspecialchars($class),
+                        htmlspecialchars($item['current'] ? 'active' : ''),
+                        htmlspecialchars($item['pattern']),
+                        htmlspecialchars($item['number'])
+                    );
+                } else {
+                    $html .= sprintf(
+                        "<li class='%s-item ellipsis'><span>%s</span></li>",
+                        htmlspecialchars($class),
+                        htmlspecialchars($item['number'])
+                    );
+                }
+            }
+            
+            $html .= "</ul>";
+            
             return $html;
+        }
+        
+        /**
+         * @return array
+         */
+        public function toArray()
+        {
+            return [
+                'total' => $this->getTotal(),
+                'limit' => $this->getLimit(),
+                'offset' => $this->getOffset(),
+                'pages' => $this->getPages(),
+                'range' => $this->getRange(),
+                'prevPage' => $this->getPrevPage(),
+                'nextPage' => $this->getNextPage(),
+                'currentPage' => $this->getCurrentPage(),
+                'currentPageFirstItem' => $this->getCurrentPageFirstItem(),
+                'currentPageLastItem' => $this->getCurrentPageLastItem(),
+                'items' => $this->getItems(),
+            ];
         }
         
         /**
          * @return string
          */
-        protected function after()
+        public function toJson()
         {
-            $html = '';
-            
-            for ($i = $this->currentPage + 1; $i <= $this->currentPage + $this->range; $i++) {
-                if ($i <= $this->pages) {
-                    $html .= "<li><a href='{$this->link}{$i}'>{$i}</a></li>";
-                }
+            return json_encode(
+                $this->toArray()
+            );
+        }
+        
+        /**
+         * @param int $number
+         * @param bool $current
+         *
+         * @return array
+         */
+        protected function createItem($number = 0, $current = false)
+        {
+            return [
+                'number' => ($number > 0 ? $number : '...'),
+                'pattern' => ($number > 0 ? "{$this->getLink()}{$number}" : false),
+                'current' => $current,
+            ];
+        }
+        
+        /**
+         * @param string $method
+         * @param array $arguments
+         *
+         * @return string
+         */
+        public function __call($method, $arguments)
+        {
+            switch ($method) {
+                case 'links':
+                    return $this->toHtml(...$arguments);
+                    break;
+                
+                case 'prev':
+                    return $this->getPrevPage();
+                    break;
+                
+                case 'next':
+                    return $this->getNextPage();
+                    break;
+                
+                default:
+                    if (method_exists($this, 'get'.ucfirst($method))) {
+                        return $this->{'get'.ucfirst($method)}(...$arguments);
+                    }
+                    
+                    throw new \BadMethodCallException(
+                        sprintf("Call to undefined method %s::%s()", get_class(), $method), E_ERROR
+                    );
             }
-            
-            if ($this->last) {
-                $html .= "<li><a href='{$this->link}{$this->pages}'>{$this->last}</a></li>";
-            }
-            
-            return $html;
         }
     }
 }

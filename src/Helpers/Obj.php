@@ -93,7 +93,9 @@ namespace Core\Helpers {
          */
         public static function toJson($object)
         {
-            return json(self::toArray($object));
+            return json_encode(
+                self::toArray($object)
+            );
         }
         
         /**

@@ -7,7 +7,7 @@
  * @author    Vagner Cardoso <vagnercardosoweb@gmail.com>
  * @license   MIT
  *
- * @copyright 14/03/2019 Vagner Cardoso
+ * @copyright 15/04/2019 Vagner Cardoso
  */
 
 namespace Core\Providers\Database {
@@ -54,6 +54,11 @@ namespace Core\Providers\Database {
          * @var string
          */
         protected $primaryKey;
+        
+        /**
+         * @var int
+         */
+        protected $fetchStyle;
         
         /**
          * @var array
@@ -118,7 +123,7 @@ namespace Core\Providers\Database {
         {
             // Resultado
             $result = $this->execute()->fetch(
-                $this->db->isFetchObject() ? get_called_class() : null
+                $this->fetchStyle ?: ($this->db->isFetchObject() ? get_called_class() : null)
             );
             
             if (!empty($result)) {
@@ -146,7 +151,9 @@ namespace Core\Providers\Database {
             }
             
             // Executa a query e percorre os resultados
-            $results = $this->execute()->fetchAll($fetchStyle, $fetchArgument);
+            $results = $this->execute()->fetchAll(
+                ($this->fetchStyle ?: $fetchStyle), $fetchArgument
+            );
             
             if (!empty($results)) {
                 foreach ($results as $index => $row) {
@@ -184,7 +191,7 @@ namespace Core\Providers\Database {
                 }
             }
             
-            // Verifica where
+            // Verificação se existe condições (where)
             if (empty($this->where)) {
                 return false;
             }
@@ -209,36 +216,15 @@ namespace Core\Providers\Database {
          */
         public function count($column = '1')
         {
-            // Executa a query
-            $statement = $this->select("COUNT({$column}) AS count")
+            $this->db->setAttribute(
+                \PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_OBJ
+            );
+            
+            return (int) $this->select("COUNT({$column}) AS count")
                 ->order('count DESC')->limit(1)
-                ->execute();
-            
-            if ($this->db->isFetchObject()) {
-                $result = $statement->fetchObject(get_called_class());
-                
-                return (int) $result->count;
-            } else {
-                $result = $statement->fetch();
-                
-                return (int) $result['count'];
-            }
-        }
-        
-        /**
-         * @param string $driver mysql|dblib|sqlsrv
-         *
-         * @return $this|string
-         */
-        public function driver($driver = null)
-        {
-            if (!empty($driver)) {
-                $this->driver = (string) $driver;
-                
-                return $this;
-            }
-            
-            return $this->driver;
+                ->execute()
+                ->fetch()
+                ->count;
         }
         
         /**
@@ -420,6 +406,7 @@ namespace Core\Providers\Database {
                     foreach ($reflection->getProperties() as $property) {
                         $notReset = (!empty($this->notReset) ? $this->notReset : []);
                         if (!in_array($property->getName(), array_merge([
+                            'fetchStyle',
                             'driver',
                             'table',
                             'primaryKey',
@@ -526,16 +513,16 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @param array $data
+         * @param array|object $data
          * @param bool $validate
          *
          * @return $this
          */
-        public function data(array $data, $validate = true)
+        public function data($data, $validate = true)
         {
             // Junta os dados
             $data = array_merge(
-                $this->db->toData($this->data), $data
+                $this->db->toData($this->data), $this->db->toData($data)
             );
             
             // Verifica se existe o método para
@@ -711,7 +698,7 @@ namespace Core\Providers\Database {
             $value = filter_var($value, FILTER_DEFAULT);
             
             // Caso seja object
-            if ($this->db->getAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE) === \PDO::FETCH_OBJ) {
+            if ($this->db->isFetchObject()) {
                 if (!is_object($this->data)) {
                     $this->data = new \stdClass();
                 }
@@ -769,9 +756,9 @@ namespace Core\Providers\Database {
         {
             if (is_object($this->data)) {
                 unset($this->data->{$name});
+            } else {
+                unset($this->data[$name]);
             }
-            
-            unset($this->data[$name]);
         }
     }
 }
