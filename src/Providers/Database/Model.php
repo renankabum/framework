@@ -56,6 +56,11 @@ namespace Core\Providers\Database {
         protected $primaryKey;
         
         /**
+         * @var int
+         */
+        protected $fetchStyle;
+        
+        /**
          * @var array
          */
         protected $select = [];
@@ -118,7 +123,7 @@ namespace Core\Providers\Database {
         {
             // Resultado
             $result = $this->execute()->fetch(
-                $this->db->isFetchObject() ? get_called_class() : null
+                $this->fetchStyle ?: ($this->db->isFetchObject() ? get_called_class() : null)
             );
             
             if (!empty($result)) {
@@ -146,7 +151,9 @@ namespace Core\Providers\Database {
             }
             
             // Executa a query e percorre os resultados
-            $results = $this->execute()->fetchAll($fetchStyle, $fetchArgument);
+            $results = $this->execute()->fetchAll(
+                ($this->fetchStyle ?: $fetchStyle), $fetchArgument
+            );
             
             if (!empty($results)) {
                 foreach ($results as $index => $row) {
@@ -182,6 +189,11 @@ namespace Core\Providers\Database {
                         'pkbyid' => filter_var($id, FILTER_DEFAULT),
                     ]);
                 }
+            }
+            
+            // Verificação se existe condições (where)
+            if (empty($this->where)) {
+                return false;
             }
             
             return $this->fetch();
@@ -394,6 +406,7 @@ namespace Core\Providers\Database {
                     foreach ($reflection->getProperties() as $property) {
                         $notReset = (!empty($this->notReset) ? $this->notReset : []);
                         if (!in_array($property->getName(), array_merge([
+                            'fetchStyle',
                             'driver',
                             'table',
                             'primaryKey',
@@ -500,16 +513,16 @@ namespace Core\Providers\Database {
         }
         
         /**
-         * @param array $data
+         * @param array|object $data
          * @param bool $validate
          *
          * @return $this
          */
-        public function data(array $data, $validate = true)
+        public function data($data, $validate = true)
         {
             // Junta os dados
             $data = array_merge(
-                $this->db->toData($this->data), $data
+                $this->db->toData($this->data), $this->db->toData($data)
             );
             
             // Verifica se existe o método para
