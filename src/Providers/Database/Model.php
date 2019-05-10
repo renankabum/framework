@@ -705,9 +705,6 @@ namespace Core\Providers\Database {
          */
         public function __set($name, $value)
         {
-            // Valor protegido
-            $value = filter_var($value, FILTER_DEFAULT);
-            
             // Caso seja object
             if ($this->db->isFetchObject($this->fetchStyle)) {
                 if (!is_object($this->data)) {
