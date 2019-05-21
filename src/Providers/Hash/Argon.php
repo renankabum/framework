@@ -75,9 +75,7 @@ namespace Core\Providers\Hash {
          */
         protected function memory(array $options)
         {
-            return isset($options['memory'])
-                ? $options['memory']
-                : $this->memory;
+            return isset($options['memory']) ? $options['memory'] : $this->memory;
         }
         
         /**
@@ -87,9 +85,7 @@ namespace Core\Providers\Hash {
          */
         protected function time(array $options)
         {
-            return isset($options['time'])
-                ? $options['time']
-                : $this->time;
+            return isset($options['time']) ? $options['time'] : $this->time;
         }
         
         /**
@@ -99,9 +95,7 @@ namespace Core\Providers\Hash {
          */
         protected function threads(array $options)
         {
-            return isset($options['threads'])
-                ? $options['threads']
-                : $this->threads;
+            return isset($options['threads']) ? $options['threads'] : $this->threads;
         }
         
         /**

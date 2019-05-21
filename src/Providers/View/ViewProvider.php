@@ -23,7 +23,9 @@ namespace Core\Providers\View {
     class ViewProvider extends Provider
     {
         /**
-         * Registra o serviço de template.
+         * Registra o serviço de template
+         *
+         * @return void
          */
         public function register()
         {

@@ -185,11 +185,12 @@ namespace Core\Providers\Database {
         
         /**
          * @param int $id
+         * @param int $fetchStyle
          *
          * @return bool|array|$this
          * @throws \Exception
          */
-        public function fetchById($id)
+        public function fetchById($id, $fetchStyle = null)
         {
             // Verifica id
             if (!empty($id)) {
@@ -198,7 +199,7 @@ namespace Core\Providers\Database {
                         "AND {$this->table}.{$this->primaryKey} IN (%s)", implode(',', $id)
                     ));
                     
-                    return $this->fetchAll();
+                    return $this->fetchAll($fetchStyle);
                 } else {
                     $this->where("AND {$this->table}.{$this->primaryKey} = :pkbyid", [
                         'pkbyid' => filter_var($id, FILTER_DEFAULT),
@@ -211,7 +212,7 @@ namespace Core\Providers\Database {
                 return false;
             }
             
-            return $this->fetch();
+            return $this->fetch($fetchStyle);
         }
         
         /**
@@ -705,9 +706,6 @@ namespace Core\Providers\Database {
          */
         public function __set($name, $value)
         {
-            // Valor protegido
-            $value = filter_var($value, FILTER_DEFAULT);
-            
             // Caso seja object
             if ($this->db->isFetchObject($this->fetchStyle)) {
                 if (!is_object($this->data)) {

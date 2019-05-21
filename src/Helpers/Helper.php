@@ -439,7 +439,6 @@ namespace Core\Helpers {
         public static function convertBytes($bytes, $precision = 2)
         {
             $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-            
             $bytes = max($bytes, 0);
             $base = floor(log($bytes) / log(1024));
             $base = min($base, count($units) - 1);

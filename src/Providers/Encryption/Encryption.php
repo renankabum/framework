@@ -78,7 +78,10 @@ namespace Core\Providers\Encryption {
                 $iv = openssl_random_pseudo_bytes($ivlenght);
             }
             
-            $value = \openssl_encrypt($serialize ? serialize($value) : $value, $this->cipher, $this->key, 0, $iv);
+            $value = \openssl_encrypt(
+                $serialize ? serialize($value) : $value,
+                $this->cipher, $this->key, 0, $iv
+            );
             
             if ($value === false) {
                 return false;
@@ -128,13 +131,17 @@ namespace Core\Providers\Encryption {
         {
             $payload = $this->getJsonPayload($payload);
             $iv = base64_decode($payload['iv']);
-            $decrypted = \openssl_decrypt($payload['value'], $this->cipher, $this->key, 0, $iv);
+            $decrypted = \openssl_decrypt(
+                $payload['value'], $this->cipher, $this->key, 0, $iv
+            );
             
             if ($decrypted === false) {
                 return false;
             }
             
-            return $unserialize ? unserialize($decrypted) : $decrypted;
+            return $unserialize
+                ? unserialize($decrypted)
+                : $decrypted;
         }
         
         /**
@@ -176,10 +183,12 @@ namespace Core\Providers\Encryption {
         protected function validMac(array $payload)
         {
             $bytes = (PHP_MAJOR_VERSION > 5) ? random_bytes(16) : openssl_random_pseudo_bytes(16);
-            
             $calculated = $this->calculateMac($payload, $bytes);
             
-            return hash_equals(hash_hmac('sha256', $payload['mac'], $bytes, true), $calculated);
+            return hash_equals(
+                hash_hmac('sha256', $payload['mac'], $bytes, true),
+                $calculated
+            );
         }
         
         /**
@@ -190,7 +199,9 @@ namespace Core\Providers\Encryption {
          */
         protected function calculateMac($payload, $bytes)
         {
-            return hash_hmac('sha256', $this->hash($payload['iv'], $payload['value']), $bytes, true);
+            return hash_hmac(
+                'sha256', $this->hash($payload['iv'], $payload['value']), $bytes, true
+            );
         }
         
         /**

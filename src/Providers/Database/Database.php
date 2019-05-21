@@ -439,7 +439,9 @@ namespace Core\Providers\Database {
                 
                 // Filtra os valores dos bindings
                 foreach ($bindings as $key => $value) {
-                    $this->bindings[$key] = filter_var($value, FILTER_DEFAULT);
+                    $this->bindings[$key] = filter_var(
+                        $value, FILTER_DEFAULT
+                    );
                 }
             }
         }

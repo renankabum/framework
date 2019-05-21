@@ -93,7 +93,8 @@ namespace Core\Contracts {
          */
         public function __get($name)
         {
-            return App::getInstance()->resolve($name);
+            return App::getInstance()
+                ->resolve($name);
         }
     }
 }
