@@ -11,7 +11,7 @@
  */
 
 namespace Core\Providers\Database {
-    
+
     /**
      * Class Statement
      *
@@ -24,7 +24,7 @@ namespace Core\Providers\Database {
          * @var Database
          */
         protected $db;
-        
+
         /**
          * Statement constructor.
          *
@@ -34,7 +34,7 @@ namespace Core\Providers\Database {
         {
             $this->db = $db;
         }
-        
+
         /**
          * @return Database
          */
@@ -42,7 +42,7 @@ namespace Core\Providers\Database {
         {
             return $this->db;
         }
-        
+
         /**
          * @param string $name
          *
@@ -52,21 +52,21 @@ namespace Core\Providers\Database {
         {
             return $this->db->lastInsertId($name);
         }
-        
+
         /**
          * @return int
          */
         public function rowCount()
         {
             $rowCount = parent::rowCount();
-            
+
             if ($rowCount === -1) {
                 $rowCount = count($this->fetchAll());
             }
-            
+
             return $rowCount;
         }
-        
+
         /**
          * @param mixed $fetchStyle
          * @param int $cursorOrientation
@@ -76,22 +76,22 @@ namespace Core\Providers\Database {
          */
         public function fetch($fetchStyle = null, $cursorOrientation = \PDO::FETCH_ORI_NEXT, $cursorOffset = 0)
         {
-            if ($this->db->isFetchObject()) {
+            if ($this->db->isFetchObject($fetchStyle) || class_exists($fetchStyle)) {
                 // Verifica o fetchStyle
                 if (empty($fetchStyle) || !class_exists($fetchStyle)) {
                     $fetchStyle = 'stdClass';
                 }
-                
+
                 // Object style
                 return parent::fetchObject($fetchStyle);
             }
-            
+
             // Default style
             return parent::fetch(
                 $fetchStyle, $cursorOrientation, $cursorOffset
             );
         }
-        
+
         /**
          * @param int $fetchStyle
          * @param mixed $fetchArgument
@@ -106,11 +106,11 @@ namespace Core\Providers\Database {
                     \PDO::ATTR_DEFAULT_FETCH_MODE
                 );
             }
-            
+
             if ($fetchStyle === \PDO::FETCH_CLASS && !class_exists($fetchArgument)) {
                 $fetchArgument = 'stdClass';
             }
-            
+
             if ($fetchStyle === \PDO::FETCH_BOTH) {
                 return parent::fetchAll();
             } else if ($fetchStyle === \PDO::FETCH_CLASS) {
