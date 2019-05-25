@@ -25,7 +25,7 @@ namespace Core\Helpers {
          *
          * @param array $array
          *
-         * @return bool|\stdClass
+         * @return \stdClass
          */
         public static function fromArray(array $array)
         {

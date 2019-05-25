@@ -13,6 +13,7 @@
 namespace Core\Providers\Database {
 
     use Core\App;
+    use Core\Helpers\Obj;
 
     /**
      * Class Model
@@ -106,7 +107,7 @@ namespace Core\Providers\Database {
         protected $offset = null;
 
         /**
-         * @var array
+         * @var array|object
          */
         protected $data = [];
 
@@ -441,6 +442,30 @@ namespace Core\Providers\Database {
             }
 
             return $this;
+        }
+
+        /**
+         * @return array
+         */
+        public function toArray()
+        {
+            if (is_object($this->data)) {
+                return Obj::toArray($this->data);
+            }
+
+            return $this->data;
+        }
+
+        /**
+         * @return object
+         */
+        public function toObject()
+        {
+            if (is_array($this->data)) {
+                return Obj::fromArray($this->data);
+            }
+
+            return $this->data;
         }
 
         /**
