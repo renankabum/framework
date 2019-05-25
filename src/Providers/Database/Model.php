@@ -11,9 +11,10 @@
  */
 
 namespace Core\Providers\Database {
-    
+
     use Core\App;
-    
+    use Core\Helpers\Obj;
+
     /**
      * Class Model
      *
@@ -44,77 +45,77 @@ namespace Core\Providers\Database {
          * @var string
          */
         protected $driver;
-        
+
         /**
          * @var string
          */
         protected $table;
-        
+
         /**
          * @var string
          */
         protected $primaryKey;
-        
+
         /**
          * @var int
          */
         protected $fetchStyle;
-        
+
         /**
          * @var array
          */
         protected $select = [];
-        
+
         /**
          * @var array
          */
         protected $join = [];
-        
+
         /**
          * @var array
          */
         protected $where = [];
-        
+
         /**
          * @var array
          */
         protected $group = [];
-        
+
         /**
          * @var array
          */
         protected $having = [];
-        
+
         /**
          * @var array
          */
         protected $order = [];
-        
+
         /**
          * @var array
          */
         protected $bindings = [];
-        
+
         /**
          * @var int
          */
         protected $limit = null;
-        
+
         /**
          * @var int
          */
         protected $offset = null;
-        
+
         /**
-         * @var array
+         * @var array|object
          */
         protected $data = [];
-        
+
         /**
          * @var array
          */
         protected $reset = [];
-        
+
         /**
          * @param int $fetchStyle
          *
@@ -127,25 +128,25 @@ namespace Core\Providers\Database {
             if (empty($fetchStyle) && $this->fetchStyle) {
                 $fetchStyle = $this->fetchStyle;
             }
-            
+
             if ($this->db->isFetchObject($fetchStyle)) {
                 $fetchStyle = get_called_class();
             }
-            
+
             // Executa a query e percorre os resultados
             $result = $this->execute()->fetch(
                 $fetchStyle
             );
-            
+
             if (!empty($result)) {
                 if (method_exists($this, '_row')) {
                     $this->_row($result);
                 }
             }
-            
+
             return $result;
         }
-        
+
         /**
          * @param int $fetchStyle
          * @param mixed $fetchArgument
@@ -159,30 +160,30 @@ namespace Core\Providers\Database {
             if (empty($fetchStyle) && $this->fetchStyle) {
                 $fetchStyle = $this->fetchStyle;
             }
-            
+
             if ($this->db->isFetchObject($fetchStyle)) {
                 $fetchStyle = \PDO::FETCH_CLASS;
                 $fetchArgument = get_called_class();
             }
-            
+
             // Executa a query e percorre os resultados
             $results = $this->execute()->fetchAll(
                 $fetchStyle, $fetchArgument
             );
-            
+
             if (!empty($results)) {
                 foreach ($results as $index => $row) {
                     if (method_exists($this, '_row')) {
                         $this->_row($row);
                     }
-                    
+
                     $results[$index] = $row;
                 }
             }
-            
+
             return $results;
         }
-        
+
         /**
          * @param int $id
          * @param int $fetchStyle
@@ -198,7 +199,7 @@ namespace Core\Providers\Database {
                     $this->where(sprintf(
                         "AND {$this->table}.{$this->primaryKey} IN (%s)", implode(',', $id)
                     ));
-                    
+
                     return $this->fetchAll($fetchStyle);
                 } else {
                     $this->where("AND {$this->table}.{$this->primaryKey} = :pkbyid", [
@@ -206,15 +207,15 @@ namespace Core\Providers\Database {
                     ]);
                 }
             }
-            
+
             // Verificação se existe condições (where)
             if (empty($this->where)) {
                 return false;
             }
-            
+
             return $this->fetch($fetchStyle);
         }
-        
+
         /**
          * @return int
          * @throws \Exception
@@ -223,7 +224,7 @@ namespace Core\Providers\Database {
         {
             return $this->execute()->rowCount();
         }
-        
+
         /**
          * @param string $column
          *
@@ -238,7 +239,7 @@ namespace Core\Providers\Database {
                 ->fetch(\PDO::FETCH_OBJ)
                 ->count;
         }
-        
+
         /**
          * @param string $table
          *
@@ -248,13 +249,13 @@ namespace Core\Providers\Database {
         {
             if (!empty($table)) {
                 $this->table = (string) $table;
-                
+
                 return $this;
             }
-            
+
             return $this->table;
         }
-        
+
         /**
          * @param mixed $select
          *
@@ -265,12 +266,12 @@ namespace Core\Providers\Database {
             if (is_string($select)) {
                 $select = explode(',', $select);
             }
-            
+
             $this->mountProperty($select, 'select');
-            
+
             return $this;
         }
-        
+
         /**
          * @param string|array|null $join
          *
@@ -279,10 +280,10 @@ namespace Core\Providers\Database {
         public function join($join)
         {
             $this->mountProperty($join, 'join');
-            
+
             return $this;
         }
-        
+
         /**
          * @param string|array $where
          * @param string|array $bindings
@@ -293,10 +294,10 @@ namespace Core\Providers\Database {
         {
             $this->mountProperty($where, 'where');
             $this->bindings($bindings);
-            
+
             return $this;
         }
-        
+
         /**
          * @param string|array|null $group
          *
@@ -305,10 +306,10 @@ namespace Core\Providers\Database {
         public function group($group)
         {
             $this->mountProperty($group, 'group');
-            
+
             return $this;
         }
-        
+
         /**
          * @param string|array|null $having
          *
@@ -317,10 +318,10 @@ namespace Core\Providers\Database {
         public function having($having)
         {
             $this->mountProperty($having, 'having');
-            
+
             return $this;
         }
-        
+
         /**
          * @param string|array|null $order
          *
@@ -329,10 +330,10 @@ namespace Core\Providers\Database {
         public function order($order)
         {
             $this->mountProperty($order, 'order');
-            
+
             return $this;
         }
-        
+
         /**
          * @param int $limit
          * @param int $offset
@@ -344,16 +345,16 @@ namespace Core\Providers\Database {
             // Limit
             if (is_numeric($limit)) {
                 $this->limit = (int) $limit;
-                
+
                 // Offset
                 if (is_numeric($offset)) {
                     $this->offset($offset);
                 }
             }
-            
+
             return $this;
         }
-        
+
         /**
          * @param int $offset
          *
@@ -362,10 +363,10 @@ namespace Core\Providers\Database {
         public function offset($offset)
         {
             $this->offset = (int) $offset;
-            
+
             return $this;
         }
-        
+
         /**
          * @param string|array $bindings
          *
@@ -375,7 +376,7 @@ namespace Core\Providers\Database {
         {
             return $this->bindings($bindings);
         }
-        
+
         /**
          * @param string|array $bindings
          *
@@ -392,7 +393,7 @@ namespace Core\Providers\Database {
                         parse_str($bindings, $bindings);
                     }
                 }
-                
+
                 // Filtra os valores dos bindings
                 foreach ($bindings as $key => $value) {
                     $this->bindings[$key] = filter_var(
@@ -400,10 +401,10 @@ namespace Core\Providers\Database {
                     );
                 }
             }
-            
+
             return $this;
         }
-        
+
         /**
          * @param string|array|null $properties
          *
@@ -414,7 +415,7 @@ namespace Core\Providers\Database {
             if (empty($properties)) {
                 try {
                     $reflection = new \ReflectionClass(get_class($this));
-                    
+
                     foreach ($reflection->getProperties() as $property) {
                         $notReset = (!empty($this->notReset) ? $this->notReset : []);
                         if (!in_array($property->getName(), array_merge([
@@ -434,15 +435,39 @@ namespace Core\Providers\Database {
                 if (is_string($properties)) {
                     $properties = explode(',', $properties);
                 }
-                
+
                 foreach ($properties as $property) {
                     $this->reset[trim($property)] = true;
                 }
             }
-            
+
             return $this;
         }
-        
+
+        /**
+         * @return array
+         */
+        public function toArray()
+        {
+            if (is_object($this->data)) {
+                return Obj::toArray($this->data);
+            }
+
+            return $this->data;
+        }
+
+        /**
+         * @return object
+         */
+        public function toObject()
+        {
+            if (is_array($this->data)) {
+                return Obj::fromArray($this->data);
+            }
+
+            return $this->data;
+        }
+
         /**
          * @return array|$this
          * @throws \Exception
@@ -454,28 +479,28 @@ namespace Core\Providers\Database {
             $bindings = $this->bindings;
             $primaryValue = $this->getPrimaryValue();
             $this->reset();
-            
+
             // Se existir o registro, atualiza
             if ($this->fetchById($primaryValue)) {
                 if (!empty($primaryValue)) {
                     $where = "{$this->table}.{$this->getPrimaryKey()} = :pkid {$where}";
                     $bindings['pkid'] = $primaryValue;
                 }
-                
+
                 return $this->db->update(
                     $this->table, $this->data,
                     "WHERE ".$this->normalizeProperty($where),
                     $bindings
                 );
             }
-            
+
             // Adiciona registro
             $this->db->create($this->table, $this->data);
             $primaryValue = $this->db->lastInsertId();
-            
+
             // Limpa propriedades
             $this->clearProperties();
-            
+
             // Caso tenha a chave única criada
             // retorne os dados referente a ela
             if (!empty($primaryValue)) {
@@ -483,10 +508,10 @@ namespace Core\Providers\Database {
                     ->where($where, $bindings)
                     ->fetchById($primaryValue);
             }
-            
+
             return $this->data;
         }
-        
+
         /**
          * @return array|bool|$this
          * @throws \Exception
@@ -498,32 +523,32 @@ namespace Core\Providers\Database {
                 $this->where[] = "AND {$this->table}.{$this->getPrimaryKey()} = :pkid ";
                 $this->bindings['pkid'] = $this->getPrimaryValue();
             }
-            
+
             // Monta where
             if (is_array($this->where)) {
                 $this->where = $this->normalizeProperty(
                     implode(' ', $this->where)
                 );
             }
-            
+
             if (empty($this->where)) {
                 throw new \InvalidArgumentException(
                     sprintf("[delete] `%s::where()` is empty.", get_called_class()),
                     E_USER_ERROR
                 );
             }
-            
+
             // Remove
             $deleted = $this->db->delete(
                 $this->table, "WHERE {$this->where}", $this->bindings
             );
-            
+
             // Limpa propriedades
             $this->clearProperties();
-            
+
             return $deleted;
         }
-        
+
         /**
          * @param array|object $data
          * @param bool $validate
@@ -536,22 +561,22 @@ namespace Core\Providers\Database {
             $data = array_merge(
                 $this->db->toData($this->data), $this->db->toData($data)
             );
-            
+
             // Verifica se existe o método para
             // tratar os dados antes de usa-los
             if (method_exists($this, '_data')) {
                 $this->_data($data, $validate);
             }
-            
+
             // Remonta a propriedade já com os
             // dados devidamente tratados
             foreach ($data as $key => $value) {
                 $this->{$key} = $value;
             }
-            
+
             return $this;
         }
-        
+
         /**
          * @return \Core\Providers\Database\Statement
          * @throws \Exception
@@ -564,67 +589,67 @@ namespace Core\Providers\Database {
                     E_USER_ERROR
                 );
             }
-            
+
             // Verifica se o método está criado e executa
             if (method_exists($this, '_conditions')) {
                 $this->_conditions();
             }
-            
+
             // Select
             $this->select = implode(', ', ($this->select ?: ["{$this->table}.*"]));
             $sql = "SELECT {$this->select} FROM {$this->table} ";
-            
+
             // Join
             if (!empty($this->join) && is_array($this->join)) {
                 $this->join = implode(' ', $this->join);
                 $sql .= "{$this->join} ";
             }
-            
+
             // Where
             if (!empty($this->where) && is_array($this->where)) {
                 $this->where = $this->normalizeProperty(implode(' ', $this->where));
                 $sql .= "WHERE {$this->where} ";
             }
-            
+
             // Group BY
             if (!empty($this->group) && is_array($this->group)) {
                 $this->group = implode(', ', $this->group);
                 $sql .= "GROUP BY {$this->group} ";
             }
-            
+
             // Having
             if (!empty($this->having) && is_array($this->having)) {
                 $this->having = $this->normalizeProperty(implode(' ', $this->having));
                 $sql .= "HAVING {$this->having} ";
             }
-            
+
             // Order By
             if (!empty($this->order) && is_array($this->order)) {
                 $this->order = implode(', ', $this->order);
                 $sql .= "ORDER BY {$this->order} ";
             }
-            
+
             // Limit & Offset
             if (!empty($this->limit) && is_int($this->limit)) {
                 $this->offset = $this->offset ?: '0';
-                
+
                 if (in_array(config('database.default'), ['dblib', 'sqlsrv'])) {
                     $sql .= "OFFSET {$this->offset} ROWS FETCH NEXT {$this->limit} ROWS ONLY";
                 } else {
                     $sql .= "LIMIT {$this->limit} OFFSET {$this->offset}";
                 }
             }
-            
+
             // Executa a query
             $statement = $this->db->driver($this->driver)
                 ->query($sql, $this->bindings);
-            
+
             // Limpa as propriedades da classe
             $this->clearProperties();
-            
+
             return $statement;
         }
-        
+
         /**
          * @return string
          */
@@ -632,7 +657,7 @@ namespace Core\Providers\Database {
         {
             return $this->primaryKey;
         }
-        
+
         /**
          * @return string
          */
@@ -640,7 +665,7 @@ namespace Core\Providers\Database {
         {
             return $this->{$this->getPrimaryKey()};
         }
-        
+
         /**
          * Monta os array
          *
@@ -652,14 +677,14 @@ namespace Core\Providers\Database {
             if (!is_array($this->{$property})) {
                 $this->{$property} = [];
             }
-            
+
             foreach ((array) $conditions as $condition) {
                 if (!empty($condition) && !array_search($condition, $this->{$property})) {
                     $this->{$property}[] = trim((string) $condition);
                 }
             }
         }
-        
+
         /**
          * Remove caracteres no começo da string
          *
@@ -670,18 +695,18 @@ namespace Core\Providers\Database {
         protected function normalizeProperty($string)
         {
             $chars = ['and', 'AND', 'or', 'OR'];
-            
+
             foreach ($chars as $char) {
                 $len = mb_strlen($char);
-                
+
                 if (mb_substr($string, 0, $len) === (string) $char) {
                     $string = trim(mb_substr($string, $len));
                 }
             }
-            
+
             return $string;
         }
-        
+
         /**
          * Limpa as propriedade da classe para
          * uma nova consulta
@@ -699,7 +724,7 @@ namespace Core\Providers\Database {
             $this->offset = null;
             $this->reset = [];
         }
-        
+
         /**
          * @param string $name
          * @param mixed $value
@@ -711,18 +736,18 @@ namespace Core\Providers\Database {
                 if (!is_object($this->data)) {
                     $this->data = new \stdClass();
                 }
-                
+
                 $this->data->{$name} = $value;
             } else {
                 // Caso seja array
                 if (!is_array($this->data)) {
                     $this->data = [];
                 }
-                
+
                 $this->data[$name] = $value;
             }
         }
-        
+
         /**
          * @param string $name
          *
@@ -734,16 +759,16 @@ namespace Core\Providers\Database {
             if (is_array($this->data) && !empty($this->data[$name])) {
                 return $this->data[$name];
             }
-            
+
             // object
             if (is_object($this->data) && isset($this->data->{$name})) {
                 return $this->data->{$name};
             }
-            
+
             return App::getInstance()
                 ->resolve($name);
         }
-        
+
         /**
          * @param string $name
          *
@@ -754,10 +779,10 @@ namespace Core\Providers\Database {
             if (is_object($this->data)) {
                 return isset($this->data->{$name});
             }
-            
+
             return isset($this->data[$name]);
         }
-        
+
         /**
          * @param string $name
          */
