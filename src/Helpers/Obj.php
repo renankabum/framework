@@ -11,7 +11,7 @@
  */
 
 namespace Core\Helpers {
-    
+
     /**
      * Class Obj
      *
@@ -30,11 +30,11 @@ namespace Core\Helpers {
         public static function fromArray(array $array)
         {
             $object = new \stdClass();
-            
+
             if (empty($array)) {
                 return $object;
             }
-            
+
             foreach ($array as $key => $value) {
                 if (is_array($value)) {
                     $object->{$key} = self::fromArray($value);
@@ -42,10 +42,10 @@ namespace Core\Helpers {
                     $object->{$key} = isset($value) ? $value : '';
                 }
             }
-            
+
             return $object;
         }
-        
+
         /**
          * Adiciona elemento em um objeto
          *
@@ -57,7 +57,7 @@ namespace Core\Helpers {
         {
             return self::fromArray($array);
         }
-        
+
         /**
          * Recupera o valor do objeto
          *
@@ -72,7 +72,7 @@ namespace Core\Helpers {
             if (empty($name)) {
                 return $object;
             }
-            
+
             foreach (explode('.', $name) as $segment) {
                 if (is_object($object) || isset($object->{$segment})) {
                     $object = $object->{$segment};
@@ -80,10 +80,10 @@ namespace Core\Helpers {
                     return $default;
                 }
             }
-            
+
             return $object;
         }
-        
+
         /**
          * Converte um objeto em um json
          *
@@ -97,7 +97,7 @@ namespace Core\Helpers {
                 self::toArray($object)
             );
         }
-        
+
         /**
          * Converte um objeto em um array
          *
@@ -108,12 +108,8 @@ namespace Core\Helpers {
         public static function toArray($object)
         {
             $array = [];
-            
+
             foreach ($object as $key => $value) {
-                if (!isset($value) && trim($value) == '') {
-                    return $array;
-                }
-                
                 if (is_object($value) || is_array($value)) {
                     $array[$key] = self::toArray($value);
                 } else {
@@ -122,7 +118,7 @@ namespace Core\Helpers {
                     }
                 }
             }
-            
+
             return $array;
         }
     }
