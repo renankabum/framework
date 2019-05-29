@@ -98,18 +98,21 @@ namespace Core\Providers\Database {
                 // Muda a classe statement
                 $this->setAttribute(\PDO::ATTR_STATEMENT_CLASS, [Statement::class, [$this]]);
                 
-                // Usa a datanase
-                $this->exec("USE {$connection['database']};");
-                
-                // Verifica se tem o CHARSET e COLLATE configurado
-                if (!empty($connection['charset'])) {
-                    $exec = "SET NAMES {$connection['charset']}";
+                // Verifica suporte de comandos SQL para alguns drivers
+                if (!in_array($driver, ['pgsql'])) {
+                    // Usa a database
+                    $this->exec("USE {$connection['database']};");
                     
-                    if (!empty($connection['collation'])) {
-                        $exec .= " COLLATE {$connection['collation']}";
+                    // Verifica se tem o CHARSET e COLLATE configurado
+                    if (!empty($connection['charset'])) {
+                        $exec = "SET NAMES {$connection['charset']}";
+                        
+                        if (!empty($connection['collation'])) {
+                            $exec .= " COLLATE {$connection['collation']}";
+                        }
+                        
+                        $this->exec($exec);
                     }
-                    
-                    $this->exec($exec);
                 }
             } catch (\PDOException $e) {
                 throw $e;
